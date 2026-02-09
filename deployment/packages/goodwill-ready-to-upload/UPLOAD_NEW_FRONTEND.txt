@@ -1,0 +1,76 @@
+# ✅ Frontend Rebuilt with Correct API URL!
+
+## What Was Fixed
+
+The frontend has been rebuilt with the correct API URL:
+- **Old:** `http://localhost:8000/api` ❌
+- **New:** `http://cpdemo.blueinctech.com/api` ✅
+
+## What to Do Now
+
+### Step 1: Upload New Frontend Files
+
+The `goodwill-ready-to-upload` folder now contains the **correctly built frontend**.
+
+**Upload these files to your domain root:**
+- `index.html` (NEW - with correct API URL)
+- `assets/` folder (NEW - updated JavaScript)
+- `.htaccess` (FIXED - simpler version)
+- `vite.svg`
+
+**Replace all existing files** in your domain root with these new ones.
+
+### Step 2: Verify
+
+1. **Clear browser cache:**
+   - Press `Ctrl + Shift + Delete`
+   - Or hard refresh: `Ctrl + F5`
+
+2. **Test login:**
+   - Go to: http://cpdemo.blueinctech.com
+   - Try to login
+   - Check browser console (F12) → Network tab
+   - Should see requests to: `http://cpdemo.blueinctech.com/api/login` ✅
+   - NOT `http://localhost:8000/api/login` ❌
+
+### Step 3: If Still Getting 500 Error
+
+If you see a 500 error from the API, check:
+
+1. **Backend .env file exists:**
+   - Go to `backend/` folder
+   - Check if `.env` file exists
+   - If not, copy `.env.example` to `.env`
+
+2. **Backend .env is configured:**
+   ```env
+   APP_URL=http://cpdemo.blueinctech.com/api
+   FRONTEND_URL=http://cpdemo.blueinctech.com
+   DB_CONNECTION=mysql
+   DB_HOST=localhost
+   DB_DATABASE=your_database
+   DB_USERNAME=your_username
+   DB_PASSWORD=your_password
+   SESSION_SECURE_COOKIE=false
+   SANCTUM_STATEFUL_DOMAINS=cpdemo.blueinctech.com
+   ```
+
+3. **Test API directly:**
+   - Open: http://cpdemo.blueinctech.com/api/health
+   - Should return: `{"status":"ok"}`
+   - If 500 error, backend needs configuration
+
+4. **File permissions:**
+   - `backend/storage/` → 775
+   - `backend/bootstrap/cache/` → 775
+
+## Summary
+
+✅ Frontend rebuilt with: `http://cpdemo.blueinctech.com/api`
+✅ New files ready in `goodwill-ready-to-upload/`
+✅ Upload new frontend files to replace old ones
+✅ Clear browser cache
+✅ Test login
+
+The frontend will now connect to the correct API!
+

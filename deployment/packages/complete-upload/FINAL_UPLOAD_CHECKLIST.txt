@@ -1,0 +1,44 @@
+═══════════════════════════════════════════════════════════════
+  FINAL UPLOAD CHECKLIST
+═══════════════════════════════════════════════════════════════
+
+BEFORE UPLOADING:
+☐ All files are in this folder
+☐ You have your database credentials ready
+
+AFTER UPLOADING:
+☐ Files extracted to domain root
+☐ Visit: http://cpdemo.blueinctech.com/setup.php
+☐ Configure database in backend/.env
+☐ Set permissions on storage folders
+☐ Test: http://cpdemo.blueinctech.com/api/test.php
+
+VERIFY THESE FILES EXIST:
+☐ api/index.php
+☐ api/.htaccess
+☐ api/test.php
+☐ backend/.env
+☐ backend/vendor/autoload.php
+☐ backend/storage/ (folder)
+☐ index.html
+☐ .htaccess
+☐ setup.php
+
+QUICK TEST:
+1. Visit: http://cpdemo.blueinctech.com
+   → Should show login page
+
+2. Visit: http://cpdemo.blueinctech.com/api/test.php
+   → Should show diagnostic results
+
+3. Visit: http://cpdemo.blueinctech.com/setup.php
+   → Should show setup wizard
+
+IF ALL TESTS PASS:
+→ Your app is ready! Try logging in.
+
+═══════════════════════════════════════════════════════════════
+
+
+
+

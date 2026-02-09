@@ -1,0 +1,205 @@
+# VPS Deployment Guide - Empty Domain Folder
+
+## Understanding VPS Structure
+
+On a VPS, you have full control. The empty folder you see is your domain's root directory. You need to:
+
+1. Create the directory structure
+2. Upload files
+3. Configure web server (Nginx/Apache)
+
+## Step-by-Step Setup
+
+### STEP 1: Create Directory Structure
+
+In your File Manager, you're currently in an empty folder (your domain root). You need to create this structure:
+
+```
+your-domain-folder/          (where you are now - currently empty)
+│
+├── public/                  ← CREATE THIS (frontend files go here)
+│   ├── index.html
+│   ├── .htaccess
+│   └── assets/
+│
+└── backend/                 ← CREATE THIS (backend files go here)
+    ├── app/
+    ├── public/
+    ├── storage/
+    └── ... (all backend files)
+```
+
+### STEP 2: Create Folders
+
+**In File Manager:**
+
+1. **Create `public/` folder:**
+   - Click "New Folder" or "Create Directory"
+   - Name it: `public`
+   - This will be your website root
+
+2. **Create `backend/` folder:**
+   - Click "New Folder" again
+   - Name it: `backend`
+   - This will contain your API
+
+### STEP 3: Upload Files
+
+**Frontend Files:**
+1. Navigate into the `public/` folder you just created
+2. Upload ALL files from `frontend-dist/` folder:
+   - index.html
+   - .htaccess
+   - assets/ (entire folder)
+   - vite.svg
+
+**Backend Files:**
+1. Navigate into the `backend/` folder you just created
+2. Upload ALL files from `backend/` folder:
+   - app/
+   - public/
+   - storage/
+   - vendor/
+   - .env.example
+   - artisan
+   - composer.json
+   - ... (all other files)
+
+### STEP 4: Configure Web Server
+
+After uploading files, you need to configure your web server to point to the correct directories.
+
+#### For Apache (.htaccess method)
+
+If Apache is installed, create/update `.htaccess` in your domain root:
+
+```apache
+# Redirect all requests to public/ folder
+RewriteEngine On
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ /public/$1 [L]
+```
+
+#### For Nginx (Server Configuration)
+
+You'll need to edit Nginx configuration. Contact your VPS provider or check if you have access to:
+
+- `/etc/nginx/sites-available/your-domain`
+- Or Nginx configuration in your control panel
+
+**Nginx configuration should point to:**
+```
+root /path/to/your-domain/public;
+```
+
+### STEP 5: Make Backend Accessible
+
+You have two options:
+
+**Option A: Subdomain (Recommended)**
+1. Create subdomain `api.yourdomain.com`
+2. Point it to `backend/public/` directory
+3. Configure in your DNS and web server
+
+**Option B: Subdirectory**
+1. Copy contents of `backend/public/` folder
+2. Create `api/` folder inside `public/`
+3. Paste the contents there
+4. Your API will be at: `yourdomain.com/api/`
+
+## Alternative: Simple Structure (Easier)
+
+If the above seems complex, use this simpler structure:
+
+```
+your-domain-folder/          (where you are now)
+│
+├── index.html               ← Upload frontend files directly here
+├── .htaccess
+├── assets/
+│
+└── api/                     ← Create this folder
+    └── (upload backend/public/ contents here)
+```
+
+**Steps:**
+1. Upload ALL files from `frontend-dist/` directly to your domain folder
+2. Create `api/` folder
+3. Upload contents of `backend/public/` to `api/` folder
+4. Upload rest of `backend/` files to a `backend/` folder (outside web root if possible)
+
+## What You Need to Know
+
+### Web Server Configuration
+
+Your VPS needs to know:
+- **Document Root:** Where your website files are
+- **PHP Handler:** How to process PHP files
+- **Directory Index:** Which file to load (usually `index.html`)
+
+### Common VPS Control Panels
+
+- **cPanel/WHM:** Has File Manager and web server config
+- **Plesk:** Has File Manager and web server config
+- **DirectAdmin:** Has File Manager
+- **No Panel (Command Line):** You'll need SSH access
+
+### If You Have SSH Access
+
+If you have terminal/SSH access, these commands help:
+
+```bash
+# Navigate to your domain folder
+cd /path/to/your-domain
+
+# Create directories
+mkdir -p public backend
+
+# Set permissions
+chmod -R 755 public
+chmod -R 755 backend
+chmod -R 775 backend/storage
+chmod -R 775 backend/bootstrap/cache
+```
+
+## Quick Setup Checklist
+
+- [ ] Created `public/` folder in domain root
+- [ ] Created `backend/` folder in domain root
+- [ ] Uploaded frontend files to `public/`
+- [ ] Uploaded backend files to `backend/`
+- [ ] Configured web server to point to `public/`
+- [ ] Made backend accessible (subdomain or subdirectory)
+- [ ] Created `.env` file in `backend/` (copy from `.env.example`)
+- [ ] Set up database
+- [ ] Configured PHP (8.2+)
+
+## Need Help?
+
+1. **Check your VPS control panel:**
+   - Look for "Web Server" or "Apache/Nginx" settings
+   - Look for "Document Root" or "Website Root" configuration
+
+2. **Contact your VPS provider:**
+   - Ask: "How do I configure the document root for my domain?"
+   - Ask: "Where should I upload my website files?"
+
+3. **Check if you have:**
+   - cPanel/WHM access
+   - Plesk access
+   - DirectAdmin access
+   - Or just SSH/command line
+
+## Important Notes
+
+- **Security:** Backend files should NOT be directly web-accessible
+- **Only `backend/public/` should be accessible via web**
+- **Rest of backend should be outside web root or protected**
+
+If you can share:
+- What control panel you're using (if any)
+- Whether you have SSH/terminal access
+- What web server is installed (Apache/Nginx)
+
+I can provide more specific instructions!
+

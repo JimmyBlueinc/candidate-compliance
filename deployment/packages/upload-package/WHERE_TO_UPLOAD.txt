@@ -1,0 +1,132 @@
+# WHERE TO UPLOAD FILES - IMPORTANT!
+
+## Understanding Shared Hosting Structure
+
+When you log into your File Manager (cPanel, Plesk, etc.), you'll see something like:
+
+```
+/home/username/
+├── public_html/          ← THIS IS WHERE YOUR WEBSITE FILES GO
+│   └── (currently empty)
+├── backend/              ← Backend goes here (create this folder)
+└── other folders...
+```
+
+## Step-by-Step Upload Instructions
+
+### STEP 1: Upload Frontend Files
+
+**Location:** `public_html/` folder (this is your website root)
+
+1. Open File Manager in cPanel/Plesk
+2. Navigate to `public_html/` folder (or `www/` or `htdocs/` - depends on your host)
+3. This folder should be EMPTY or have default files
+4. Upload ALL files from `frontend-dist/` folder:
+   - index.html
+   - assets/ folder
+   - vite.svg
+   - .htaccess file
+5. After upload, `public_html/` should contain:
+   ```
+   public_html/
+   ├── index.html
+   ├── .htaccess
+   ├── assets/
+   │   ├── index-*.css
+   │   └── index-*.js
+   └── vite.svg
+   ```
+
+### STEP 2: Upload Backend Files
+
+**Location:** Create `backend/` folder OUTSIDE of `public_html/`
+
+1. In File Manager, go UP one level from `public_html/`
+2. You should see your home directory (usually `/home/username/`)
+3. Create a new folder called `backend`
+4. Upload ALL files from `backend/` folder to this new `backend/` folder
+5. Structure should be:
+   ```
+   /home/username/
+   ├── public_html/          (frontend files here)
+   └── backend/              (backend files here)
+       ├── app/
+       ├── public/
+       ├── storage/
+       ├── vendor/
+       └── ... (all other files)
+   ```
+
+## Common File Manager Locations
+
+Different hosts use different names for the web root:
+
+- **cPanel:** `public_html/`
+- **Plesk:** `httpdocs/` or `public_html/`
+- **Some hosts:** `www/` or `htdocs/`
+- **Some hosts:** Root domain folder directly
+
+**How to find it:**
+- Look for a folder that says "public" or "www" or "httpdocs"
+- This is usually the folder your domain points to
+- If unsure, check your hosting documentation or contact support
+
+## Making Backend Accessible
+
+After uploading backend, you need to make it accessible via web:
+
+### Option A: Subdomain (Recommended)
+1. Create subdomain `api.yourdomain.com` in cPanel
+2. Point it to `backend/public/` directory
+3. Your API will be at: `https://api.yourdomain.com/api/`
+
+### Option B: Subdirectory
+1. Copy contents of `backend/public/` folder
+2. Create `api/` folder inside `public_html/`
+3. Paste the contents there
+4. Your API will be at: `https://yourdomain.com/api/`
+
+## Verification Checklist
+
+After uploading:
+
+- [ ] Frontend files are in `public_html/` (or equivalent)
+- [ ] `index.html` is in the root of `public_html/`
+- [ ] `.htaccess` file is in `public_html/`
+- [ ] Backend files are in `backend/` folder (outside public_html)
+- [ ] Backend `public/` folder is accessible via web (subdomain or subdirectory)
+- [ ] `.env` file created in `backend/` folder (copy from `.env.example`)
+
+## Troubleshooting
+
+### "Domain shows empty"
+- Make sure you uploaded to `public_html/` (not a subfolder)
+- Check if your host uses a different name (www, httpdocs, etc.)
+- Verify files are actually uploaded (check file count)
+
+### "Files uploaded but website doesn't load"
+- Check if `index.html` is in the root
+- Verify `.htaccess` file is uploaded
+- Check file permissions (should be 644 for files, 755 for folders)
+
+### "Backend not accessible"
+- Verify backend `public/` folder is web-accessible
+- Check if subdomain is pointing to correct directory
+- Verify `.env` file is configured correctly
+
+## Need Help?
+
+1. Check your hosting provider's documentation for:
+   - Where website files should be uploaded
+   - How to create subdomains
+   - File Manager location
+
+2. Contact your hosting support and ask:
+   - "Where should I upload my website files?"
+   - "How do I create a subdomain for my API?"
+
+3. Common hosting providers:
+   - **cPanel:** Usually `public_html/`
+   - **Plesk:** Usually `httpdocs/` or `public_html/`
+   - **WordPress hosting:** Usually `public_html/` or `www/`
+

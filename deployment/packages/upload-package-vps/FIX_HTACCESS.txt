@@ -1,0 +1,117 @@
+# Fix .htaccess Error - "without matching section"
+
+## The Problem
+
+You're getting: "Error 500 - .htaccess: without matching section"
+
+This means the `.htaccess` file has a syntax error.
+
+## The Fix
+
+### Option 1: Replace .htaccess File (Recommended)
+
+**In your File Manager:**
+
+1. **Navigate to your domain root folder**
+2. **Delete the existing `.htaccess` file** (or rename it to `.htaccess.old`)
+3. **Create a new `.htaccess` file** with this content:
+
+```apache
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    RewriteRule ^index\.html$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.html [L]
+</IfModule>
+```
+
+4. **Save the file**
+
+### Option 2: Minimal .htaccess (If Option 1 doesn't work)
+
+If you still get errors, try this minimal version:
+
+```apache
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.html$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+```
+
+### Option 3: Disable .htaccess Temporarily
+
+If you need to get the site working immediately:
+
+1. **Rename `.htaccess` to `.htaccess.disabled`**
+2. **Test your website** - it should load (but routing may not work)
+3. **Fix the .htaccess** using Option 1 or 2 above
+4. **Rename back to `.htaccess`**
+
+## For API Folder
+
+If you also need `.htaccess` in the `api/` folder, use this:
+
+```apache
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+```
+
+## Common Issues
+
+1. **Missing closing tag** - Make sure `<IfModule>` has matching `</IfModule>`
+2. **Incorrect module name** - Should be `mod_rewrite.c` not `mod_rewrite`
+3. **Extra characters** - Make sure there are no hidden characters
+
+## Verify .htaccess is Working
+
+After fixing:
+
+1. **Test frontend:** `https://yourdomain.com` - should load
+2. **Test a route:** `https://yourdomain.com/login` - should load (not 404)
+3. **Test API:** `https://yourdomain.com/api/health` - should return JSON
+
+## If Still Not Working
+
+1. **Check Apache error logs** in your hosting control panel
+2. **Verify mod_rewrite is enabled** (contact your host)
+3. **Try without .htaccess** first to confirm site works
+4. **Contact your hosting support** - they can check Apache configuration
+
+## Quick Fix Command (If you have SSH)
+
+```bash
+cd /path/to/your/domain
+cat > .htaccess << 'EOF'
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    RewriteRule ^index\.html$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.html [L]
+</IfModule>
+EOF
+chmod 644 .htaccess
+```
+

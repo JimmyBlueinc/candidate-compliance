@@ -1,0 +1,68 @@
+# Test Your API - Step by Step
+
+## Step 1: Test API Health Endpoint
+
+Open this URL in your browser:
+```
+http://cpdemo.blueinctech.com/api/health
+```
+
+**Expected Result:**
+```json
+{"status":"ok"}
+```
+
+**If you see this:** ✅ API is working! Problem is frontend API URL.
+
+**If you see 404:** ❌ API path wrong or `api/` folder missing
+**If you see 500:** ❌ Backend configuration issue
+
+## Step 2: Check What Frontend is Trying to Connect To
+
+1. **Open your website:** http://cpdemo.blueinctech.com
+2. **Press F12** to open browser DevTools
+3. **Go to Console tab**
+4. **Try to login**
+5. **Look at the error message** - it will show what URL it's trying
+
+**Common issues:**
+- Trying to connect to `http://localhost:8000/api` (wrong!)
+- Trying to connect to wrong domain
+- CORS error
+
+## Step 3: Most Likely Solution
+
+The frontend was built with the wrong API URL. You need to rebuild it:
+
+### On Your Local Machine:
+
+```bash
+cd frontend
+echo "VITE_API_BASE_URL=http://cpdemo.blueinctech.com/api" > .env.production
+npm run build
+```
+
+Then upload ALL files from `frontend/dist/` to replace files in your domain root.
+
+## Step 4: Verify Backend Configuration
+
+1. **Check `backend/.env` exists:**
+   - Should have `APP_URL=http://cpdemo.blueinctech.com/api`
+   - Should have `FRONTEND_URL=http://cpdemo.blueinctech.com`
+   - Should have database credentials
+
+2. **Check `api/index.php` exists:**
+   - Should be in `api/` folder
+   - Should have correct paths to backend
+
+3. **Check file permissions:**
+   - `backend/storage/` should be 775
+   - `backend/bootstrap/cache/` should be 775
+
+## Quick Checklist
+
+- [ ] Test: http://cpdemo.blueinctech.com/api/health returns `{"status":"ok"}`
+- [ ] `backend/.env` file exists and configured
+- [ ] `api/index.php` file exists
+- [ ] Frontend rebuilt with correct API URL: `http://cpdemo.blueinctech.com/api`
+- [ ] File permissions set correctly

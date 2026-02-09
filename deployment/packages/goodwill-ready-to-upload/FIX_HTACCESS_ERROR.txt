@@ -1,0 +1,89 @@
+# Fix .htaccess Error - "without matching section"
+
+## The Problem
+You're getting: "Error 500 - .htaccess: without matching section"
+
+This means Apache can't parse the .htaccess file.
+
+## Quick Fix
+
+### Option 1: Replace .htaccess (Recommended)
+
+**In your File Manager:**
+
+1. **Delete the existing `.htaccess` file** (or rename to `.htaccess.old`)
+2. **Create a new `.htaccess` file** with this SIMPLE content:
+
+```
+RewriteEngine On
+RewriteBase /
+
+RewriteRule ^index\.html$ - [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+```
+
+3. **Save the file**
+
+### Option 2: Even Simpler Version
+
+If Option 1 still doesn't work, try this minimal version:
+
+```
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.html$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+```
+
+### Option 3: Disable .htaccess Temporarily
+
+If you need the site working immediately:
+
+1. **Rename `.htaccess` to `.htaccess.disabled`**
+2. **Test your website** - it should load (but routing may not work)
+3. **Fix the .htaccess** using Option 1 or 2 above
+4. **Rename back to `.htaccess`**
+
+## Important Notes
+
+- **No `<IfModule>` tags** - Some Apache configurations don't like them
+- **Simple syntax** - Just the essential rewrite rules
+- **No comments** - Sometimes comments cause issues
+
+## After Fixing
+
+1. **Test frontend:** http://cpdemo.blueinctech.com
+2. **Test a route:** http://cpdemo.blueinctech.com/login
+   - Should load (not 404)
+3. **Test API:** http://cpdemo.blueinctech.com/api/health
+   - Should return JSON
+
+## If Still Not Working
+
+1. **Check if mod_rewrite is enabled** (contact your host)
+2. **Try without .htaccess** first to confirm site works
+3. **Check Apache error logs** in your hosting control panel
+4. **Contact hosting support** - they can check Apache configuration
+
+## Quick Fix Command (If you have SSH)
+
+```bash
+cd /path/to/your/domain
+cat > .htaccess << 'EOF'
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.html$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+EOF
+chmod 644 .htaccess
+```
+
+The simpler version should work on most Apache servers!
+

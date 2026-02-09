@@ -1,0 +1,75 @@
+# URGENT: Replace .htaccess Files
+
+## The Problem
+Your server is showing: "Invalid command '﻿RewriteEngine'"
+This is caused by a BOM (Byte Order Mark) character in the .htaccess file.
+
+## Quick Fix
+
+### Option 1: Delete and Re-upload (Easiest)
+1. Go to your file manager on the server
+2. DELETE the existing `.htaccess` file in the root
+3. DELETE the existing `api/.htaccess` file
+4. Upload the NEW `.htaccess` files from this package
+5. Make sure they're uploaded as plain text (not with BOM)
+
+### Option 2: Edit Directly on Server
+1. Open `.htaccess` in your file manager's editor
+2. Replace ALL content with this (root .htaccess):
+
+```
+RewriteEngine On
+RewriteBase /
+
+RewriteRule ^index\.html$ - [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+```
+
+3. Open `api/.htaccess` and replace with:
+
+```
+RewriteEngine On
+
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} (.+)/$
+RewriteRule ^ %1 [L,R=301]
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
+```
+
+### Option 3: Minimal Version (If still not working)
+
+**Root .htaccess:**
+```
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+```
+
+**api/.htaccess:**
+```
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
+```
+
+## Important Notes
+- Make sure there are NO invisible characters at the start
+- Save as plain text (UTF-8 without BOM)
+- No spaces before "RewriteEngine"
+- First line should start immediately with "RewriteEngine"
+
+## After Fixing
+1. Clear your browser cache
+2. Try accessing the site again
+3. Check if the error is gone
+

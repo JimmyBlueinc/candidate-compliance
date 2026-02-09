@@ -1,0 +1,29 @@
+# Render Free Tier Configuration
+# This file is optional - you can also configure via Render Dashboard
+
+services:
+  - type: web
+    name: goodwill-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_LEVEL
+        value: error
+      # Database will be set via Render Dashboard
+      # Storage (S3) will be set via Render Dashboard
+      # Mail will be set via Render Dashboard
+
+databases:
+  - name: goodwill-db
+    plan: free
+    databaseName: goodwill
+    user: goodwill_user
+

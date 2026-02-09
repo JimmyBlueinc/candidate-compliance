@@ -1,0 +1,108 @@
+# Fix Network Error - API Not Working
+
+## The Problem
+Frontend shows but login gives "Network Error" = API not accessible
+
+## Most Common Cause
+The frontend was built with the wrong API URL (probably `http://localhost:8000/api`)
+
+## Quick Fix: Rebuild Frontend
+
+### On Your Local Machine:
+
+1. **Open terminal in your project folder**
+
+2. **Navigate to frontend:**
+   ```bash
+   cd frontend
+   ```
+
+3. **Create production environment file:**
+   ```bash
+   echo "VITE_API_BASE_URL=http://cpdemo.blueinctech.com/api" > .env.production
+   ```
+
+4. **Build for production:**
+   ```bash
+   npm run build
+   ```
+
+5. **Upload new files:**
+   - Go to `frontend/dist/` folder
+   - Upload ALL files to your domain root (replace existing files)
+
+6. **Test login again**
+
+## Alternative: Check API is Working
+
+### Test 1: API Health Endpoint
+
+Open in browser:
+```
+http://cpdemo.blueinctech.com/api/health
+```
+
+**Should return:** `{"status":"ok"}`
+
+**If 404:** API folder is missing or wrong path
+**If 500:** Backend configuration issue
+
+### Test 2: Check API Folder
+
+In File Manager, verify:
+- `api/` folder exists
+- `api/index.php` exists
+- `api/.htaccess` exists (optional)
+
+### Test 3: Check Backend Configuration
+
+1. **Verify `backend/.env` exists:**
+   - Should have: `APP_URL=http://cpdemo.blueinctech.com/api`
+   - Should have: `FRONTEND_URL=http://cpdemo.blueinctech.com`
+   - Should have database credentials
+
+2. **If `.env` doesn't exist:**
+   - Copy `backend/.env.example` to `backend/.env`
+   - Edit with your values
+   - Run: `php artisan key:generate` (if terminal available)
+
+## If API Health Doesn't Work
+
+### Check api/index.php
+
+The file should have these paths:
+```php
+require __DIR__.'/../backend/vendor/autoload.php';
+$app = require_once __DIR__.'/../backend/bootstrap/app.php';
+```
+
+### Check File Permissions
+
+Via File Manager:
+- `backend/storage/` → Permissions → 775
+- `backend/bootstrap/cache/` → Permissions → 775
+
+Via Terminal:
+```bash
+chmod -R 775 backend/storage backend/bootstrap/cache
+```
+
+## Debug Steps
+
+1. **Open browser console (F12)**
+2. **Go to Network tab**
+3. **Try to login**
+4. **Look at failed request:**
+   - What URL is it trying?
+   - What error?
+   - Status code?
+
+This will tell you exactly what's wrong!
+
+## Summary
+
+**Most likely:** Frontend needs to be rebuilt with correct API URL: `http://cpdemo.blueinctech.com/api`
+**Second:** API folder missing files or backend not configured
+**Third:** Database connection issue
+
+Start with rebuilding the frontend - that fixes 90% of cases!

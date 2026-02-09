@@ -1,0 +1,132 @@
+# QUICK UPLOAD GUIDE - Your Domain File Manager is Empty (This is Normal!)
+
+## ✅ This is Normal!
+If your domain's file manager shows an empty folder, that's perfect! You're ready to upload.
+
+## 📁 Where to Upload (Step by Step)
+
+### FRONTEND FILES (Your Website)
+
+**Location:** The EMPTY folder you see (usually called `public_html/` or `www/` or `httpdocs/`)
+
+1. Open the File Manager in your hosting control panel
+2. You should see a folder like:
+   - `public_html/` (most common)
+   - `www/`
+   - `httpdocs/`
+   - Or just your domain name folder
+3. **This folder is currently EMPTY - that's correct!**
+4. Upload ALL files from the `frontend-dist/` folder into this empty folder
+5. After upload, you should see:
+   - index.html
+   - .htaccess
+   - assets/ (folder)
+   - vite.svg
+
+### BACKEND FILES (Your API)
+
+**Location:** Create a NEW folder OUTSIDE the website folder
+
+1. In File Manager, go UP one level from `public_html/`
+2. You'll see your home directory (usually `/home/username/` or similar)
+3. Create a NEW folder called `backend`
+4. Upload ALL files from the `backend/` folder into this new `backend/` folder
+5. After upload, you should see inside `backend/`:
+   - app/
+   - public/
+   - storage/
+   - vendor/
+   - .env.example
+   - artisan
+   - composer.json
+   - ... (many other files)
+
+## 🎯 Visual Structure
+
+After uploading, your file structure should look like this:
+
+```
+/home/username/                    (or similar)
+│
+├── public_html/                  ← Upload frontend-dist/ contents HERE
+│   ├── index.html                ← Your website homepage
+│   ├── .htaccess                ← Important for routing
+│   ├── assets/                  ← CSS and JS files
+│   └── vite.svg
+│
+└── backend/                      ← Create this folder, upload backend/ contents HERE
+    ├── app/
+    ├── public/                  ← This will be your API endpoint
+    ├── storage/
+    ├── vendor/
+    ├── .env.example
+    └── ... (all other backend files)
+```
+
+## ⚠️ IMPORTANT NOTES
+
+1. **Frontend goes in the EMPTY folder** - This is your website root
+2. **Backend goes OUTSIDE** - Create a new `backend/` folder at the same level as `public_html/`
+3. **Don't put backend inside public_html/** - This is a security risk
+4. **Upload ALL files** - Don't skip any files or folders
+
+## 🔍 How to Find Your Website Folder
+
+If you're not sure which folder is your website:
+
+1. **Look for these names:**
+   - `public_html/` (most common in cPanel)
+   - `www/`
+   - `httpdocs/` (Plesk)
+   - `htdocs/`
+   - Your domain name (e.g., `yourdomain.com/`)
+
+2. **Check your hosting documentation:**
+   - Most hosts have a "File Manager" guide
+   - Look for "Where to upload website files"
+
+3. **Contact support:**
+   - Ask: "Where should I upload my website files?"
+   - They'll tell you the exact folder name
+
+## ✅ After Upload Checklist
+
+- [ ] Frontend files uploaded to `public_html/` (or equivalent)
+- [ ] `index.html` is visible in the website folder
+- [ ] `.htaccess` file is in the website folder
+- [ ] Backend folder created outside `public_html/`
+- [ ] All backend files uploaded to `backend/` folder
+- [ ] `.env.example` is in `backend/` folder
+
+## 🚀 Next Steps After Upload
+
+1. **Create `.env` file:**
+   - In `backend/` folder, copy `.env.example` to `.env`
+   - Edit `.env` with your database credentials
+
+2. **Set up database:**
+   - Go to MySQL Databases in cPanel
+   - Create database and user
+   - Update `.env` with credentials
+
+3. **Make backend accessible:**
+   - Option A: Create subdomain `api.yourdomain.com` pointing to `backend/public/`
+   - Option B: Copy `backend/public/` contents to `public_html/api/`
+
+4. **Run setup commands** (if terminal/SSH available):
+   ```
+   cd backend
+   php artisan key:generate
+   php artisan migrate --force
+   php artisan storage:link
+   php artisan config:cache
+   ```
+
+## 🆘 Still Confused?
+
+1. **Take a screenshot** of your File Manager
+2. **Check your hosting provider's help docs** for "File Manager" or "Upload files"
+3. **Contact your hosting support** - they can guide you to the right folder
+
+Remember: The empty folder you see is PERFECT - that's where your website files go!
+

@@ -1,0 +1,59 @@
+# Quick Fix for Network Error
+
+## The Problem
+Frontend shows but login gives "Network Error" = API not accessible
+
+## Quick Test
+Open in browser: https://cpdemo.blueinctech.com/api/health
+
+**If you see `{"status":"ok"}`** → API works, problem is frontend API URL
+**If you see 404/500** → API not configured correctly
+
+## Most Likely Fix: Rebuild Frontend
+
+The frontend was built with wrong API URL. You need to rebuild it:
+
+### On Your Local Machine:
+
+1. Open terminal in your project
+2. Run:
+   ```bash
+   cd frontend
+   echo "VITE_API_BASE_URL=https://cpdemo.blueinctech.com/api" > .env.production
+   npm run build
+   ```
+
+3. Upload ALL files from `frontend/dist/` to your domain root (replace existing files)
+
+4. Test login again
+
+## Alternative: Check These
+
+1. **API folder exists?** Check if `api/` folder has `index.php`
+2. **Backend .env exists?** Check if `backend/.env` file exists
+3. **Database configured?** Check `backend/.env` has correct database credentials
+4. **Test API:** Try `https://cpdemo.blueinctech.com/api/health` in browser
+
+## If API Health Doesn't Work
+
+1. Check `api/index.php` - paths should be:
+   ```php
+   require __DIR__.'/../backend/vendor/autoload.php';
+   $app = require_once __DIR__.'/../backend/bootstrap/app.php';
+   ```
+
+2. Check `backend/.env` exists and has:
+   ```env
+   APP_URL=https://cpdemo.blueinctech.com/api
+   FRONTEND_URL=https://cpdemo.blueinctech.com
+   ```
+
+3. Set permissions:
+   ```bash
+   chmod -R 775 backend/storage backend/bootstrap/cache
+   ```
+
+## Still Not Working?
+
+Check browser console (F12) → Network tab → See what URL it's trying to connect to
+

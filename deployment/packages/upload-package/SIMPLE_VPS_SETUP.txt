@@ -1,0 +1,138 @@
+# SIMPLE VPS SETUP - Easiest Method
+
+## If Your Domain Folder is Completely Empty
+
+This is the SIMPLEST way to set up your VPS:
+
+### Structure
+
+```
+your-domain-folder/          (currently empty - this is where you are)
+│
+├── index.html               ← Upload frontend files here
+├── .htaccess
+├── assets/
+├── vite.svg
+│
+└── api/                     ← Create this folder for backend API
+    ├── index.php
+    ├── .htaccess
+    └── ... (backend/public/ contents)
+```
+
+## Step-by-Step
+
+### 1. Upload Frontend (Website)
+
+**Upload directly to your domain folder:**
+- Upload `index.html`
+- Upload `.htaccess`
+- Upload `assets/` folder (entire folder)
+- Upload `vite.svg`
+
+**Result:** Your domain folder should now have these files at the root level.
+
+### 2. Create API Folder
+
+1. In File Manager, click "New Folder"
+2. Name it: `api`
+3. This folder will contain your backend API
+
+### 3. Upload Backend API
+
+1. Navigate into the `api/` folder you just created
+2. Upload ALL contents from `backend/public/` folder:
+   - index.php
+   - .htaccess (if exists)
+   - robots.txt (if exists)
+   - favicon.ico (if exists)
+   - storage/ (if exists)
+
+### 4. Upload Backend Files (Outside Web Root)
+
+**Option A: If you can create folders outside domain folder:**
+1. Go UP one level from your domain folder
+2. Create `backend/` folder there
+3. Upload all `backend/` files (except `public/` folder)
+
+**Option B: If you must keep everything in domain folder:**
+1. Create `backend-private/` folder in your domain folder
+2. Upload all `backend/` files there
+3. This is less secure but works
+
+### 5. Configure .env
+
+1. In `backend/` or `backend-private/` folder
+2. Copy `.env.example` to `.env`
+3. Edit `.env` with your database credentials
+
+### 6. Set Up Database
+
+1. Create MySQL database in your VPS control panel
+2. Create database user
+3. Update `.env` file with credentials
+
+### 7. Configure Web Server
+
+**For Apache:**
+- Create `.htaccess` in domain root (already uploaded)
+- Ensure `mod_rewrite` is enabled
+
+**For Nginx:**
+- You'll need to configure server block
+- Point root to your domain folder
+- Configure PHP-FPM
+
+## File Locations Summary
+
+```
+Domain Folder (your-domain-folder/)
+│
+├── index.html              ← Frontend homepage
+├── .htaccess               ← Frontend routing
+├── assets/                 ← Frontend CSS/JS
+│
+├── api/                    ← Backend API endpoint
+│   └── (backend/public/ contents)
+│
+└── backend-private/        ← Backend files (if kept here)
+    ├── app/
+    ├── storage/
+    ├── vendor/
+    └── .env
+```
+
+## API Access
+
+After setup:
+- **Frontend:** `https://yourdomain.com`
+- **Backend API:** `https://yourdomain.com/api/`
+
+## Important: Update Backend Path
+
+Since backend is in a subdirectory, you may need to update `backend/public/index.php`:
+
+Change this line:
+```php
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
+```
+
+To (if backend is in `backend-private/`):
+```php
+require __DIR__.'/../../backend-private/vendor/autoload.php';
+$app = require_once __DIR__.'/../../backend-private/bootstrap/app.php';
+```
+
+## Quick Checklist
+
+- [ ] Frontend files uploaded to domain root
+- [ ] `api/` folder created
+- [ ] Backend `public/` contents uploaded to `api/`
+- [ ] Backend files uploaded (outside or in `backend-private/`)
+- [ ] `.env` file created and configured
+- [ ] Database created and configured
+- [ ] Web server configured
+
+This is the simplest setup for a VPS with an empty domain folder!
+

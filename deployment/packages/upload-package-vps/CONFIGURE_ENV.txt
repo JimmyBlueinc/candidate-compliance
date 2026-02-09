@@ -1,0 +1,167 @@
+# How to Configure .env File and Set Permissions
+
+## Your Domain
+http://cpdemo.blueinctech.com
+
+## Method 1: Web-Based Setup (Easiest)
+
+1. **Upload setup.php** to your domain root (if not already there)
+2. **Visit in browser:** `http://cpdemo.blueinctech.com/setup.php`
+3. **Fill in the form:**
+   - Frontend URL: `http://cpdemo.blueinctech.com`
+   - Backend API URL: `http://cpdemo.blueinctech.com/api`
+   - Database credentials
+4. **Click "Create .env File"**
+5. **DELETE setup.php** immediately after setup!
+
+## Method 2: Using setup.sh Script (Terminal/SSH)
+
+1. **Upload setup.sh** to your domain root
+2. **Make it executable:**
+   ```bash
+   chmod +x setup.sh
+   ```
+3. **Run it:**
+   ```bash
+   bash setup.sh
+   ```
+4. **Edit .env file:**
+   ```bash
+   nano backend/.env
+   ```
+   Or use File Manager to edit `backend/.env`
+
+## Method 3: Manual Configuration (File Manager)
+
+### Step 1: Create .env File
+
+1. **Navigate to `backend/` folder** in File Manager
+2. **Copy `.env.example`** to `.env`
+   - Right-click `.env.example` → Copy
+   - Right-click in folder → Paste
+   - Rename to `.env`
+
+### Step 2: Edit .env File
+
+**Open `.env` file** and update these values:
+
+```env
+APP_NAME="Goodwill Staffing Compliance Tracker"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=http://cpdemo.blueinctech.com/api          ← Change this
+APP_KEY=                                            ← Will be generated
+
+DB_CONNECTION=mysql
+DB_HOST=localhost                                   ← Usually localhost
+DB_PORT=3306
+DB_DATABASE=your_database_name                     ← Change this
+DB_USERNAME=your_db_username                        ← Change this
+DB_PASSWORD=your_db_password                        ← Change this
+
+FRONTEND_URL=http://cpdemo.blueinctech.com        ← Change this
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.yourdomain.com                      ← Your email server
+MAIL_PORT=587
+MAIL_USERNAME=your_email@yourdomain.com            ← Change this
+MAIL_PASSWORD=your_email_password                  ← Change this
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@yourdomain.com           ← Change this
+MAIL_FROM_NAME="Goodwill Staffing"
+
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_SECURE_COOKIE=false                        ← false for HTTP
+SESSION_SAME_SITE=lax
+
+SANCTUM_STATEFUL_DOMAINS=cpdemo.blueinctech.com   ← Change this
+```
+
+### Step 3: Generate Application Key
+
+**If you have terminal/SSH access:**
+```bash
+cd backend
+php artisan key:generate
+```
+
+**If you DON'T have terminal access:**
+- The setup.php script will generate it automatically
+- Or you can generate one online and paste it in `.env`
+
+### Step 4: Set Permissions
+
+**Via File Manager:**
+1. Right-click `backend/storage/` folder
+2. Select "Permissions" or "Change Permissions"
+3. Set to: **775** (or check: Read, Write, Execute for Owner & Group)
+4. Repeat for `backend/bootstrap/cache/` folder
+
+**Via Terminal/SSH:**
+```bash
+chmod -R 775 backend/storage
+chmod -R 775 backend/bootstrap/cache
+chmod 600 backend/.env
+```
+
+## Method 4: Quick Setup Script (All-in-One)
+
+If you have SSH access, run this single command:
+
+```bash
+cd /path/to/your/domain && \
+cp backend/.env.example backend/.env && \
+chmod -R 775 backend/storage backend/bootstrap/cache && \
+chmod 600 backend/.env && \
+cd backend && \
+php artisan key:generate --force && \
+php artisan storage:link && \
+php artisan config:cache
+```
+
+Then edit `backend/.env` with your database credentials.
+
+## Required Values to Change
+
+**MUST CHANGE:**
+- `APP_URL` - Your API URL: `http://cpdemo.blueinctech.com/api`
+- `FRONTEND_URL` - Your website URL: `http://cpdemo.blueinctech.com`
+- `DB_DATABASE` - Your database name
+- `DB_USERNAME` - Your database username
+- `DB_PASSWORD` - Your database password
+- `SANCTUM_STATEFUL_DOMAINS` - Your domain: `cpdemo.blueinctech.com`
+- `SESSION_SECURE_COOKIE` - Set to `false` for HTTP (not HTTPS)
+
+**OPTIONAL (but recommended):**
+- `MAIL_*` settings - For email functionality
+- `APP_KEY` - Will be auto-generated
+
+## Verify Configuration
+
+After setup, test:
+- **Frontend:** `http://cpdemo.blueinctech.com`
+- **Backend API:** `http://cpdemo.blueinctech.com/api/health`
+  - Should return: `{"status":"ok"}`
+
+## Security Notes
+
+- **.env file** should have permissions **600** (read/write for owner only)
+- **storage/** and **bootstrap/cache/** should have permissions **775**
+- **DELETE setup.php** after completing setup!
+- **Never commit .env** to version control
+
+## Troubleshooting
+
+**"Permission denied" errors:**
+- Check file permissions on `backend/storage/` and `backend/bootstrap/cache/`
+- Should be 775
+
+**"Database connection failed":**
+- Verify database credentials in `.env`
+- Check database exists and user has permissions
+- Verify `DB_HOST` is correct (usually `localhost`)
+
+**"APP_KEY not set":**
+- Run: `php artisan key:generate`
+- Or use setup.php which generates it automatically

@@ -1,0 +1,549 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Goodwill Brand Colors - CSS Variables for direct use */
+:root {
+  --goodwill-primary: #02646f;
+  --goodwill-secondary: #e5482e;
+  --goodwill-light: #eefbfe;
+  --goodwill-dark: #1a1a1a;
+  --goodwill-text: #1a1a1a;
+  --goodwill-text-muted: #4a5568;
+  --goodwill-border: #d1e7f0;
+}
+
+/* Dark mode variables */
+.dark {
+  --goodwill-primary: #0d9db3;
+  --goodwill-secondary: #ff6b5a;
+  --goodwill-light: #1a1a1a;
+  --goodwill-dark: #eefbfe;
+  --goodwill-text: #eefbfe;
+  --goodwill-text-muted: #a0aec0;
+  --goodwill-border: #2d3748;
+}
+
+/* Force background colors on body and root */
+body {
+  background-color: var(--goodwill-light);
+  color: var(--goodwill-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#root {
+  background-color: var(--goodwill-light);
+  min-height: 100vh;
+  transition: background-color 0.3s ease;
+}
+
+/* Ensure Tailwind classes are available - Force with !important */
+@layer utilities {
+  .bg-goodwill-primary {
+    background-color: var(--goodwill-primary) !important;
+  }
+  .bg-goodwill-secondary {
+    background-color: var(--goodwill-secondary) !important;
+  }
+  .bg-goodwill-light {
+    background-color: var(--goodwill-light) !important;
+  }
+  .text-goodwill-primary {
+    color: var(--goodwill-primary) !important;
+  }
+  .text-goodwill-secondary {
+    color: var(--goodwill-secondary) !important;
+  }
+  .text-goodwill-dark {
+    color: var(--goodwill-dark) !important;
+  }
+  .text-goodwill-text {
+    color: var(--goodwill-text) !important;
+  }
+  .text-goodwill-text-muted {
+    color: var(--goodwill-text-muted) !important;
+  }
+  .border-goodwill-primary {
+    border-color: var(--goodwill-primary) !important;
+  }
+  .border-goodwill-secondary {
+    border-color: var(--goodwill-secondary) !important;
+  }
+  .border-goodwill-border {
+    border-color: var(--goodwill-border) !important;
+  }
+  
+  /* Dark mode specific utilities */
+  .dark .bg-white {
+    background-color: #1a1a1a !important;
+  }
+  
+  .dark .text-gray-900,
+  .dark .text-gray-800,
+  .dark .text-gray-700 {
+    color: #eefbfe !important;
+  }
+  
+  .dark .border-gray-200,
+  .dark .border-gray-300 {
+    border-color: #2d3748 !important;
+  }
+  
+  /* Handle opacity variants */
+  .bg-goodwill-primary\/10 {
+    background-color: rgba(2, 100, 111, 0.1) !important;
+  }
+  .bg-goodwill-primary\/20 {
+    background-color: rgba(2, 100, 111, 0.2) !important;
+  }
+  .bg-goodwill-primary\/30 {
+    background-color: rgba(2, 100, 111, 0.3) !important;
+  }
+  .bg-goodwill-primary\/80 {
+    background-color: rgba(2, 100, 111, 0.8) !important;
+  }
+  .bg-goodwill-primary\/90 {
+    background-color: rgba(2, 100, 111, 0.9) !important;
+  }
+  .bg-goodwill-secondary\/10 {
+    background-color: rgba(229, 72, 46, 0.1) !important;
+  }
+  .bg-goodwill-secondary\/20 {
+    background-color: rgba(229, 72, 46, 0.2) !important;
+  }
+  .bg-goodwill-secondary\/30 {
+    background-color: rgba(229, 72, 46, 0.3) !important;
+  }
+  .bg-goodwill-secondary\/80 {
+    background-color: rgba(229, 72, 46, 0.8) !important;
+  }
+  .bg-goodwill-secondary\/90 {
+    background-color: rgba(229, 72, 46, 0.9) !important;
+  }
+  .bg-goodwill-light\/30 {
+    background-color: rgba(238, 251, 254, 0.3) !important;
+  }
+  .bg-goodwill-light\/50 {
+    background-color: rgba(238, 251, 254, 0.5) !important;
+  }
+  .bg-goodwill-light\/80 {
+    background-color: rgba(238, 251, 254, 0.8) !important;
+  }
+  .bg-goodwill-light\/95 {
+    background-color: rgba(238, 251, 254, 0.95) !important;
+  }
+  .border-goodwill-primary\/20 {
+    border-color: rgba(2, 100, 111, 0.2) !important;
+  }
+  .border-goodwill-primary\/30 {
+    border-color: rgba(2, 100, 111, 0.3) !important;
+  }
+  .border-goodwill-primary\/50 {
+    border-color: rgba(2, 100, 111, 0.5) !important;
+  }
+  .border-goodwill-secondary\/20 {
+    border-color: rgba(229, 72, 46, 0.2) !important;
+  }
+  .border-goodwill-secondary\/30 {
+    border-color: rgba(229, 72, 46, 0.3) !important;
+  }
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(2, 100, 111, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(2, 100, 111, 0.6);
+  }
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 1000px;
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Animation Utility Classes */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  .animate-fade-in-down {
+    animation: fadeInDown 0.6s ease-out;
+  }
+  
+  .animate-slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+  }
+  
+  .animate-slide-in-left {
+    animation: slideInLeft 0.5s ease-out;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+  
+  .animate-count-up {
+    animation: countUp 0.8s ease-out;
+  }
+  
+  .animate-bounce {
+    animation: bounce 1s ease-in-out infinite;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+  
+  .animate-zoom-in {
+    animation: zoomIn 0.4s ease-out;
+  }
+  
+  .animate-slide-down {
+    animation: slideDown 0.5s ease-out;
+  }
+  
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  /* Stagger animations for children */
+  .stagger-children > * {
+    animation: fadeInUp 0.6s ease-out backwards;
+  }
+  
+  .stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+  .stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+  
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Hover lift effect */
+  .hover-lift {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(2, 100, 111, 0.2);
+  }
+  
+  /* Hover scale effect */
+  .hover-scale {
+    transition: transform 0.2s ease;
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Hover rotate effect */
+  .hover-rotate {
+    transition: transform 0.3s ease;
+  }
+  
+  .hover-rotate:hover {
+    transform: rotate(5deg);
+  }
+  
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+  }
+  
+  /* Gradient animation */
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
+  }
+  
+  /* Smooth entrance */
+  .animate-entrance {
+    animation: fadeInUp 0.6s ease-out, scaleIn 0.4s ease-out;
+  }
+  
+  /* Table row animation */
+  .table-row-enter {
+    animation: slideUp 0.3s ease-out backwards;
+  }
+}
+
+/* Modern Sidebar Scrollbar Styling */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+  scroll-behavior: smooth;
+  /* Smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Subtle fade effect at bottom only for modern look */
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 95%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 95%,
+    transparent 100%
+  );
+  /* Add subtle padding for better scroll feel */
+  padding-right: 2px;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) - Modern thin scrollbar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 8px 0;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scaleX(1.2);
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* Firefox - Modern thin scrollbar */
+@-moz-document url-prefix() {
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+  }
+}
+
+/* Smooth scrolling with momentum for touch devices */
+@supports (-webkit-overflow-scrolling: touch) {
+  .sidebar-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Add subtle glow effect when scrolling */
+.sidebar-scroll:focus-within {
+  outline: none;
+}
+
+/* Smooth section transitions */
+.sidebar-scroll > div {
+  transition: opacity 0.2s ease-in-out;
+}

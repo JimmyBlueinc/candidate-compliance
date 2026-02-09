@@ -1,0 +1,40 @@
+# Fixed .htaccess Files - BOM Removed
+
+## Problem
+The error "Invalid command '﻿RewriteEngine'" was caused by a BOM (Byte Order Mark) character at the start of the .htaccess file.
+
+## Solution
+I've recreated both .htaccess files without BOM encoding:
+
+1. **Root .htaccess** - For frontend routing
+2. **api/.htaccess** - For Laravel API routing
+
+## What Changed
+- Removed all BOM characters
+- Simplified structure (removed IfModule tags that might cause issues)
+- Ensured clean UTF-8 encoding without BOM
+
+## Next Steps
+1. Delete the old .htaccess files from your server
+2. Upload the new ones from this package
+3. Test the site again
+
+## If Still Not Working
+
+If you still get errors, try this minimal version:
+
+### Root .htaccess (minimal):
+```
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+```
+
+### api/.htaccess (minimal):
+```
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
+```
+

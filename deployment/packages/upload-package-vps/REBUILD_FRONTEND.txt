@@ -1,0 +1,71 @@
+# Rebuild Frontend with Correct API URL
+
+## Your Domain
+http://cpdemo.blueinctech.com
+
+## Step-by-Step Instructions
+
+### 1. On Your Local Machine
+
+Open terminal/command prompt in your project folder.
+
+### 2. Navigate to Frontend
+
+```bash
+cd frontend
+```
+
+### 3. Create Production Environment File
+
+```bash
+echo "VITE_API_BASE_URL=http://cpdemo.blueinctech.com/api" > .env.production
+```
+
+**Or manually create `.env.production` file with:**
+```
+VITE_API_BASE_URL=http://cpdemo.blueinctech.com/api
+```
+
+### 4. Build for Production
+
+```bash
+npm run build
+```
+
+This will create/update the `dist/` folder with the correct API URL.
+
+### 5. Upload New Files
+
+1. Go to `frontend/dist/` folder
+2. Select ALL files and folders
+3. Upload to your domain root (http://cpdemo.blueinctech.com)
+4. **Replace** all existing files
+
+### 6. Test
+
+1. Open: http://cpdemo.blueinctech.com
+2. Try to login
+3. Should work now!
+
+## Verify Build
+
+After building, check the built files:
+
+1. Open `frontend/dist/assets/index-*.js` in a text editor
+2. Search for: `cpdemo.blueinctech.com`
+3. Should find the API URL in the code
+
+## Important Notes
+
+- Use **HTTP** not HTTPS: `http://cpdemo.blueinctech.com/api`
+- Make sure to upload ALL files from `dist/` folder
+- Replace existing files on server
+- Clear browser cache if needed (Ctrl+F5)
+
+## If Still Not Working
+
+1. Check browser console (F12) → Network tab
+2. See what URL it's trying to connect to
+3. Verify it's: `http://cpdemo.blueinctech.com/api`
+4. Test API directly: http://cpdemo.blueinctech.com/api/health
+

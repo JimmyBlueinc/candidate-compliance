@@ -1,0 +1,72 @@
+# Frontend Files - Upload Instructions
+
+## ✅ These Files Are Ready to Upload!
+
+This folder contains the **correctly rebuilt frontend** with the right API URL.
+
+## 📦 What's Inside
+
+- `index.html` - Frontend homepage (with correct API URL)
+- `assets/` - CSS and JavaScript files (updated)
+- `.htaccess` - Fixed routing file (simpler version)
+- `vite.svg` - Logo file
+
+## 🚀 How to Upload
+
+### Step 1: Compress This Folder
+
+1. **Select this entire folder** (`frontend-upload`)
+2. **Right-click → Compress to ZIP** (or use 7-Zip/WinRAR)
+3. **Name it:** `frontend-files.zip`
+
+### Step 2: Upload to Your Domain
+
+1. **Log into your VPS File Manager**
+2. **Navigate to your domain root** (`cpdemo.blueinctech.com`)
+3. **Upload `frontend-files.zip`**
+4. **Extract it** - this will replace the old frontend files
+
+### Step 3: Replace Files
+
+**OR upload files directly:**
+
+1. **Go to your domain root** in File Manager
+2. **Upload these files/folders:**
+   - `index.html` (replace existing)
+   - `assets/` folder (replace existing)
+   - `.htaccess` (replace existing)
+   - `vite.svg` (replace existing)
+
+## ✅ After Upload
+
+1. **Clear browser cache:**
+   - Press `Ctrl + Shift + Delete`
+   - Or hard refresh: `Ctrl + F5`
+
+2. **Test your website:**
+   - Go to: http://cpdemo.blueinctech.com
+   - Open browser console (F12) → Network tab
+   - Try to login
+   - Should see requests to: `http://cpdemo.blueinctech.com/api/login` ✅
+
+## 🔍 Verify It's Working
+
+**Check browser console (F12):**
+- Should NOT see: `localhost:8000` ❌
+- Should see: `cpdemo.blueinctech.com/api` ✅
+
+## 📝 Important Notes
+
+- **Replace all files** - Don't keep old files
+- **Clear browser cache** - Old cached files might still use wrong URL
+- **Test in incognito mode** - To avoid cache issues
+
+## 🆘 If Still Not Working
+
+1. **Check browser console** - What URL is it trying?
+2. **Test API directly:** http://cpdemo.blueinctech.com/api/health
+3. **Verify backend .env** is configured correctly
+
+These files are ready! Just upload and replace the old ones!
+
+

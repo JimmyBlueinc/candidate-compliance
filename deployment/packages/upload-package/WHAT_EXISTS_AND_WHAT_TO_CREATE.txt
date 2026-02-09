@@ -1,0 +1,122 @@
+# What Exists in Upload Package vs What to Create on VPS
+
+## ✅ What EXISTS in Upload Package
+
+Your upload package already contains:
+
+```
+upload-package/
+│
+├── backend/                    ← EXISTS (all backend files)
+│   ├── app/
+│   ├── public/                 ← EXISTS (backend API files)
+│   │   ├── index.php
+│   │   ├── robots.txt
+│   │   └── favicon.ico
+│   ├── storage/
+│   ├── vendor/
+│   └── ... (all other backend files)
+│
+└── frontend-dist/               ← EXISTS (frontend website files)
+    ├── index.html
+    ├── .htaccess
+    ├── assets/
+    └── vite.svg
+```
+
+## ❌ What You NEED TO CREATE on VPS
+
+On your VPS (in the empty domain folder), you need to CREATE this structure:
+
+```
+your-domain-folder/              ← This is EMPTY (you are here)
+│
+├── index.html                   ← UPLOAD from frontend-dist/
+├── .htaccess                    ← UPLOAD from frontend-dist/
+├── assets/                      ← UPLOAD from frontend-dist/
+│
+├── api/                         ← CREATE THIS FOLDER (new)
+│   ├── index.php                ← UPLOAD from backend/public/
+│   ├── robots.txt               ← UPLOAD from backend/public/
+│   └── favicon.ico              ← UPLOAD from backend/public/
+│
+└── backend/                     ← CREATE THIS FOLDER (new)
+    ├── app/                     ← UPLOAD from backend/
+    ├── storage/                 ← UPLOAD from backend/
+    ├── vendor/                  ← UPLOAD from backend/
+    └── ... (all other backend files)
+```
+
+## 📋 Step-by-Step: What to Do
+
+### Step 1: Upload Frontend (No folder creation needed)
+
+**Files to upload:** Everything from `frontend-dist/` folder
+- Upload directly to your empty domain folder
+- No need to create any folder - just upload the files
+
+**Result:** Your domain folder will have:
+- index.html
+- .htaccess
+- assets/ (folder)
+- vite.svg
+
+### Step 2: Create `api/` Folder (YOU CREATE THIS)
+
+**Action:** In File Manager, click "New Folder" and name it `api`
+
+**Then upload:** All files from `backend/public/` folder into this new `api/` folder
+
+**Result:** `api/` folder will contain:
+- index.php
+- robots.txt
+- favicon.ico
+
+### Step 3: Create `backend/` Folder (YOU CREATE THIS)
+
+**Action:** In File Manager, click "New Folder" and name it `backend`
+
+**Then upload:** All files from `backend/` folder (EXCEPT the `public/` folder contents)
+
+**Result:** `backend/` folder will contain:
+- app/
+- storage/
+- vendor/
+- config/
+- routes/
+- ... (everything except public/)
+
+## 🎯 Summary
+
+**What exists in package:**
+- ✅ `backend/` folder with all files
+- ✅ `backend/public/` folder with API files
+- ✅ `frontend-dist/` folder with website files
+
+**What you create on VPS:**
+- ❌ `api/` folder (you create this)
+- ❌ `backend/` folder (you create this, or upload existing one)
+
+**What you upload:**
+- ✅ Frontend files from `frontend-dist/` → domain root
+- ✅ Backend API files from `backend/public/` → `api/` folder (you create)
+- ✅ Backend files from `backend/` → `backend/` folder (you create)
+
+## 🔄 Quick Reference
+
+| Source (in package) | Destination (on VPS) | Action |
+|---------------------|---------------------|--------|
+| `frontend-dist/` contents | Domain root folder | Upload directly |
+| `backend/public/` contents | `api/` folder | Create `api/`, then upload |
+| `backend/` (except public/) | `backend/` folder | Create `backend/`, then upload |
+
+## 💡 Important Notes
+
+1. **`api/` folder doesn't exist** - You must create it on the VPS
+2. **`backend/` folder exists in package** - But you can either:
+   - Upload the entire `backend/` folder as-is, OR
+   - Create a new `backend/` folder and upload contents
+3. **Frontend files go directly** - No folder creation needed, just upload to domain root
+
+The package has everything you need, but you need to arrange it properly on your VPS!
+
