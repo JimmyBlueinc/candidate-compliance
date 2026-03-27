@@ -9,13 +9,15 @@ Route::get('/test-minimal', function () {
         ->header('X-Test', 'minimal');
 });
 
-// TEST: Check organizations in database
+// TEST: Check organizations in database (bypass tenant scope)
 Route::get('/test-orgs', function () {
-    $orgs = \App\Models\Organization::select('id', 'name', 'slug', 'subdomain', 'is_active')->get();
+    $orgs = \App\Models\Organization::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+        ->select('id', 'name', 'slug', 'subdomain', 'is_active')
+        ->get();
     return response()->json(['count' => $orgs->count(), 'organizations' => $orgs]);
 });
 
-// TEST: Send test email via SES
+// TEST: Send test email via SES (bypass tenant scope)
 Route::post('/test-email', function (\Illuminate\Http\Request $request) {
     $email = $request->input('email', 'jimmy@blueinctech.com');
     try {
