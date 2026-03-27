@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-03-20T13:30:00Z",
+  "account": "788184849448",
+  "region": "us-east-1",
+  
+  "cloudfront": {
+    "exists": false,
+    "distributions": []
+  },
+  
+  "alb": {
+    "name": "agencyhq-alb",
+    "arn": "arn:aws:elasticloadbalancing:us-east-1:788184849448:loadbalancer/app/agencyhq-alb/ae82124d97c74971",
+    "dns_name": "agencyhq-alb-326671770.us-east-1.elb.amazonaws.com",
+    "hosted_zone_id": "Z35SXDOTRQ7X7K",
+    "listeners": {
+      "http_80": {
+        "arn": "arn:aws:elasticloadbalancing:us-east-1:788184849448:listener/app/agencyhq-alb/ae82124d97c74971/747f486d32e61164",
+        "action": "redirect_to_https"
+      },
+      "https_443": {
+        "arn": "arn:aws:elasticloadbalancing:us-east-1:788184849448:listener/app/agencyhq-alb/ae82124d97c74971/de55b7395f8e2c4e",
+        "certificate_arn": "arn:aws:acm:us-east-1:788184849448:certificate/4bc09bf9-4307-47cb-adb4-7fd74b7b7cfc",
+        "target_group_arn": "arn:aws:elasticloadbalancing:us-east-1:788184849448:targetgroup/agencyhq-tg/990dc128b6b5141b"
+      }
+    }
+  },
+  
+  "target_group": {
+    "name": "agencyhq-tg",
+    "arn": "arn:aws:elasticloadbalancing:us-east-1:788184849448:targetgroup/agencyhq-tg/990dc128b6b5141b",
+    "port": 80,
+    "protocol": "HTTP",
+    "health_check_path": "/up"
+  },
+  
+  "ecs": {
+    "cluster": "agencyhq-cluster",
+    "service": "agencyhq-service",
+    "task_definition": "agencyhq-task:6"
+  },
+  
+  "route53": {
+    "hosted_zone_id": "Z09236092LH12WY229SBG",
+    "domain": "agenchq.com",
+    "records": {
+      "agenchq.com": {
+        "type": "A",
+        "target": "agencyhq-alb-326671770.us-east-1.elb.amazonaws.com"
+      },
+      "*.agenchq.com": {
+        "type": "A",
+        "target": "agencyhq-alb-326671770.us-east-1.elb.amazonaws.com"
+      },
+      "www.agenchq.com": {
+        "type": "A",
+        "target": "agencyhq-alb-prod-1460670476.us-east-1.elb.amazonaws.com (STALE OLD ALB)"
+      }
+    }
+  },
+  
+  "acm": {
+    "certificate_arn": "arn:aws:acm:us-east-1:788184849448:certificate/4bc09bf9-4307-47cb-adb4-7fd74b7b7cfc",
+    "domain": "agenchq.com",
+    "sans": ["agenchq.com", "*.agenchq.com"],
+    "status": "ISSUED",
+    "covers_app_subdomain": true,
+    "covers_api_subdomain": true
+  },
+  
+  "s3": {
+    "buckets": ["dugodofficial-media", "dugodofficial-public"],
+    "frontend_bucket_exists": false
+  },
+  
+  "current_routing": {
+    "description": "All traffic to agenchq.com and *.agenchq.com goes to ALB which forwards to ECS. The Laravel container serves both API routes and the SPA catch-all for frontend.",
+    "problem": "Mixed routing - API and SPA share the same origin, causing CORS/auth issues and deployment complexity."
+  }
+}

@@ -1,0 +1,44 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('job_orders', function (Blueprint $table) {
+            $table->foreignId('facility_id')->nullable()->constrained('facilities')->nullOnDelete()->after('tenant_id');
+            $table->index(['tenant_id', 'facility_id']);
+        });
+
+        Schema::table('assignments', function (Blueprint $table) {
+            $table->foreignId('facility_id')->nullable()->constrained('facilities')->nullOnDelete()->after('tenant_id');
+            $table->index(['tenant_id', 'facility_id']);
+        });
+
+        Schema::table('invoices', function (Blueprint $table) {
+            $table->foreignId('facility_id')->nullable()->constrained('facilities')->nullOnDelete()->after('tenant_id');
+            $table->index(['tenant_id', 'facility_id']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('job_orders', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('facility_id');
+            $table->dropIndex(['tenant_id', 'facility_id']);
+        });
+
+        Schema::table('assignments', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('facility_id');
+            $table->dropIndex(['tenant_id', 'facility_id']);
+        });
+
+        Schema::table('invoices', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('facility_id');
+            $table->dropIndex(['tenant_id', 'facility_id']);
+        });
+    }
+};

@@ -1,0 +1,9 @@
+{
+  "name": "agencyhq",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "pwsh -File scripts/deploy.ps1",
+    "deploy:bat": "scripts\\deploy.bat"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "containerOverrides": [
+    {
+      "name": "agencyhq-container",
+      "command": ["php", "artisan", "migrate", "--force"]
+    }
+  ]
+}

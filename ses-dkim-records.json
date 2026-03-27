@@ -1,0 +1,44 @@
+{
+  "Comment": "Add SES DKIM records for agenchq.com",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "sa5yjqa5xjv2msbsh5mzz2ahmo2armbn._domainkey.agenchq.com.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "sa5yjqa5xjv2msbsh5mzz2ahmo2armbn.dkim.amazonses.com"
+          }
+        ]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "izfg3zrbgovsgpgeyygnjw4x7eld45ns._domainkey.agenchq.com.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "izfg3zrbgovsgpgeyygnjw4x7eld45ns.dkim.amazonses.com"
+          }
+        ]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "3xcemx3h5biu72tp3z2xf2hi3lt4ug5r._domainkey.agenchq.com.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "3xcemx3h5biu72tp3z2xf2hi3lt4ug5r.dkim.amazonses.com"
+          }
+        ]
+      }
+    }
+  ]
+}

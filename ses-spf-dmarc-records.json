@@ -1,0 +1,31 @@
+{
+  "Comment": "Add SPF and DMARC records for SES deliverability",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "agenchq.com.",
+        "Type": "TXT",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "\"v=spf1 include:amazonses.com ~all\""
+          }
+        ]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "_dmarc.agenchq.com.",
+        "Type": "TXT",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "\"v=DMARC1; p=none; rua=mailto:postmaster@agenchq.com\""
+          }
+        ]
+      }
+    }
+  ]
+}

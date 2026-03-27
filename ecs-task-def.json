@@ -1,0 +1,54 @@
+{
+    "family": "agencyhq-task",
+    "networkMode": "awsvpc",
+    "executionRoleArn": "arn:aws:iam::788184849448:role/agencyhq-ecs-task-execution-role",
+    "taskRoleArn": "arn:aws:iam::788184849448:role/agencyhq-ecs-task-role",
+    "containerDefinitions": [
+        {
+            "name": "agencyhq-container",
+            "image": "788184849448.dkr.ecr.us-east-1.amazonaws.com/agencyhq:latest",
+            "portMappings": [
+                {
+                    "containerPort": 80,
+                    "hostPort": 80,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {"name": "APP_ENV", "value": "production"},
+                {"name": "APP_DEBUG", "value": "false"},
+                {"name": "DB_CONNECTION", "value": "pgsql"},
+                {"name": "DB_HOST", "value": "agencyhq-db.canask88it1t.us-east-1.rds.amazonaws.com"},
+                {"name": "DB_PORT", "value": "5432"},
+                {"name": "DB_DATABASE", "value": "postgres"},
+                {"name": "DB_USERNAME", "value": "postgres"},
+                {"name": "DB_PASSWORD", "value": "AgencyHQ2026!"},
+                {"name": "APP_KEY", "value": "base64:H6bK5A4hEpq4BPT561A0FjV86q2yAA8dZoho2fKC/mk="},
+                {"name": "LOG_CHANNEL", "value": "stderr"},
+                {"name": "MAIL_MAILER", "value": "smtp"},
+                {"name": "MAIL_HOST", "value": "email-smtp.us-east-1.amazonaws.com"},
+                {"name": "MAIL_PORT", "value": "587"},
+                {"name": "MAIL_USERNAME", "value": "AKIAQYEI6H7ASIDSWXGA"},
+                {"name": "MAIL_PASSWORD", "value": "BCMeJehCZNUdClA1tfCUsK7tOUoLRm2ruVTLsYehReJU"},
+                {"name": "MAIL_ENCRYPTION", "value": "tls"},
+                {"name": "MAIL_FROM_ADDRESS", "value": "noreply@agenchq.com"},
+                {"name": "MAIL_FROM_NAME", "value": "AgencyHQ"}
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/agencyhq-task",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs",
+                    "awslogs-create-group": "true"
+                }
+            }
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512"
+}

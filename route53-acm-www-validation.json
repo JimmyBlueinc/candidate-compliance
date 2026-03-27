@@ -1,0 +1,18 @@
+{
+  "Comment": "ACM DNS validation for www.agenchq.com",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "_6d031eeb61bd0600c15c1d00d253c8bc.www.agenchq.com.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "_7befa73dc98da2ad76feb62b2e2cab48.jkddzztszm.acm-validations.aws."
+          }
+        ]
+      }
+    }
+  ]
+}

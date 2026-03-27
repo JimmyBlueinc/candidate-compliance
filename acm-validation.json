@@ -1,0 +1,18 @@
+{
+    "Comment": "Validation for ACM certificate",
+    "Changes": [
+        {
+            "Action": "CREATE",
+            "ResourceRecordSet": {
+                "Name": "_c9746e258a66e84d908393ef6f363645.agencyhq.io.",
+                "Type": "CNAME",
+                "TTL": 300,
+                "ResourceRecords": [
+                    {
+                        "Value": "_b48f94e529980169787efc0cfdd8f3aa.jkddzztszm.acm-validations.aws."
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,53 @@
+{
+  "CallerReference": "agenchq-frontend-20260320",
+  "Comment": "AgencyHQ Frontend - agenchq.com",
+  "Enabled": true,
+  "DefaultRootObject": "index.html",
+  "Aliases": {
+    "Quantity": 2,
+    "Items": ["agenchq.com", "app.agenchq.com"]
+  },
+  "Origins": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "Id": "S3-agenchq-frontend",
+        "DomainName": "agenchq-frontend.s3-website-us-east-1.amazonaws.com",
+        "CustomOriginConfig": {
+          "HTTPPort": 80,
+          "HTTPSPort": 443,
+          "OriginProtocolPolicy": "http-only",
+          "OriginSslProtocols": {
+            "Quantity": 2,
+            "Items": ["TLSv1.1", "TLSv1.2"]
+          }
+        }
+      }
+    ]
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "S3-agenchq-frontend",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "ForwardedValues": {
+      "QueryString": false,
+      "Cookies": {
+        "Forward": "none"
+      }
+    },
+    "MinTTL": 0
+  },
+  "ViewerCertificate": {
+    "ACMCertificateArn": "arn:aws:acm:us-east-1:788184849448:certificate/4bc09bf9-4307-47cb-adb4-7fd74b7b7cfc",
+    "SSLSupportMethod": "sni-only",
+    "MinimumProtocolVersion": "TLSv1.2_2021"
+  },
+  "Logging": {
+    "Enabled": false,
+    "IncludeCookies": false,
+    "Bucket": "",
+    "Prefix": ""
+  },
+  "WebACLId": "",
+  "PriceClass": "PriceClass_100",
+  "HttpVersion": "http2"
+}

@@ -1,0 +1,18 @@
+{
+    "Comment": "Validation for ACM certificate for agenchq.com",
+    "Changes": [
+        {
+            "Action": "UPSERT",
+            "ResourceRecordSet": {
+                "Name": "_fe68744934c55a0b85f4b329e0bf2e6a.agenchq.com.",
+                "Type": "CNAME",
+                "TTL": 300,
+                "ResourceRecords": [
+                    {
+                        "Value": "_414b998f9be7f4f4afee11432c6dcc66.jkddzztszm.acm-validations.aws."
+                    }
+                ]
+            }
+        }
+    ]
+}

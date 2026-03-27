@@ -1,0 +1,61 @@
+[
+  {
+    "name": "agencyhq-container",
+    "image": "051826802625.dkr.ecr.us-east-1.amazonaws.com/agencyhq-repo-prod:latest",
+    "portMappings": [
+      {
+        "containerPort": 80,
+        "protocol": "tcp"
+      }
+    ],
+    "essential": true,
+    "environment": [
+      {
+        "name": "APP_ENV",
+        "value": "production"
+      },
+      {
+        "name": "AWS_DEFAULT_REGION",
+        "value": "us-east-1"
+      },
+      {
+        "name": "LOG_CHANNEL",
+        "value": "stderr"
+      },
+      {
+        "name": "DB_CONNECTION",
+        "value": "sqlite"
+      },
+      {
+        "name": "MAIL_MAILER",
+        "value": "ses"
+      },
+      {
+        "name": "APP_KEY",
+        "value": "base64:uH9X9gZC1HgQfgTt8zwVMGU5It38A8uEPTGKocJgIh8="
+      },
+      {
+        "name": "APP_DEBUG",
+        "value": "false"
+      },
+      {
+        "name": "DB_DATABASE",
+        "value": "/var/www/html/database/database.sqlite"
+      }
+    ],
+    "mountPoints": [
+      {
+        "sourceVolume": "db-storage",
+        "containerPath": "/var/www/html/database"
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/agencyhq-task-prod",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
+  }
+]

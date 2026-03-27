@@ -1,0 +1,7 @@
+{
+  "name": "agencyhq-build-prod",
+  "source": {
+    "type": "GITHUB",
+    "location": "https://github.com/JimmyBlueinc/candidate-compliance.git"
+  }
+}

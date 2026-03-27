@@ -1,0 +1,69 @@
+﻿{
+    "family": "agencyhq-task-prod",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": ["FARGATE"],
+    "cpu": "512",
+    "memory": "1024",
+    "executionRoleArn": "arn:aws:iam::051826802625:role/agencyhq-ecs-task-execution-role-prod",
+    "taskRoleArn": "arn:aws:iam::051826802625:role/agencyhq-ecs-task-role-prod",
+    "containerDefinitions": [
+        {
+            "name": "agencyhq-container",
+            "image": "051826802625.dkr.ecr.us-east-1.amazonaws.com/agencyhq-repo-prod:latest",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "containerPort": 80,
+                    "hostPort": 80,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {"name": "SUPER_ADMIN_SECRET_KEY", "value": "bGo6orfXMUnzUktwt91exkPYIsGP4kl8jgY/iWUFf3w"},
+                {"name": "APP_ENV", "value": "production"},
+                {"name": "MAIL_USERNAME", "value": "AKIAQYEI6H7ASIDSWXGA"},
+                {"name": "MAIL_SCHEME", "value": "smtps"},
+                {"name": "DB_PORT", "value": "5432"},
+                {"name": "MAIL_HOST", "value": "email-smtp.us-east-1.amazonaws.com"},
+                {"name": "DB_HOST", "value": "agencyhq-postgres-prod.cluster-cyd00uqcsafs.us-east-1.rds.amazonaws.com"},
+                {"name": "APP_KEY", "value": "base64:H6bK5A4hEpq4BPT561A0FjV86q2yAA8dZoho2fKC/mk="},
+                {"name": "FRONTEND_URL", "value": "https://agenchq.com"},
+                {"name": "MAIL_PORT", "value": "465"},
+                {"name": "DB_USERNAME", "value": "agencyhqadmin"},
+                {"name": "MAIL_FROM_ADDRESS", "value": "noreply@agenchq.com"},
+                {"name": "MAIL_FROM_NAME", "value": "AgencyHQ"},
+                {"name": "DB_CONNECTION", "value": "pgsql"},
+                {"name": "LOG_CHANNEL", "value": "stderr"},
+                {"name": "MAIL_MAILER", "value": "smtp"},
+                {"name": "SANCTUM_STATEFUL_DOMAINS", "value": "agenchq.com,*.agenchq.com"},
+                {"name": "APP_DEBUG", "value": "false"},
+                {"name": "DB_DATABASE", "value": "postgres"},
+                {"name": "MAIL_PASSWORD", "value": "BCMeJehCZNUdClA1tfCUsK7tOUoLRm2ruVTLsYehReJU"},
+                {"name": "DB_PASSWORD", "value": "AgencyHQ2026!"},
+                {"name": "AWS_DEFAULT_REGION", "value": "us-east-1"},
+                {"name": "AWS_PUBLIC_BUCKET", "value": "agenchq-public"},
+                {"name": "AWS_PRIVATE_BUCKET", "value": "agenchq-private"},
+                {"name": "AWS_PUBLIC_URL", "value": "https://cdn.agenchq.com"},
+                {"name": "FILESYSTEM_DISK", "value": "local"},
+                {"name": "SESSION_DRIVER", "value": "database"},
+                {"name": "SESSION_DOMAIN", "value": ".agenchq.com"},
+                {"name": "SESSION_SECURE_COOKIE", "value": "true"},
+                {"name": "SESSION_SAME_SITE", "value": "none"},
+                {"name": "TENANT_BASE_DOMAIN", "value": "agenchq.com"},
+                {"name": "APP_URL", "value": "https://api.agenchq.com"}
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/agencyhq-task-prod",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "systemControls": []
+        }
+    ]
+}

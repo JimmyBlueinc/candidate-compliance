@@ -1,0 +1,18 @@
+{
+  "Comment": "CNAME for cdn.agenchq.com CloudFront distribution",
+  "Changes": [
+    {
+      "Action": "CREATE",
+      "ResourceRecordSet": {
+        "Name": "cdn.agenchq.com",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "d1r7ext0s6ywo.cloudfront.net"
+          }
+        ]
+      }
+    }
+  ]
+}

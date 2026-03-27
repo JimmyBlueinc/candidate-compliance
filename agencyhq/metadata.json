@@ -1,0 +1,5 @@
+{
+  "name": "AgencyHQ",
+  "description": "The operational backbone for healthcare staffing agencies. Manage shifts, credentialing, and payroll in one central headquarters.",
+  "requestFramePermissions": []
+}

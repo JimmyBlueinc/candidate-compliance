@@ -1,0 +1,44 @@
+[
+  {
+    "name": "agencyhq-container",
+    "image": "788184849448.dkr.ecr.us-east-1.amazonaws.com/agencyhq:latest",
+    "essential": true,
+    "portMappings": [
+      {
+        "containerPort": 80,
+        "protocol": "tcp"
+      }
+    ],
+    "environment": [
+      {"name": "SUPER_ADMIN_SECRET_KEY", "value": "bGo6orfXMUnzUktwt91exkPYIsGP4kl8jgY/iWUFf3w"},
+      {"name": "APP_ENV", "value": "production"},
+      {"name": "MAIL_USERNAME", "value": "AKIAQYEI6H7ASIDSWXGA"},
+      {"name": "MAIL_ENCRYPTION", "value": "tls"},
+      {"name": "DB_PORT", "value": "5432"},
+      {"name": "MAIL_HOST", "value": "email-smtp.us-east-1.amazonaws.com"},
+      {"name": "DB_HOST", "value": "agencyhq-db.canask88it1t.us-east-1.rds.amazonaws.com"},
+      {"name": "APP_KEY", "value": "base64:H6bK5A4hEpq4BPT561A0FjV86q2yAA8dZoho2fKC/mk="},
+      {"name": "MAIL_PORT", "value": "587"},
+      {"name": "DB_USERNAME", "value": "postgres"},
+      {"name": "MAIL_FROM_ADDRESS", "value": "noreply@agenchq.com"},
+      {"name": "MAIL_FROM_NAME", "value": "AgencyHQ"},
+      {"name": "DB_CONNECTION", "value": "pgsql"},
+      {"name": "LOG_CHANNEL", "value": "stderr"},
+      {"name": "MAIL_MAILER", "value": "smtp"},
+      {"name": "APP_DEBUG", "value": "false"},
+      {"name": "DB_DATABASE", "value": "postgres"},
+      {"name": "MAIL_PASSWORD", "value": "BCMeJehCZNUdClA1tfCUsK7tOUoLRm2ruVTLsYehReJU"},
+      {"name": "DB_PASSWORD", "value": "AgencyHQ2026!"},
+      {"name": "FRONTEND_URL", "value": "https://agenchq.com"},
+      {"name": "SANCTUM_STATEFUL_DOMAINS", "value": "agenchq.com,*.agenchq.com"}
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/agencyhq",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
+  }
+]
