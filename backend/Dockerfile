@@ -115,13 +115,41 @@ RUN mkdir -p /etc/nginx/http.d && \
     gzip on;\
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml;\
 \
+    # Cache-busting: No cache for HTML and main entry point\
+    location ~* \.html$ {\
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;\
+        add_header Pragma "no-cache" always;\
+        add_header Expires "0" always;\
+        try_files $uri =404;\
+    }\
+\
+    # No cache for index.php (SPA entry)\
+    location = /index.php {\
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;\
+        add_header Pragma "no-cache" always;\
+        add_header Expires "0" always;\
+        fastcgi_pass 127.0.0.1:9000;\
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\
+        include fastcgi_params;\
+    }\
+\
+    # Cache assets with hash-based filenames (Vite outputs these)\
     location /assets/ {\
         alias /var/www/html/public/build/assets/;\
         expires 1y;\
         add_header Cache-Control "public, immutable";\
     }\
 \
+    # No cache for build/manifest and other JS entry files\
+    location ~* ^/build/.*\.(js|css)$ {\
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;\
+        add_header Pragma "no-cache" always;\
+        expires 0;\
+        try_files $uri =404;\
+    }\
+\
     location / {\
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;\
         try_files $uri $uri/ /index.php?$query_string;\
     }\
 \
