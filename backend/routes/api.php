@@ -9,6 +9,25 @@ Route::get('/test-minimal', function () {
         ->header('X-Test', 'minimal');
 });
 
+// TEST: Check organizations in database
+Route::get('/test-orgs', function () {
+    $orgs = \App\Models\Organization::select('id', 'name', 'slug', 'subdomain', 'is_active')->get();
+    return response()->json(['count' => $orgs->count(), 'organizations' => $orgs]);
+});
+
+// TEST: Send test email via SES
+Route::post('/test-email', function (\Illuminate\Http\Request $request) {
+    $email = $request->input('email', 'jimmy@blueinctech.com');
+    try {
+        \Illuminate\Support\Facades\Mail::raw('Test email from AgencyHQ at ' . now(), function ($message) use ($email) {
+            $message->to($email)->subject('Test Email from AgencyHQ');
+        });
+        return response()->json(['success' => true, 'message' => 'Email sent to ' . $email]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+});
+
 // HEALTH CHECK: Must NOT require database connection
 // This endpoint is used by ELB to verify container health
 // Session middleware would try to connect to DB, so we disable it
