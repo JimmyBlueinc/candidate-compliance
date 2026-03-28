@@ -1,7 +1,6 @@
 <template>
   <section class="auth-showcase aq-on-dark relative hidden overflow-hidden lg:block">
-    <div class="absolute inset-0 bg-gradient-to-br from-slate-950/80 via-slate-900/62 to-indigo-900/45" />
-    <img :src="activeCard.image" :alt="activeCard.title" class="absolute inset-0 h-full w-full object-cover opacity-55" loading="lazy" />
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-950/92 via-slate-900/86 to-indigo-950/78" />
 
     <div class="relative z-10 flex h-full flex-col justify-between p-12 text-white">
       <div>
@@ -12,6 +11,9 @@
 
       <Transition name="card-fade-slide" mode="out-in">
         <article :key="activeCard.id" class="showcase-card">
+          <div class="overflow-hidden rounded-xl border border-white/12 bg-slate-900/55">
+            <img :src="activeCard.image" :alt="activeCard.title" class="h-44 w-full object-cover" loading="lazy" />
+          </div>
           <p class="text-[11px] font-semibold uppercase tracking-[0.15em] text-indigo-200">{{ activeCard.badge }}</p>
           <h3 class="mt-2 text-xl font-semibold">{{ activeCard.title }}</h3>
           <p class="mt-2 text-sm leading-relaxed text-slate-200">{{ activeCard.body }}</p>
@@ -97,10 +99,13 @@ onBeforeUnmount(() => {
   max-width: 32rem;
   border-radius: 1.35rem;
   border: 1px solid rgba(255, 255, 255, 0.24);
-  background: rgba(15, 23, 42, 0.28);
+  background: rgba(15, 23, 42, 0.34);
   backdrop-filter: blur(10px);
-  padding: 1.1rem 1.2rem;
+  padding: 1rem 1.05rem 1.1rem;
   box-shadow: 0 28px 54px -34px rgba(15, 23, 42, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
 }
 
 .card-fade-slide-enter-active,
