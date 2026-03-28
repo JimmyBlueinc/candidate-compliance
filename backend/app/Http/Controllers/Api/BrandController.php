@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
+use App\Models\OrganizationSetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,6 +48,7 @@ class BrandController extends Controller
                     'slug' => 'agencyhq',
                     'primary_color' => '#6D28D9',
                     'logo_url' => null,
+                    'public_home_content' => $this->defaultPublicHomeContent(),
                 ],
             ])->header('Cache-Control', 'no-store');
         }
@@ -66,6 +68,7 @@ class BrandController extends Controller
                     'slug' => 'agencyhq',
                     'primary_color' => '#6D28D9',
                     'logo_url' => null,
+                    'public_home_content' => $this->defaultPublicHomeContent(),
                 ],
             ])->header('Cache-Control', 'no-store');
         }
@@ -114,6 +117,12 @@ class BrandController extends Controller
             $logoUrl .= $separator . 'v=' . $version;
         }
         
+        $defaults = $this->defaultPublicHomeContent();
+        $publicHomeContent = array_merge(
+            $defaults,
+            (array) optional($org->settings)->public_home_content
+        );
+
         return response()->json([
             'brand' => [
                 'tenant_id' => $org->id,
@@ -122,8 +131,14 @@ class BrandController extends Controller
                 'subdomain' => $org->subdomain,
                 'primary_color' => $org->primary_color,
                 'logo_url' => $logoUrl,
+                'public_home_content' => $publicHomeContent,
             ],
         ])->header('Cache-Control', 'no-store');
+    }
+
+    private function defaultPublicHomeContent(): array
+    {
+        return OrganizationSetting::defaults()['public_home_content'] ?? [];
     }
 
     /**

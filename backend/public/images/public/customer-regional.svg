@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420" role="img" aria-labelledby="title desc">
+  <title id="title">Regional Customer Story</title>
+  <desc id="desc">Map and facility network illustration.</desc>
+  <defs>
+    <linearGradient id="crbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e0f2fe" />
+      <stop offset="100%" stop-color="#cffafe" />
+    </linearGradient>
+  </defs>
+  <rect width="720" height="420" rx="24" fill="url(#crbg)" />
+  <rect x="70" y="70" width="580" height="280" rx="20" fill="#ffffff" opacity="0.86" />
+  <circle cx="190" cy="180" r="16" fill="#0284c7" />
+  <circle cx="310" cy="230" r="16" fill="#0284c7" />
+  <circle cx="430" cy="165" r="16" fill="#0284c7" />
+  <circle cx="535" cy="250" r="16" fill="#0284c7" />
+  <path d="M190 180 L310 230 L430 165 L535 250" stroke="#0369a1" stroke-width="6" fill="none" stroke-linecap="round" />
+</svg>

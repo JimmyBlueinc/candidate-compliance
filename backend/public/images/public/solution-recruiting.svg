@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420" role="img" aria-labelledby="title desc">
+  <title id="title">Recruiting Workflow</title>
+  <desc id="desc">Pipeline cards and progress path illustration.</desc>
+  <defs>
+    <linearGradient id="rbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe" />
+      <stop offset="100%" stop-color="#c7d2fe" />
+    </linearGradient>
+  </defs>
+  <rect width="720" height="420" rx="24" fill="url(#rbg)" />
+  <rect x="40" y="56" width="180" height="300" rx="18" fill="#ffffff" opacity="0.8" />
+  <rect x="270" y="56" width="180" height="300" rx="18" fill="#ffffff" opacity="0.84" />
+  <rect x="500" y="56" width="180" height="300" rx="18" fill="#ffffff" opacity="0.9" />
+  <circle cx="180" cy="210" r="10" fill="#2563eb" />
+  <circle cx="360" cy="210" r="10" fill="#2563eb" />
+  <circle cx="540" cy="210" r="10" fill="#2563eb" />
+  <path d="M190 210 H350" stroke="#2563eb" stroke-width="6" stroke-linecap="round" />
+  <path d="M370 210 H530" stroke="#2563eb" stroke-width="6" stroke-linecap="round" />
+</svg>

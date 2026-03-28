@@ -115,6 +115,56 @@
             <input v-model.number="preferences.reminder_days_before" type="number" min="1" max="365" class="app-input" />
           </div>
 
+          <div class="pt-3 border-t border-[color:var(--aq-border)]">
+            <h4 class="text-sm font-semibold text-[color:var(--aq-fg)]">Public Candidate Home Content</h4>
+            <p class="text-xs text-[color:var(--aq-muted)] mt-1">
+              Control the text shown on your public organization page (`/home`) for candidates.
+            </p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Hero Heading</label>
+            <input v-model="preferences.public_home_content.hero_heading" class="app-input" maxlength="160" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Hero Subheading</label>
+            <textarea v-model="preferences.public_home_content.hero_subheading" class="app-input min-h-[80px]" maxlength="600" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Primary CTA Label</label>
+              <input v-model="preferences.public_home_content.hero_primary_cta_label" class="app-input" maxlength="80" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Secondary CTA Label</label>
+              <input v-model="preferences.public_home_content.hero_secondary_cta_label" class="app-input" maxlength="80" />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Why Join Heading</label>
+            <input v-model="preferences.public_home_content.why_join_heading" class="app-input" maxlength="160" />
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Talent Pool Heading</label>
+            <input v-model="preferences.public_home_content.talent_pool_heading" class="app-input" maxlength="160" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Talent Pool Subheading</label>
+            <textarea v-model="preferences.public_home_content.talent_pool_subheading" class="app-input min-h-[80px]" maxlength="600" />
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Final CTA Heading</label>
+            <input v-model="preferences.public_home_content.final_cta_heading" class="app-input" maxlength="160" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Final CTA Subheading</label>
+            <textarea v-model="preferences.public_home_content.final_cta_subheading" class="app-input min-h-[80px]" maxlength="600" />
+          </div>
+
           <div class="pt-2">
             <AppButton variant="secondary" :loading="savingPreferences" @click="savePreferences">
               <Save class="w-4 h-4" />
@@ -196,6 +246,17 @@ const preferences = ref({
   email_notifications_enabled: true,
   expiry_reminders_enabled: true,
   reminder_days_before: 30,
+  public_home_content: {
+    hero_heading: 'Build your next chapter with our team.',
+    hero_subheading: 'Discover meaningful healthcare staffing opportunities and apply in minutes.',
+    hero_primary_cta_label: 'Browse Open Jobs',
+    hero_secondary_cta_label: 'Join Talent Pool',
+    why_join_heading: 'A team built for growth, support, and meaningful impact.',
+    talent_pool_heading: 'Get matched with the right opportunities faster.',
+    talent_pool_subheading: 'Share your profile once and get notified when the right role opens.',
+    final_cta_heading: 'Ready to apply or join our talent network?',
+    final_cta_subheading: 'Start with open roles now or submit your profile for future opportunities.',
+  },
 });
 const featureFlags = ref({});
 
@@ -248,6 +309,10 @@ async function reload() {
       email_notifications_enabled: s.email_notifications_enabled !== false,
       expiry_reminders_enabled: s.expiry_reminders_enabled !== false,
       reminder_days_before: Number(s.reminder_days_before || 30),
+      public_home_content: {
+        ...preferences.value.public_home_content,
+        ...(s.public_home_content || {}),
+      },
     };
 
     const mappedFlags = {};
@@ -308,6 +373,9 @@ async function savePreferences() {
       email_notifications_enabled: !!preferences.value.email_notifications_enabled,
       expiry_reminders_enabled: !!preferences.value.expiry_reminders_enabled,
       reminder_days_before: Number(preferences.value.reminder_days_before || 30),
+      public_home_content: {
+        ...preferences.value.public_home_content,
+      },
     });
     status.value = 'Workspace preferences updated.';
   } catch (e) {

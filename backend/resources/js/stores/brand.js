@@ -78,6 +78,7 @@ export const useBrandStore = defineStore('brand', {
         subdomain: null,
         primaryColor: null,
         logoUrl: null,
+        publicHomeContent: null,
     }),
 
     getters: {
@@ -108,6 +109,7 @@ export const useBrandStore = defineStore('brand', {
                     this.subdomain = data.subdomain ?? null;
                     this.primaryColor = data.primaryColor ?? null;
                     this.logoUrl = data.logoUrl ?? null;
+                    this.publicHomeContent = data.publicHomeContent ?? null;
                     this.loaded = true;
 
                     if (this.primaryColor) {
@@ -135,6 +137,7 @@ export const useBrandStore = defineStore('brand', {
                     subdomain: this.subdomain,
                     primaryColor: this.primaryColor,
                     logoUrl: this.logoUrl,
+                    publicHomeContent: this.publicHomeContent,
                 }));
             } catch (e) {
                 console.log('[BRAND] Failed to save to storage:', e);
@@ -175,6 +178,7 @@ export const useBrandStore = defineStore('brand', {
                 this.subdomain = brand?.subdomain ?? null;
                 this.primaryColor = normalizeHexColor(brand?.primary_color) || null;
                 this.logoUrl = brand?.logo_url ?? null;
+                this.publicHomeContent = brand?.public_home_content || null;
                 this.loaded = true;
 
                 if (this.primaryColor) {
@@ -212,6 +216,7 @@ export const useBrandStore = defineStore('brand', {
             this.subdomain = null;
             this.primaryColor = null;
             this.logoUrl = null;
+            this.publicHomeContent = null;
 
             // Clear CSS variables
             document.documentElement.style.removeProperty('--brand-primary');
@@ -232,6 +237,7 @@ export const useBrandStore = defineStore('brand', {
             this.subdomain = brandData.subdomain ?? this.subdomain;
             this.primaryColor = normalizeHexColor(brandData.primary_color) || this.primaryColor;
             this.logoUrl = brandData.logo_url ?? this.logoUrl;
+            this.publicHomeContent = brandData.public_home_content ?? this.publicHomeContent;
             this.loaded = true;
 
             if (this.primaryColor) {

@@ -23,6 +23,8 @@ class OrganizationSettingsController extends Controller
             OrganizationSetting::defaults()
         );
 
+        $settings->public_home_content = $this->mergePublicHomeContent($settings->public_home_content);
+
         return response()->api(['settings' => $settings]);
     }
 
@@ -42,6 +44,16 @@ class OrganizationSettingsController extends Controller
             'expiry_reminders_enabled' => 'sometimes|boolean',
             'reminder_days_before' => 'sometimes|integer|min:1|max:365',
             'module_preferences' => 'sometimes|array',
+            'public_home_content' => 'sometimes|array',
+            'public_home_content.hero_heading' => 'sometimes|string|max:160',
+            'public_home_content.hero_subheading' => 'sometimes|string|max:600',
+            'public_home_content.hero_primary_cta_label' => 'sometimes|string|max:80',
+            'public_home_content.hero_secondary_cta_label' => 'sometimes|string|max:80',
+            'public_home_content.why_join_heading' => 'sometimes|string|max:160',
+            'public_home_content.talent_pool_heading' => 'sometimes|string|max:160',
+            'public_home_content.talent_pool_subheading' => 'sometimes|string|max:600',
+            'public_home_content.final_cta_heading' => 'sometimes|string|max:160',
+            'public_home_content.final_cta_subheading' => 'sometimes|string|max:600',
         ]);
 
         if ($validator->fails()) {
@@ -56,8 +68,21 @@ class OrganizationSettingsController extends Controller
             OrganizationSetting::defaults()
         );
 
-        $settings->update($validator->validated());
+        $validated = $validator->validated();
+        if (array_key_exists('public_home_content', $validated)) {
+            $validated['public_home_content'] = $this->mergePublicHomeContent($validated['public_home_content']);
+        }
 
-        return response()->api(['settings' => $settings->fresh()], 200, [], 'Organization settings updated.');
+        $settings->update($validated);
+        $fresh = $settings->fresh();
+        $fresh->public_home_content = $this->mergePublicHomeContent($fresh->public_home_content);
+
+        return response()->api(['settings' => $fresh], 200, [], 'Organization settings updated.');
+    }
+
+    private function mergePublicHomeContent(?array $incoming): array
+    {
+        $defaults = OrganizationSetting::defaults()['public_home_content'] ?? [];
+        return array_merge($defaults, $incoming ?? []);
     }
 }
