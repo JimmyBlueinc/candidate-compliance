@@ -11,7 +11,7 @@
     <!-- Gradient accent line -->
     <div
       v-if="accent"
-      class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[color:var(--aq-primary)] to-transparent opacity-60"
+      :class="cn('absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent to-transparent opacity-80', accentGradientClass)"
     />
     
     <!-- Header slot -->
@@ -60,6 +60,7 @@ const props = defineProps({
   title: { type: String, default: '' },
   subtitle: { type: String, default: '' },
   accent: { type: Boolean, default: false },
+  accentColor: { type: String, default: 'primary' }, // primary, emerald, violet, cyan, rose, amber
   hoverable: { type: Boolean, default: false },
   surface: { type: String, default: 'default' }, // default, elevated, glass
   class: { type: String, default: '' },
@@ -72,5 +73,17 @@ const surfaceClasses = computed(() => {
     glass: 'bg-[color:var(--aq-surface-card)]/60 backdrop-blur-xl border-[color:var(--aq-border)]',
   };
   return surfaces[props.surface] || surfaces.default;
+});
+
+const accentGradientClass = computed(() => {
+  const colors = {
+    primary: 'via-[color:var(--aq-primary)]',
+    emerald: 'via-emerald-500',
+    violet: 'via-violet-500',
+    cyan: 'via-cyan-500',
+    rose: 'via-rose-500',
+    amber: 'via-amber-500',
+  };
+  return colors[props.accentColor] || colors.primary;
 });
 </script>

@@ -14,8 +14,17 @@
       </div>
       <h1 class="font-display text-xl text-[color:var(--p-text-color)]">{{ title }}</h1>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-3">
+      <!-- Online Users (non-candidates only) -->
+      <OnlineUsers v-if="!isCandidate" />
+      
+      <!-- Quick Message Icon (non-candidates only) -->
+      <QuickMessage v-if="!isCandidate" />
+      
+      <!-- Notification Bell -->
       <NotificationBell />
+      
+      <!-- User Profile -->
       <button
         type="button"
         class="flex items-center gap-2 p-1.5 rounded-full border border-[color:var(--p-surface-border)] bg-[color:var(--p-surface-0)] hover:bg-[color:var(--p-surface-hover)] transition-colors"
@@ -39,11 +48,16 @@ import { useUiStore } from '../../stores/ui';
 import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
 import { useRouter } from 'vue-router';
+import NotificationBell from '../NotificationBell.vue';
+import OnlineUsers from './OnlineUsers.vue';
+import QuickMessage from './QuickMessage.vue';
 
 const ui = useUiStore();
 const auth = useAuthStore();
 const brand = useBrandStore();
 const router = useRouter();
+
+const isCandidate = computed(() => auth.user?.role === 'candidate');
 
 const roleLabel = computed(() => {
     const role = String(auth.user?.role || '');

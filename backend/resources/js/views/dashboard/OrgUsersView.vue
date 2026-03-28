@@ -12,12 +12,12 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-      <AppStatCard label="Total" :value="teamSummary.total" :icon="Users" />
-      <AppStatCard label="Staff" :value="teamSummary.staff" :icon="User" />
-      <AppStatCard label="Admins" :value="teamSummary.orgSuperAdmins" :icon="Shield" />
-      <AppStatCard label="Candidates" :value="teamSummary.candidates" :icon="UserCheck" />
-      <AppStatCard label="Active" :value="teamSummary.active" :icon="CheckCircle" />
-      <AppStatCard label="Suspended" :value="teamSummary.suspended" :icon="XCircle" />
+      <AppStatCard label="Total" :value="teamSummary.total" :icon="Users" color="primary" />
+      <AppStatCard label="Staff" :value="teamSummary.staff" :icon="User" color="cyan" />
+      <AppStatCard label="Admins" :value="teamSummary.orgSuperAdmins" :icon="Shield" color="violet" />
+      <AppStatCard label="Candidates" :value="teamSummary.candidates" :icon="UserCheck" color="emerald" />
+      <AppStatCard label="Active" :value="teamSummary.active" :icon="CheckCircle" color="emerald" />
+      <AppStatCard label="Suspended" :value="teamSummary.suspended" :icon="XCircle" color="rose" />
     </div>
 
     <!-- Error Message -->
@@ -26,7 +26,7 @@
     </div>
 
     <!-- Create User Form -->
-    <AppCard v-if="canManage" title="Add Team Member" subtitle="Provision new team members for your organization.">
+    <AppCard v-if="canManage" title="Add Team Member" subtitle="Provision new team members for your organization." accent accent-color="emerald">
       <form class="space-y-4" @submit.prevent="createUser">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="space-y-2">
@@ -54,7 +54,7 @@
     </AppCard>
 
     <!-- Team Table -->
-    <AppCard title="Team" subtitle="All members in your organization.">
+    <AppCard title="Team" subtitle="All members in your organization." accent accent-color="primary">
       <template #actions>
         <AppButton v-if="canManage && users.length > 0" variant="secondary" size="sm" @click="openEdit()">
           <Edit3 class="w-4 h-4" />

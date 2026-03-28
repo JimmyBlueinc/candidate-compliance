@@ -105,6 +105,11 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
     Route::put('/user/profile', [\App\Http\Controllers\Api\AuthController::class, 'updateProfile']);
     Route::put('/user/password', [\App\Http\Controllers\Api\AuthController::class, 'changePassword']);
 
+    // User presence & messaging
+    Route::get('/users/online', [\App\Http\Controllers\Api\UserPresenceController::class, 'online']);
+    Route::post('/users/heartbeat', [\App\Http\Controllers\Api\UserPresenceController::class, 'heartbeat']);
+    Route::get('/messages/unread-count', [\App\Http\Controllers\Api\UserPresenceController::class, 'unreadCount']);
+
     // Jobs CRUD (scoped to user's organization)
     Route::get('/jobs', [\App\Http\Controllers\Api\JobController::class, 'index']);
     Route::post('/jobs', [\App\Http\Controllers\Api\JobController::class, 'store']);

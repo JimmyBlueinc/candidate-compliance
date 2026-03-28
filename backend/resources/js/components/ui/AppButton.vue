@@ -70,7 +70,7 @@ const variantClasses = computed(() => {
     primary: cn(
       'bg-[color:var(--aq-primary)] text-white',
       'hover:bg-[color:var(--aq-primary)]/90',
-      'shadow-sm hover:shadow-md'
+      'shadow-sm hover:shadow-md hover:shadow-[color:var(--aq-primary)]/20'
     ),
     secondary: cn(
       'bg-[color:var(--aq-surface-2)] text-[color:var(--aq-fg)] border border-[color:var(--aq-border)]',
@@ -81,12 +81,33 @@ const variantClasses = computed(() => {
       'hover:bg-[color:var(--aq-surface-2)] hover:text-[color:var(--aq-fg)]'
     ),
     danger: cn(
-      'bg-rose-500/10 text-rose-400 border border-rose-500/20',
-      'hover:bg-rose-500/20 hover:border-rose-500/30'
+      'bg-rose-500 text-white',
+      'hover:bg-rose-600',
+      'shadow-sm hover:shadow-md hover:shadow-rose-500/20'
     ),
     success: cn(
-      'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-      'hover:bg-emerald-500/20 hover:border-emerald-500/30'
+      'bg-emerald-500 text-white',
+      'hover:bg-emerald-600',
+      'shadow-sm hover:shadow-md hover:shadow-emerald-500/20'
+    ),
+    cyan: cn(
+      'bg-cyan-500 text-white',
+      'hover:bg-cyan-600',
+      'shadow-sm hover:shadow-md hover:shadow-cyan-500/20'
+    ),
+    violet: cn(
+      'bg-violet-500 text-white',
+      'hover:bg-violet-600',
+      'shadow-sm hover:shadow-md hover:shadow-violet-500/20'
+    ),
+    amber: cn(
+      'bg-amber-500 text-white',
+      'hover:bg-amber-600',
+      'shadow-sm hover:shadow-md hover:shadow-amber-500/20'
+    ),
+    outline: cn(
+      'bg-transparent text-[color:var(--aq-primary)] border-2 border-[color:var(--aq-primary)]',
+      'hover:bg-[color:var(--aq-primary)]/10'
     ),
   };
   return variants[props.variant] || variants.primary;

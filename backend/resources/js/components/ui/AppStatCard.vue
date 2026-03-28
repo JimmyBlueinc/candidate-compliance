@@ -80,6 +80,7 @@ const props = defineProps({
   secondaryValue: { type: String, default: '' },
   interactive: { type: Boolean, default: true },
   format: { type: String, default: 'auto' }, // auto, currency, percent, number
+  color: { type: String, default: 'primary' }, // primary, emerald, violet, cyan, rose, amber
   class: { type: String, default: '' },
 });
 
@@ -101,10 +102,18 @@ const formattedValue = computed(() => {
 const iconBgClass = computed(() => {
   const t = props.trend;
   if (t !== null) {
-    if (t > 0) return 'bg-emerald-500/10';
-    if (t < 0) return 'bg-rose-500/10';
+    if (t > 0) return 'bg-emerald-500/15';
+    if (t < 0) return 'bg-rose-500/15';
   }
-  return 'bg-[color:var(--aq-primary)]/10';
+  const colorMap = {
+    primary: 'bg-[color:var(--aq-primary)]/15',
+    emerald: 'bg-emerald-500/15',
+    violet: 'bg-violet-500/15',
+    cyan: 'bg-cyan-500/15',
+    rose: 'bg-rose-500/15',
+    amber: 'bg-amber-500/15',
+  };
+  return colorMap[props.color] || colorMap.primary;
 });
 
 const iconClass = computed(() => {
@@ -113,7 +122,15 @@ const iconClass = computed(() => {
     if (t > 0) return 'text-emerald-400';
     if (t < 0) return 'text-rose-400';
   }
-  return 'text-[color:var(--aq-primary)]';
+  const colorMap = {
+    primary: 'text-[color:var(--aq-primary)]',
+    emerald: 'text-emerald-400',
+    violet: 'text-violet-400',
+    cyan: 'text-cyan-400',
+    rose: 'text-rose-400',
+    amber: 'text-amber-400',
+  };
+  return colorMap[props.color] || colorMap.primary;
 });
 
 const progressColorClass = computed(() => {
