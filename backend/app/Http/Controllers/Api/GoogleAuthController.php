@@ -45,6 +45,7 @@ class GoogleAuthController extends Controller
         $email = strtolower(trim((string) ($google['email'] ?? '')));
         $name = trim((string) ($google['name'] ?? ''));
         $providerId = (string) ($google['sub'] ?? '');
+        $targetOrgId = $request->integer('tenant_id') ?: null;
 
         if ($email === '' || $providerId === '') {
             throw ValidationException::withMessages([
@@ -52,7 +53,21 @@ class GoogleAuthController extends Controller
             ]);
         }
 
-        $user = User::query()->where('email', $email)->first();
+        $user = null;
+        if ($targetOrgId) {
+            $user = User::query()
+                ->where('organization_id', $targetOrgId)
+                ->where('email', $email)
+                ->first();
+        } else {
+            $matches = User::query()->where('email', $email)->limit(2)->get();
+            if ($matches->count() > 1) {
+                throw ValidationException::withMessages([
+                    'email' => ['Multiple accounts use this email. Please sign in from your organization subdomain.'],
+                ]);
+            }
+            $user = $matches->first();
+        }
         $intent = (string) $request->input('intent', 'login');
 
         if (!$user && $intent === 'login') {
@@ -62,14 +77,13 @@ class GoogleAuthController extends Controller
         }
 
         if (!$user) {
-            $orgId = $request->integer('tenant_id') ?: null;
-            if (!$orgId) {
+            if (!$targetOrgId) {
                 throw ValidationException::withMessages([
                     'tenant_id' => ['Organization context is required for Google sign-up.'],
                 ]);
             }
 
-            $org = Organization::query()->find($orgId);
+            $org = Organization::query()->find($targetOrgId);
             if (!$org) {
                 throw ValidationException::withMessages([
                     'tenant_id' => ['Organization was not found.'],

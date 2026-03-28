@@ -177,7 +177,13 @@ class FacilityManagementController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->where(fn ($q) => $q->where('organization_id', $orgId)),
+            ],
             'role' => ['sometimes', 'string', Rule::in(['facility'])],
         ]);
 

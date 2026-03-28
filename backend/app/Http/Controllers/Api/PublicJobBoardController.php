@@ -155,13 +155,10 @@ class PublicJobBoardController extends Controller
 
         $email = strtolower(trim((string) $request->input('email')));
 
-        $existingUser = User::query()->where('email', $email)->first();
-
-        if ($existingUser && (int) ($existingUser->organization_id ?? 0) !== (int) $job->tenant_id) {
-            return response()->json([
-                'message' => 'User does not belong to this organization.',
-            ], 403);
-        }
+        $existingUser = User::query()
+            ->where('organization_id', $job->tenant_id)
+            ->where('email', $email)
+            ->first();
 
         if ($existingUser && !Hash::check((string) $request->input('password'), (string) $existingUser->password)) {
             throw ValidationException::withMessages([

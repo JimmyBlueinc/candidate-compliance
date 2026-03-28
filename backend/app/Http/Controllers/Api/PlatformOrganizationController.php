@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PlatformOrganizationController extends Controller
 {
@@ -101,7 +102,13 @@ class PlatformOrganizationController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->where(fn ($q) => $q->where('organization_id', $organization->id)),
+            ],
             'password' => ['nullable', 'string', 'min:8'],
         ]);
 

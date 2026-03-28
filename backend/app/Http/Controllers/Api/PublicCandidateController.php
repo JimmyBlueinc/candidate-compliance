@@ -57,11 +57,11 @@ class PublicCandidateController extends Controller
             ], 409);
         }
 
-        // Check if user already exists for this email (in any organization)
-        $existingUser = User::where('email', $validated['email'])->first();
-        
-        // If user exists but belongs to a different organization, still allow registration
-        // but link to existing user account
+        // Check if user already exists for this org + email
+        $existingUser = User::query()
+            ->where('organization_id', $organization->id)
+            ->where('email', $validated['email'])
+            ->first();
         
         // Generate temp password for new users only
         $tempPassword = null;

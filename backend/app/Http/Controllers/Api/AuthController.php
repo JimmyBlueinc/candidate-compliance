@@ -18,6 +18,8 @@ use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 use App\Support\Org;
 use App\Models\Organization;
+use App\Models\OrganizationDomain;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -26,15 +28,27 @@ class AuthController extends Controller
      */
     public function register(Request $request): JsonResponse
     {
+        $orgId = Org::id($request);
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->where(function ($query) use ($orgId) {
+                    if ($orgId) {
+                        return $query->where('organization_id', $orgId);
+                    }
+                    return $query->whereNull('organization_id');
+                }),
+            ],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'role' => ['sometimes', 'string', 'in:admin,candidate'],
             'avatar' => ['sometimes', 'file', 'image', 'max:2048'], // 2MB
         ]);
 
-        $orgId = Org::id($request);
         $org = Org::model($request);
 
         $user = User::create([
@@ -143,7 +157,24 @@ class AuthController extends Controller
             'remember_me' => ['sometimes', 'boolean'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $email = strtolower(trim((string) $request->email));
+        $orgId = $this->resolveOrganizationIdFromRequest($request);
+        $user = null;
+
+        if ($orgId) {
+            $user = User::query()
+                ->where('organization_id', $orgId)
+                ->where('email', $email)
+                ->first();
+        } else {
+            $matches = User::query()->where('email', $email)->limit(2)->get();
+            if ($matches->count() > 1) {
+                throw ValidationException::withMessages([
+                    'email' => ['Multiple accounts use this email. Please log in from your organization subdomain.'],
+                ]);
+            }
+            $user = $matches->first();
+        }
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             Log::warning('Login failed: invalid credentials', ['email' => $request->email]);
@@ -347,7 +378,20 @@ class AuthController extends Controller
 
         $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
-            'email' => ['sometimes', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => [
+                'sometimes',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')
+                    ->where(function ($query) use ($user) {
+                        if ($user->organization_id) {
+                            return $query->where('organization_id', $user->organization_id);
+                        }
+                        return $query->whereNull('organization_id');
+                    })
+                    ->ignore($user->id),
+            ],
             'phone' => ['sometimes', 'nullable', 'string', 'max:50'],
             'address' => ['sometimes', 'nullable', 'string', 'max:255'],
             'job_title' => ['sometimes', 'nullable', 'string', 'max:120'],
@@ -545,7 +589,21 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $email = strtolower(trim((string) $request->email));
+        $orgId = $this->resolveOrganizationIdFromRequest($request);
+
+        $user = null;
+        if ($orgId) {
+            $user = User::query()
+                ->where('organization_id', $orgId)
+                ->where('email', $email)
+                ->first();
+        } else {
+            $matches = User::query()->where('email', $email)->limit(2)->get();
+            if ($matches->count() === 1) {
+                $user = $matches->first();
+            }
+        }
 
         // Don't reveal if email exists or not for security
         // Always return success message
@@ -580,23 +638,85 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->password = Hash::make($password);
-                $user->save();
-            }
-        );
+        $email = strtolower(trim((string) $request->email));
+        $orgId = $this->resolveOrganizationIdFromRequest($request);
 
-        if ($status === Password::PASSWORD_RESET) {
-            return response()->json([
-                'message' => 'Password has been reset successfully.',
-            ]);
+        $user = null;
+        if ($orgId) {
+            $user = User::query()
+                ->where('organization_id', $orgId)
+                ->where('email', $email)
+                ->first();
+        } else {
+            $matches = User::query()->where('email', $email)->limit(2)->get();
+            if ($matches->count() > 1) {
+                return response()->json([
+                    'message' => 'Invalid or expired reset token.',
+                ], 400);
+            }
+            $user = $matches->first();
         }
 
+        if (!$user || !Password::broker()->tokenExists($user, (string) $request->token)) {
+            return response()->json([
+                'message' => 'Invalid or expired reset token.',
+            ], 400);
+        }
+
+        $user->password = Hash::make((string) $request->password);
+        $user->save();
+        Password::broker()->deleteToken($user);
+
         return response()->json([
-            'message' => 'Invalid or expired reset token.',
-        ], 400);
+            'message' => 'Password has been reset successfully.',
+        ]);
+    }
+
+    private function resolveOrganizationIdFromRequest(Request $request): ?int
+    {
+        $orgId = Org::id($request);
+        if ($orgId) {
+            return (int) $orgId;
+        }
+
+        $headerTenant = (int) ($request->header('X-Tenant-Id') ?: 0);
+        if ($headerTenant > 0) {
+            return $headerTenant;
+        }
+
+        $host = $request->header('X-Org-Host');
+        if (!$host) {
+            $host = (string) parse_url((string) $request->header('Origin'), PHP_URL_HOST);
+        }
+        if (!$host) {
+            $host = (string) parse_url((string) $request->header('Referer'), PHP_URL_HOST);
+        }
+
+        $host = strtolower(trim((string) preg_replace('#:\\d+$#', '', (string) $host)));
+        if ($host === '') {
+            return null;
+        }
+
+        $domain = OrganizationDomain::query()
+            ->where('domain', $host)
+            ->where('is_active', true)
+            ->first();
+        if ($domain) {
+            return (int) $domain->organization_id;
+        }
+
+        if (str_ends_with($host, '.agenchq.com')) {
+            $subdomain = str_replace('.agenchq.com', '', $host);
+            $org = Organization::query()
+                ->where('subdomain', $subdomain)
+                ->where('is_active', true)
+                ->first();
+            if ($org) {
+                return (int) $org->id;
+            }
+        }
+
+        return null;
     }
 }
 

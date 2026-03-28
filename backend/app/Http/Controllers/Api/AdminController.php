@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
@@ -89,7 +90,19 @@ class AdminController extends Controller
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->where(function ($query) use ($currentUser, $orgId) {
+                    $targetOrgId = $currentUser->role === 'platform_admin' ? $orgId : $currentUser->organization_id;
+                    if ($targetOrgId) {
+                        return $query->where('organization_id', $targetOrgId);
+                    }
+                    return $query->whereNull('organization_id');
+                }),
+            ],
             'role' => ['required', 'string', 'in:' . implode(',', $allowedRoles)],
         ]);
 
@@ -192,7 +205,20 @@ class AdminController extends Controller
 
         $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
-            'email' => ['sometimes', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => [
+                'sometimes',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')
+                    ->where(function ($query) use ($user) {
+                        if ($user->organization_id) {
+                            return $query->where('organization_id', $user->organization_id);
+                        }
+                        return $query->whereNull('organization_id');
+                    })
+                    ->ignore($user->id),
+            ],
             'password' => ['sometimes', 'string', 'min:8', 'confirmed'],
             'role' => ['sometimes', 'string', 'in:' . implode(',', $allowedRoles)],
             'access_status' => ['sometimes', 'string', 'in:active,suspended,terminated'],

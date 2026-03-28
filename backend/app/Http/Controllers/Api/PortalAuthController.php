@@ -149,12 +149,10 @@ class PortalAuthController extends Controller
             ], 403);
         }
 
-        $existingUser = User::query()->where('email', $email)->first();
-        if ($existingUser && (int) ($existingUser->organization_id ?? 0) !== (int) $orgId) {
-            return response()->json([
-                'message' => 'User does not belong to this organization.',
-            ], 403);
-        }
+        $existingUser = User::query()
+            ->where('organization_id', $orgId)
+            ->where('email', $email)
+            ->first();
 
         $user = $existingUser ?: User::create([
             'organization_id' => $orgId,

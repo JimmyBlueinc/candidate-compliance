@@ -1,188 +1,113 @@
 <template>
-  <div class="min-h-screen bg-[var(--app-bg)] text-[var(--app-fg)] selection:bg-purple-500/30 relative overflow-hidden">
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_55%)] pointer-events-none" />
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
-      <div class="relative hidden lg:block">
-        <div class="absolute inset-0" :style="imagePanelStyle" />
-        <div class="absolute inset-0" :style="imageOverlayStyle" />
-
-        <div class="relative z-10 h-full p-12 flex flex-col justify-end">
-          <div class="max-w-md">
-            <div class="text-xs font-black tracking-widest uppercase" :class="heroKickerClass">Secure Onboarding</div>
-            <div class="mt-3 text-4xl font-display leading-tight" :class="heroTitleClass">
-              Create your account,
-              <span :style="{ color: primaryColor }">then</span> continue into your workspace.
-            </div>
-            <div class="mt-4 text-sm" :class="heroBodyClass">
-              Organization-aware signup flows for staffing teams and candidates.
-            </div>
-          </div>
+  <div class="auth-shell min-h-screen text-slate-900">
+    <div class="grid min-h-screen grid-cols-1 lg:grid-cols-2">
+      <section class="auth-image-panel hidden lg:block">
+        <img
+          :src="heroImage"
+          alt="Healthcare clinicians working as a team"
+          class="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+          @error="onHeroImageError"
+        />
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-950/70 via-slate-900/45 to-emerald-900/30" />
+        <div class="relative z-10 flex h-full flex-col justify-end p-12 text-white">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100/90">Candidate Onboarding</p>
+          <h2 class="mt-4 max-w-xl text-4xl font-semibold leading-tight tracking-tight">
+            Start your healthcare career journey with confidence.
+          </h2>
+          <p class="mt-4 max-w-lg text-sm leading-relaxed text-slate-200/90">
+            Create one profile, access trusted clinical opportunities, and stay connected to your next placement.
+          </p>
         </div>
-      </div>
+      </section>
 
-      <div class="relative flex items-center justify-center px-6 py-12">
-        <div
-          class="absolute w-[520px] h-[520px] top-[-220px] right-[-180px] rounded-full blur-[140px] animate-pulse pointer-events-none"
-          :style="{ backgroundColor: primaryGlowA }"
-        />
-        <div
-          class="absolute w-[620px] h-[620px] bottom-[-260px] left-[-220px] rounded-full blur-[160px] animate-pulse pointer-events-none"
-          :style="{ backgroundColor: primaryGlowB, animationDelay: '1s' }"
-        />
+      <section class="relative flex items-center justify-center px-6 py-10">
+        <div class="auth-glow auth-glow-a" />
+        <div class="auth-glow auth-glow-b" />
 
-        <div class="w-full max-w-[460px] space-y-8 relative z-10 animate-[fadeInUp_0.7s_ease-out_both]">
-          <div class="text-center space-y-3">
-            <div class="inline-flex items-center justify-center w-14 h-14 rounded-[18px] shadow-2xl ring-1 ring-white/20 overflow-hidden" :style="logoWrapStyle">
-              <img v-if="brand.logoUrl" :src="brand.logoUrl" alt="Logo" class="h-9 w-9 object-contain" />
-              <span v-else class="material-symbols-outlined text-white text-[28px]">person_add</span>
+        <div class="relative z-10 w-full max-w-[480px] space-y-6">
+          <div class="space-y-3 text-center lg:text-left">
+            <div class="inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl shadow-lg ring-1 ring-slate-200" :style="logoWrapStyle">
+              <img v-if="brand.logoUrl" :src="brand.logoUrl" alt="Logo" class="h-8 w-8 object-contain" />
+              <span v-else class="material-symbols-outlined text-[22px] text-white">person_add</span>
             </div>
-            <h1 class="text-3xl font-display font-bold tracking-tight text-[color:var(--p-text-color)] leading-tight">Create Account</h1>
-            <p class="text-[color:var(--p-text-muted-color)] text-xs font-medium max-w-[340px] mx-auto leading-relaxed">
-              Join <span class="text-[color:var(--p-text-color)] font-semibold">{{ brand.name || 'AgencyHQ' }}</span>.
-            </p>
+            <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Create your account</h1>
+            <p class="text-sm leading-relaxed text-slate-600">Join <span class="font-semibold text-slate-800">{{ brand.name || 'AgencHQ' }}</span> and unlock curated healthcare opportunities.</p>
           </div>
 
-          <form class="glass-dark p-8 rounded-[32px] space-y-5 shadow-2xl relative" @submit.prevent="handleSubmit">
-            <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1 bg-[color:var(--p-surface-0)] border border-[color:var(--p-surface-border)] rounded-full">
-              <span class="text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--p-text-muted-color)]">Secure Enrollment</span>
-            </div>
-
-            <div v-if="errorMessage" class="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold rounded-2xl flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">error</span>
+          <form class="auth-card space-y-5" @submit.prevent="handleSubmit">
+            <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
               {{ errorMessage }}
             </div>
 
-            <div class="space-y-5">
+            <div class="space-y-2">
+              <label class="text-xs font-semibold text-slate-700">Full name</label>
+              <input v-model="name" type="text" required class="auth-input" placeholder="Jane Smith" />
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-xs font-semibold text-slate-700">Email address</label>
+              <input v-model="email" type="email" required autocomplete="email" class="auth-input" placeholder="name@organization.com" />
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div class="space-y-2">
-                <label class="text-[11px] font-black text-[color:var(--p-text-muted-color)] uppercase tracking-widest ml-1">Full Name</label>
-                <div class="relative group">
-                  <div class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors" :style="iconActiveStyle">
-                    <span class="material-symbols-outlined text-[18px]">person</span>
-                  </div>
+                <label class="text-xs font-semibold text-slate-700">Password</label>
+                <div class="relative">
                   <input
-                    v-model="name"
-                    type="text"
+                    v-model="password"
+                    :type="showPassword ? 'text' : 'password'"
                     required
-                    class="w-full rounded-2xl pl-12 pr-5 py-3 text-sm placeholder-slate-600 focus:outline-none transition-all duration-300"
-                    :class="inputClass"
-                    :style="inputStyle"
-                    placeholder="John Doe"
+                    autocomplete="new-password"
+                    class="auth-input pr-11"
+                    placeholder="••••••••"
                   />
+                  <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700" @click="showPassword = !showPassword">
+                    <i :class="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" />
+                  </button>
                 </div>
               </div>
 
               <div class="space-y-2">
-                <label class="text-[11px] font-black text-[color:var(--p-text-muted-color)] uppercase tracking-widest ml-1">Email Address</label>
-                <div class="relative group">
-                  <div class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors" :style="iconActiveStyle">
-                    <span class="material-symbols-outlined text-[18px]">mail</span>
-                  </div>
+                <label class="text-xs font-semibold text-slate-700">Confirm password</label>
+                <div class="relative">
                   <input
-                    v-model="email"
-                    type="email"
+                    v-model="passwordConfirmation"
+                    :type="showPasswordConfirm ? 'text' : 'password'"
                     required
-                    autocomplete="email"
-                    class="w-full rounded-2xl pl-12 pr-5 py-3 text-sm placeholder-slate-600 focus:outline-none transition-all duration-300"
-                    :class="inputClass"
-                    :style="inputStyle"
-                    placeholder="name@organization.com"
+                    autocomplete="new-password"
+                    class="auth-input pr-11"
+                    placeholder="••••••••"
                   />
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="space-y-2">
-                  <label class="text-[11px] font-black text-[color:var(--p-text-muted-color)] uppercase tracking-widest ml-1">Password</label>
-                  <div class="relative group">
-                    <div class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors" :style="iconActiveStyle">
-                      <span class="material-symbols-outlined text-[18px]">lock</span>
-                    </div>
-                    <input
-                      v-model="password"
-                      :type="showPassword ? 'text' : 'password'"
-                      required
-                      autocomplete="new-password"
-                      class="w-full rounded-2xl pl-12 pr-12 py-3 text-sm placeholder-slate-600 focus:outline-none transition-all duration-300"
-                      :class="inputClass"
-                      :style="inputStyle"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[color:var(--p-text-color)] transition-colors"
-                      :aria-label="showPassword ? 'Hide password' : 'Show password'"
-                      @click="showPassword = !showPassword"
-                    >
-                      <span class="material-symbols-outlined text-[18px]">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="space-y-2">
-                  <label class="text-[11px] font-black text-[color:var(--p-text-muted-color)] uppercase tracking-widest ml-1">Confirm</label>
-                  <div class="relative group">
-                    <div class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors" :style="iconActiveStyle">
-                      <span class="material-symbols-outlined text-[18px]">lock</span>
-                    </div>
-                    <input
-                      v-model="passwordConfirmation"
-                      :type="showPasswordConfirm ? 'text' : 'password'"
-                      required
-                      autocomplete="new-password"
-                      class="w-full rounded-2xl pl-12 pr-12 py-3 text-sm placeholder-slate-600 focus:outline-none transition-all duration-300"
-                      :class="inputClass"
-                      :style="inputStyle"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[color:var(--p-text-color)] transition-colors"
-                      :aria-label="showPasswordConfirm ? 'Hide password' : 'Show password'"
-                      @click="showPasswordConfirm = !showPasswordConfirm"
-                    >
-                      <span class="material-symbols-outlined text-[18px]">{{ showPasswordConfirm ? 'visibility_off' : 'visibility' }}</span>
-                    </button>
-                  </div>
+                  <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700" @click="showPasswordConfirm = !showPasswordConfirm">
+                    <i :class="showPasswordConfirm ? 'pi pi-eye-slash' : 'pi pi-eye'" />
+                  </button>
                 </div>
               </div>
             </div>
 
-            <button
-              type="submit"
-              :disabled="isSubmitting"
-              class="w-full font-black py-2.5 rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 shadow-xl disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 text-xs border"
-              :class="primaryButtonTextClass"
-              :style="primaryButtonStyle"
-            >
-              <template v-if="isSubmitting">
-                <span class="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-              </template>
-              <template v-else>
-                <span>Create Account</span>
-                <span class="material-symbols-outlined text-[18px]">arrow_right_alt</span>
-              </template>
+            <button type="submit" :disabled="isSubmitting" class="auth-primary-btn" :style="primaryButtonStyle">
+              <span v-if="isSubmitting" class="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+              <span v-else>Create account</span>
             </button>
 
-            <div class="pt-2">
-              <div class="flex items-center gap-3 text-[11px] text-slate-500">
-                <div class="h-px flex-1 bg-[color:var(--p-surface-border)]" />
+            <div class="pt-1">
+              <div class="flex items-center gap-3 text-xs text-slate-400">
+                <div class="h-px flex-1 bg-slate-200" />
                 <span>or sign up with</span>
-                <div class="h-px flex-1 bg-[color:var(--p-surface-border)]" />
+                <div class="h-px flex-1 bg-slate-200" />
               </div>
-              <div ref="googleButtonEl" class="mt-3 flex justify-center" />
-              <p v-if="googleMessage" class="mt-2 text-[11px] text-center text-[color:var(--p-text-muted-color)]">{{ googleMessage }}</p>
+              <div ref="googleButtonEl" class="mt-3 flex justify-center lg:justify-start" />
+              <p v-if="googleMessage" class="mt-2 text-[11px] text-slate-500">{{ googleMessage }}</p>
             </div>
 
-            <div class="pt-4 text-center">
-              <span class="text-slate-500 text-xs font-medium">Already registered? </span>
-              <button type="button" class="text-white text-xs font-black transition-colors" :style="linkStyle" @click="router.push('/login')">
-                Sign In
-              </button>
+            <div class="pt-2 text-center lg:text-left">
+              <span class="text-sm text-slate-600">Already registered? </span>
+              <button type="button" class="text-sm font-semibold" :style="linkStyle" @click="router.push('/login')">Sign in</button>
             </div>
           </form>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -192,14 +117,12 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
-import { useUiStore } from '../../stores/ui';
 import { apiPost } from '../../lib/api';
 import { renderGoogleButton } from '../../lib/googleIdentity';
 
 const router = useRouter();
 const auth = useAuthStore();
 const brand = useBrandStore();
-const ui = useUiStore();
 
 const name = ref('');
 const email = ref('');
@@ -209,50 +132,14 @@ const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
 const googleButtonEl = ref(null);
 const googleMessage = ref('');
+const heroImage = ref('https://images.unsplash.com/photo-1576671081837-49000212a370?auto=format&fit=crop&w=1800&q=80');
 
 const isSubmitting = computed(() => auth.status === 'loading');
 
 const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
-const primaryGlowA = computed(() => `color-mix(in srgb, ${primaryColor.value} 14%, transparent)`);
-const primaryGlowB = computed(() => `color-mix(in srgb, ${primaryColor.value} 10%, transparent)`);
-
-const inputClass = computed(() =>
-    'bg-[color:var(--p-surface-0)] text-[color:var(--p-text-color)] border-2 border-[color:var(--p-surface-border)] focus:border-[color:var(--p-primary-color)]'
-);
-
-const inputStyle = computed(() => ({
-    boxShadow: ui.theme === 'light'
-        ? '0 1px 0 rgba(15, 23, 42, 0.02)'
-        : '0 1px 0 rgba(255, 255, 255, 0.02)',
-}));
-
-const imageOverlayStyle = computed(() => {
-    const overlay = ui.theme === 'light'
-        ? 'linear-gradient(to right, rgba(2,6,23,0.78), rgba(2,6,23,0.45), rgba(2,6,23,0.10))'
-        : 'linear-gradient(to right, rgba(0,0,0,0.72), rgba(0,0,0,0.42), rgba(0,0,0,0.12))';
-
-    return {
-        backgroundImage: overlay,
-    };
-});
-
-const heroKickerClass = computed(() => 'text-white/85');
-const heroTitleClass = computed(() => 'text-white');
-const heroBodyClass = computed(() => 'text-white/80');
-
-const imagePanelStyle = computed(() => ({
-    backgroundImage: "url('/login-nursing-office.jpg')",
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-}));
-
 const logoWrapStyle = computed(() => ({
     background: `linear-gradient(135deg, ${primaryColor.value}, rgba(59,130,246,0.85))`,
     boxShadow: `0 25px 60px -20px color-mix(in srgb, ${primaryColor.value} 45%, transparent)`,
-}));
-
-const iconActiveStyle = computed(() => ({
-    '--focus-color': primaryColor.value,
 }));
 
 const primaryButtonStyle = computed(() => ({
@@ -262,11 +149,13 @@ const primaryButtonStyle = computed(() => ({
     boxShadow: `0 24px 45px -20px color-mix(in srgb, ${primaryColor.value} 35%, transparent)`,
 }));
 
-const primaryButtonTextClass = computed(() => 'text-white');
-
 const linkStyle = computed(() => ({
     color: primaryColor.value,
 }));
+
+function onHeroImageError() {
+  heroImage.value = '/images/public/tenant-careers-hero.svg';
+}
 
 const errorMessage = computed(() => {
     const err = auth.error;
@@ -299,7 +188,7 @@ async function handleSubmit() {
         passwordConfirmation: passwordConfirmation.value,
     });
 
-    await router.push('/dashboard');
+    await router.push({ name: 'portal.dashboard' });
 }
 
 async function handleGoogleCredential(idToken) {
@@ -320,7 +209,7 @@ async function handleGoogleCredential(idToken) {
         if (payload.user?.organization_id) {
             auth.setTenantId(String(payload.user.organization_id));
         }
-        await router.push('/dashboard');
+        await router.push({ name: 'portal.dashboard' });
     } catch (e) {
         googleMessage.value = e?.response?.data?.message || e?.message || 'Google sign-up failed.';
     }
@@ -344,3 +233,92 @@ onMounted(() => {
     initGoogleButton();
 });
 </script>
+
+<style scoped>
+.auth-shell {
+  background:
+    radial-gradient(620px 420px at 8% 8%, rgba(79, 70, 229, 0.14), transparent 60%),
+    radial-gradient(580px 380px at 90% 82%, rgba(16, 185, 129, 0.12), transparent 60%),
+    #f8fafc;
+}
+
+.auth-image-panel {
+  position: relative;
+}
+
+.auth-card {
+  border-radius: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(255, 255, 255, 0.96);
+  padding: 1.6rem;
+  box-shadow: 0 32px 70px -38px rgba(15, 23, 42, 0.45);
+  animation: authEnter 520ms ease;
+}
+
+.auth-input {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: #fff;
+  padding: 0.68rem 0.85rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--p-primary-color) 45%, #94a3b8);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-primary-color) 14%, transparent);
+}
+
+.auth-primary-btn {
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.9rem;
+  padding: 0.72rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #fff;
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.auth-primary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.auth-primary-btn:disabled {
+  opacity: 0.62;
+}
+
+.auth-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(85px);
+  pointer-events: none;
+}
+
+.auth-glow-a {
+  height: 300px;
+  width: 300px;
+  top: 10%;
+  right: -80px;
+  background: rgba(79, 70, 229, 0.2);
+}
+
+.auth-glow-b {
+  height: 280px;
+  width: 280px;
+  bottom: 5%;
+  left: -90px;
+  background: rgba(16, 185, 129, 0.18);
+}
+
+@keyframes authEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>

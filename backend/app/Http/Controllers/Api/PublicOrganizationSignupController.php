@@ -21,7 +21,7 @@ class PublicOrganizationSignupController extends Controller
         $validated = $request->validate([
             'organization_name' => ['required', 'string', 'max:255'],
             'admin_name' => ['required', 'string', 'max:255'],
-            'admin_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'admin_email' => ['required', 'string', 'email', 'max:255'],
         ]);
 
         $orgName = trim($validated['organization_name']);
