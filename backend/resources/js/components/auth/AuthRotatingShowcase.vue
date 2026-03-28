@@ -1,5 +1,5 @@
 <template>
-  <section class="auth-showcase relative hidden overflow-hidden lg:block">
+  <section class="auth-showcase aq-on-dark relative hidden overflow-hidden lg:block">
     <div class="absolute inset-0 bg-gradient-to-br from-slate-950/80 via-slate-900/62 to-indigo-900/45" />
     <img :src="activeCard.image" :alt="activeCard.title" class="absolute inset-0 h-full w-full object-cover opacity-55" loading="lazy" />
 

@@ -63,14 +63,12 @@ class PublicCandidateController extends Controller
             ->where('email', $validated['email'])
             ->first();
         
-        // Generate temp password for new users only
-        $tempPassword = null;
+        // Always generate a temporary password for public talent-pool signup so onboarding flow is deterministic.
+        // Candidate must change this password immediately after first login.
+        $tempPassword = Str::password(12, true, true, false, false);
         $user = $existingUser;
         
         if (!$existingUser) {
-            // Generate a random temp password (12 chars, letters and numbers)
-            $tempPassword = Str::password(12, true, true, false, false);
-            
             $user = User::create([
                 'organization_id' => $organization->id,
                 'name' => $validated['first_name'] . ' ' . $validated['last_name'],
@@ -81,9 +79,21 @@ class PublicCandidateController extends Controller
                 'must_change_password' => true,
             ]);
         } else {
-            // User exists - they already have a password, no temp password needed
-            // They can log in with their existing credentials
-            $tempPassword = null;
+            // If the existing account is not a candidate account, do not overwrite credentials.
+            if (($existingUser->role ?? '') !== 'candidate') {
+                return response()->json([
+                    'message' => 'This email is already used by a non-candidate account in this organization. Please use a different email.',
+                    'error_code' => 'EMAIL_IN_USE_BY_STAFF_ACCOUNT',
+                ], 409);
+            }
+
+            // Reset candidate account to temporary credentials and force password update on first login.
+            $existingUser->name = $validated['first_name'] . ' ' . $validated['last_name'];
+            $existingUser->password = Hash::make($tempPassword);
+            $existingUser->access_status = 'active';
+            $existingUser->must_change_password = true;
+            $existingUser->save();
+            $user = $existingUser->fresh();
         }
 
         // Create candidate with Phase 1 complete

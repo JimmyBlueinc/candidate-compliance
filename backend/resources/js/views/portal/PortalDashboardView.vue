@@ -1,6 +1,6 @@
 <template>
   <div class="portal-hub space-y-8 scroll-smooth-page">
-    <section class="career-hero reveal-up">
+    <section class="career-hero aq-on-dark reveal-up">
       <img
         :src="heroImage"
         alt="Professional candidate reviewing career opportunities"

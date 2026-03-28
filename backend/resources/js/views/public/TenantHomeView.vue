@@ -58,7 +58,7 @@
             </div>
 
             <div class="lg:col-span-6">
-              <div class="overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 shadow-xl">
+              <div class="aq-on-dark overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 shadow-xl">
                 <img
                   src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80"
                   alt="Professional team collaborating in a modern workplace"
@@ -205,7 +205,7 @@
 
       <section class="mx-auto mt-10 max-w-7xl px-6">
         <div class="grid gap-4 lg:grid-cols-12">
-          <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-6 text-white shadow-sm lg:col-span-8 md:p-8">
+          <div class="aq-on-dark relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-6 text-white shadow-sm lg:col-span-8 md:p-8">
             <img
               src="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=1600&q=80"
               alt="Candidate reviewing new role opportunities"

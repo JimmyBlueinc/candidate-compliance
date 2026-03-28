@@ -597,6 +597,33 @@
         opacity: 0.22;
         filter: blur(180px);
     }
+
+    /* Preserve light text contrast inside intentionally dark surfaces. */
+    html.theme-light .aq-on-dark,
+    html.theme-light .aq-on-dark * {
+        color: inherit;
+    }
+
+    html.theme-light .aq-on-dark {
+        color: #f8fafc !important;
+    }
+
+    html.theme-light .aq-on-dark .text-white,
+    html.theme-light .aq-on-dark .text-slate-100,
+    html.theme-light .aq-on-dark .text-slate-200,
+    html.theme-light .aq-on-dark .text-slate-300 {
+        color: #f8fafc !important;
+    }
+
+    html.theme-light .aq-on-dark .text-slate-400 {
+        color: rgba(241, 245, 249, 0.9) !important;
+    }
+
+    html.theme-light .aq-on-dark .text-slate-500,
+    html.theme-light .aq-on-dark .text-slate-600,
+    html.theme-light .aq-on-dark .text-slate-700 {
+        color: rgba(226, 232, 240, 0.9) !important;
+    }
 }
 
 @keyframes fadeInUp {
