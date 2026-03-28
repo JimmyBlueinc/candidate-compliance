@@ -178,6 +178,118 @@
               </div>
             </div>
 
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/5">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="text-xs font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Recruiter Notes</div>
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase border transition-colors"
+                    :style="{ backgroundColor: primarySoftBg, borderColor: primarySoftBorder, color: primaryColor }"
+                    :disabled="notesLoading"
+                    @click="loadNotes"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                <div class="mt-3 flex items-start gap-2">
+                  <textarea
+                    v-model="newNoteBody"
+                    rows="3"
+                    class="w-full rounded-2xl bg-white/5 border border-white/10 text-slate-100 px-3 py-2 text-sm"
+                    placeholder="Add an internal note about this candidate..."
+                  />
+                  <button
+                    type="button"
+                    class="px-3 py-2 rounded-xl text-xs font-black uppercase border"
+                    :style="{ backgroundColor: primaryColor, borderColor: primaryColor, color: '#fff' }"
+                    :disabled="noteSaving || !newNoteBody.trim()"
+                    @click="createNote"
+                  >
+                    {{ noteSaving ? 'Saving…' : 'Add' }}
+                  </button>
+                </div>
+                <div v-if="notesLoading" class="mt-3 text-xs text-[color:var(--p-text-muted-color)]">Loading notes…</div>
+                <div v-else-if="notes.length === 0" class="mt-3 text-xs text-[color:var(--p-text-muted-color)]">No notes yet.</div>
+                <div v-else class="mt-3 space-y-2 max-h-72 overflow-auto">
+                  <div v-for="n in notes" :key="n.id" class="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                    <div class="flex items-start justify-between gap-3">
+                      <p class="text-sm text-slate-100 whitespace-pre-wrap">{{ n.body }}</p>
+                      <button
+                        type="button"
+                        class="text-[10px] uppercase font-black tracking-widest text-rose-300"
+                        @click="deleteNote(n)"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    <div class="mt-2 text-[10px] text-[color:var(--p-text-muted-color)]">
+                      {{ n.author?.name || 'User' }} • {{ formatDateTime(n.created_at) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/5">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="text-xs font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Interview Schedule</div>
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase border transition-colors"
+                    :style="{ backgroundColor: primarySoftBg, borderColor: primarySoftBorder, color: primaryColor }"
+                    :disabled="interviewsLoading"
+                    @click="loadInterviews"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <input v-model="interviewForm.stage" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100" placeholder="Stage (e.g. Technical)" />
+                  <input v-model="interviewForm.starts_at" type="datetime-local" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100" />
+                  <input v-model="interviewForm.location" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100" placeholder="Location (optional)" />
+                  <input v-model="interviewForm.meeting_link" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100" placeholder="Meeting link (optional)" />
+                </div>
+                <div class="mt-2 flex justify-end">
+                  <button
+                    type="button"
+                    class="px-3 py-2 rounded-xl text-xs font-black uppercase border"
+                    :style="{ backgroundColor: primaryColor, borderColor: primaryColor, color: '#fff' }"
+                    :disabled="interviewSaving || !interviewForm.stage || !interviewForm.starts_at"
+                    @click="createInterview"
+                  >
+                    {{ interviewSaving ? 'Scheduling…' : 'Schedule' }}
+                  </button>
+                </div>
+                <div v-if="interviewsLoading" class="mt-3 text-xs text-[color:var(--p-text-muted-color)]">Loading interviews…</div>
+                <div v-else-if="interviews.length === 0" class="mt-3 text-xs text-[color:var(--p-text-muted-color)]">No interviews scheduled.</div>
+                <div v-else class="mt-3 space-y-2 max-h-72 overflow-auto">
+                  <div v-for="iv in interviews" :key="iv.id" class="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <div class="text-sm font-semibold text-slate-100">{{ iv.stage }}</div>
+                        <div class="mt-1 text-xs text-slate-300">{{ formatDateTime(iv.starts_at) }}</div>
+                        <div v-if="iv.location" class="text-xs text-[color:var(--p-text-muted-color)]">{{ iv.location }}</div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <select
+                          class="rounded-lg bg-white/5 border border-white/10 px-2 py-1 text-[11px] text-slate-100"
+                          :value="iv.status"
+                          @change="updateInterviewStatus(iv, $event)"
+                        >
+                          <option value="scheduled">scheduled</option>
+                          <option value="completed">completed</option>
+                          <option value="cancelled">cancelled</option>
+                          <option value="no_show">no_show</option>
+                        </select>
+                        <button type="button" class="text-[10px] uppercase font-black tracking-widest text-rose-300" @click="deleteInterview(iv)">Delete</button>
+                      </div>
+                    </div>
+                    <a v-if="iv.meeting_link" :href="iv.meeting_link" target="_blank" rel="noreferrer" class="mt-2 inline-block text-xs font-semibold underline" :style="{ color: primaryColor }">Open Meeting Link</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/5">
               <div class="text-xs font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Credentials</div>
 
@@ -266,7 +378,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { apiGet, apiPost, normalizeApiList } from '../../lib/api';
+import { apiDelete, apiGet, apiPost, apiPut, normalizeApiList } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import Dialog from 'primevue/dialog';
 
@@ -297,6 +409,19 @@ const readinessReason = computed(() => {
 });
 
 const activeTab = ref('profile');
+const notes = ref([]);
+const notesLoading = ref(false);
+const noteSaving = ref(false);
+const newNoteBody = ref('');
+const interviews = ref([]);
+const interviewsLoading = ref(false);
+const interviewSaving = ref(false);
+const interviewForm = ref({
+    stage: '',
+    starts_at: '',
+    location: '',
+    meeting_link: '',
+});
 
 const jobOrders = ref([]);
 const submitModalOpen = ref(false);
@@ -318,11 +443,95 @@ async function refresh() {
         credentials.value = Array.isArray(payload?.credentials) ? payload.credentials : [];
         counts.value = payload?.compliance?.status_counts || counts.value;
         readiness.value = payload?.compliance?.readiness || readiness.value;
+        if (candidate.value?.id) {
+            await Promise.all([loadNotes(), loadInterviews()]);
+        }
     } catch (e) {
         error.value = e?.response?.data?.message || e?.message || 'Failed to load.';
     } finally {
         loading.value = false;
     }
+}
+
+async function loadNotes() {
+    if (!route.params.id) return;
+    notesLoading.value = true;
+    try {
+        const res = await apiGet(`/v1/candidates/${route.params.id}/notes`);
+        notes.value = normalizeApiList(res);
+    } catch {
+        notes.value = [];
+    } finally {
+        notesLoading.value = false;
+    }
+}
+
+async function createNote() {
+    if (!newNoteBody.value.trim() || !route.params.id) return;
+    noteSaving.value = true;
+    try {
+        await apiPost(`/v1/candidates/${route.params.id}/notes`, { body: newNoteBody.value.trim() });
+        newNoteBody.value = '';
+        await loadNotes();
+    } finally {
+        noteSaving.value = false;
+    }
+}
+
+async function deleteNote(note) {
+    if (!note?.id) return;
+    if (!window.confirm('Delete this note?')) return;
+    await apiDelete(`/v1/candidates/notes/${note.id}`);
+    await loadNotes();
+}
+
+async function loadInterviews() {
+    if (!route.params.id) return;
+    interviewsLoading.value = true;
+    try {
+        const res = await apiGet(`/v1/candidates/${route.params.id}/interviews`);
+        interviews.value = normalizeApiList(res);
+    } catch {
+        interviews.value = [];
+    } finally {
+        interviewsLoading.value = false;
+    }
+}
+
+async function createInterview() {
+    if (!interviewForm.value.stage || !interviewForm.value.starts_at || !route.params.id) return;
+    interviewSaving.value = true;
+    try {
+        await apiPost(`/v1/candidates/${route.params.id}/interviews`, {
+            stage: interviewForm.value.stage,
+            starts_at: new Date(interviewForm.value.starts_at).toISOString(),
+            location: interviewForm.value.location || null,
+            meeting_link: interviewForm.value.meeting_link || null,
+        });
+        interviewForm.value = {
+            stage: '',
+            starts_at: '',
+            location: '',
+            meeting_link: '',
+        };
+        await loadInterviews();
+    } finally {
+        interviewSaving.value = false;
+    }
+}
+
+async function updateInterviewStatus(interview, event) {
+    const next = String(event?.target?.value || '');
+    if (!interview?.id || !next) return;
+    await apiPut(`/v1/candidates/interviews/${interview.id}`, { status: next });
+    await loadInterviews();
+}
+
+async function deleteInterview(interview) {
+    if (!interview?.id) return;
+    if (!window.confirm('Delete this interview schedule?')) return;
+    await apiDelete(`/v1/candidates/interviews/${interview.id}`);
+    await loadInterviews();
 }
 
 function formatDateTime(v) {

@@ -131,8 +131,6 @@ const pageTitle = computed(() => {
     'dashboard.broadcast': 'Broadcast',
     'dashboard.candidates': 'Candidates',
     'dashboard.candidate_search': 'Candidate Search',
-    'dashboard.intake_feed': 'Intake Feed',
-    'dashboard.intake_external': 'External Sources',
     'dashboard.candidate_profile': 'Candidate Profile',
     'dashboard.job_orders': 'Job Orders',
     'dashboard.job_sources': 'Job Sources',

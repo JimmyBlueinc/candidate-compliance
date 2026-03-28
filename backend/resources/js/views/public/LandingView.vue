@@ -55,12 +55,26 @@
 
             <div class="relative lg:col-span-6 border-t border-slate-200 bg-gradient-to-br from-indigo-50/80 via-cyan-50/70 to-violet-50/70 p-6 md:p-8 lg:border-l lg:border-t-0">
               <div class="relative h-full min-h-[420px] rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-                <img
-                  :src="heroImageSrc"
-                  alt="Operations team coordinating staffing workflows"
-                  class="hero-image h-56 w-full rounded-2xl object-cover"
-                  loading="lazy"
-                />
+                <Transition name="hero-slide-fade" mode="out-in">
+                  <img
+                    :key="activeHeroSlide.id"
+                    :src="activeHeroSlide.image"
+                    :alt="activeHeroSlide.alt"
+                    class="hero-image h-56 w-full rounded-2xl object-cover"
+                    loading="lazy"
+                  />
+                </Transition>
+                <div class="mt-3 flex items-center justify-between">
+                  <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{{ activeHeroSlide.caption }}</p>
+                  <div class="inline-flex items-center gap-1.5">
+                    <span
+                      v-for="slide in heroSlides"
+                      :key="slide.id"
+                      class="h-1.5 w-5 rounded-full transition-colors"
+                      :class="slide.id === activeHeroSlide.id ? 'bg-indigo-500' : 'bg-slate-300'"
+                    />
+                  </div>
+                </div>
 
                 <div class="aq-on-dark mt-4 rounded-2xl border border-slate-200 bg-slate-950 p-4 text-slate-100 shadow-xl">
                   <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Live Operations Pulse</p>
@@ -277,7 +291,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useBrandStore } from '../../stores/brand';
 import { useAuthStore } from '../../stores/auth';
@@ -292,8 +306,30 @@ const primarySolid = computed(() => {
   const c = primaryColor.value;
   return typeof c === 'string' && c.trim().length ? c : '#4f46e5';
 });
-const heroImageSrc = '/images/public/hero-operations.svg';
 const heroCareImageSrc = ref('https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=1200&q=80');
+const heroSlides = [
+  {
+    id: 'ops-team',
+    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80',
+    alt: 'Recruiting and staffing team coordinating candidate pipeline',
+    caption: 'Pipeline orchestration in real time',
+  },
+  {
+    id: 'interview-collab',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80',
+    alt: 'Hiring team collaboration and candidate planning session',
+    caption: 'Hiring team collaboration and alignment',
+  },
+  {
+    id: 'workforce-planning',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1600&q=80',
+    alt: 'Workforce planning and staffing operations strategy',
+    caption: 'Workforce planning for multi-site operations',
+  },
+];
+const heroSlideIndex = ref(0);
+const activeHeroSlide = computed(() => heroSlides[heroSlideIndex.value] || heroSlides[0]);
+let heroSlideTimer = null;
 
 const heroMetrics = [
   { label: 'Placement velocity', value: '2.4x faster' },
@@ -373,6 +409,12 @@ function onHeroCareImageError() {
   heroCareImageSrc.value = '/images/public/tenant-careers-hero.svg';
 }
 
+function rotateHeroSlides() {
+  heroSlideTimer = window.setInterval(() => {
+    heroSlideIndex.value = (heroSlideIndex.value + 1) % heroSlides.length;
+  }, 5200);
+}
+
 function handleLoginClick() {
   if (auth.isAuthenticated) {
     if (!brand.loaded) {
@@ -386,12 +428,38 @@ function handleLoginClick() {
   }
   router.push({ name: 'login' });
 }
+
+onMounted(() => {
+  rotateHeroSlides();
+});
+
+onBeforeUnmount(() => {
+  if (heroSlideTimer) {
+    window.clearInterval(heroSlideTimer);
+    heroSlideTimer = null;
+  }
+});
 </script>
 
 <style scoped>
 .hero-image,
 .feature-image {
   transition: transform 240ms ease, filter 240ms ease;
+}
+
+.hero-slide-fade-enter-active,
+.hero-slide-fade-leave-active {
+  transition: opacity 360ms ease, transform 360ms ease;
+}
+
+.hero-slide-fade-enter-from {
+  opacity: 0;
+  transform: translateX(10px);
+}
+
+.hero-slide-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
 }
 
 .hero-image:hover,

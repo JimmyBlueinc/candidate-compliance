@@ -109,6 +109,10 @@
             <p class="mini-label">Unread messages</p>
             <p class="mini-value">{{ unreadMessages }}</p>
           </div>
+          <div class="mini-stat col-span-2">
+            <p class="mini-label">Upcoming interviews</p>
+            <p class="mini-value">{{ upcomingInterviews }}</p>
+          </div>
         </div>
       </article>
     </section>
@@ -128,6 +132,7 @@ const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, 
 const me = ref(null);
 const jobs = ref([]);
 const unreadMessages = ref(0);
+const interviewRows = ref([]);
 const credentialsCount = ref(0);
 const approvedCredentialsCount = ref(0);
 const heroImage = ref('https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1800&q=80');
@@ -156,6 +161,11 @@ const activityItems = computed(() => [
         desc: 'Respond quickly to recruiters to keep momentum.',
         color: '#6366f1',
     },
+    {
+        title: `${upcomingInterviews.value} upcoming interviews`,
+        desc: 'Keep your calendar available and meeting links ready.',
+        color: '#a855f7',
+    },
 ]);
 
 const profileStrength = computed(() => {
@@ -166,6 +176,14 @@ const profileStrength = computed(() => {
     const docs = Math.min(1, (Number(approvedCredentialsCount.value || 0) / 5));
 
     return Math.round((contactScore * 0.6 + docs * 0.4) * 100);
+});
+
+const upcomingInterviews = computed(() => {
+    const now = new Date().getTime();
+    return interviewRows.value.filter((row) => {
+        const starts = new Date(row?.starts_at || '').getTime();
+        return Number.isFinite(starts) && starts >= now && row?.status === 'scheduled';
+    }).length;
 });
 
 function onHeroImageError() {
@@ -216,6 +234,16 @@ async function loadMessageCount() {
     }
 }
 
+async function loadInterviews() {
+    try {
+        const response = await apiGet('/v1/candidate/interviews');
+        const payload = response?.data || response;
+        interviewRows.value = Array.isArray(payload) ? payload : [];
+    } catch {
+        interviewRows.value = [];
+    }
+}
+
 onMounted(async () => {
     if (!brand.loaded && !brand.loading) {
         await brand.load();
@@ -223,6 +251,7 @@ onMounted(async () => {
     await loadMe();
     await loadJobs();
     await loadMessageCount();
+    await loadInterviews();
 });
 </script>
 

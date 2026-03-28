@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class MessageController extends Controller
 {
@@ -32,11 +31,30 @@ class MessageController extends Controller
             'submission_id' => ['nullable', 'integer', 'exists:submissions,id'],
             'placement_id' => ['nullable', 'integer', 'exists:placements,id'],
             'recipient_id' => ['nullable', 'integer', 'exists:users,id'],
+            'since_id' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:200'],
         ]);
 
         $query = Message::query()
             ->with(['user:id,name,role', 'recipient:id,name,role'])
-            ->where('tenant_id', $orgId);
+            ->where('tenant_id', $orgId)
+            ->select([
+                'id',
+                'tenant_id',
+                'user_id',
+                'facility_id',
+                'job_order_id',
+                'submission_id',
+                'placement_id',
+                'recipient_id',
+                'body',
+                'read_at',
+                'created_at',
+                'updated_at',
+            ]);
+
+        $hasRecipientContext = false;
+        $recipientId = null;
 
         // Filter by context if provided
         if ($request->filled('job_order_id')) {
@@ -47,7 +65,8 @@ class MessageController extends Controller
             $query->where('placement_id', $request->placement_id);
         } elseif ($request->filled('recipient_id')) {
             // Direct message conversation between current user and recipient
-            $recipientId = $request->recipient_id;
+            $hasRecipientContext = true;
+            $recipientId = (int) $request->recipient_id;
 
             $recipient = \App\Models\User::query()->find($recipientId);
             if (!$recipient || (int) $recipient->organization_id !== (int) $orgId) {
@@ -68,7 +87,30 @@ class MessageController extends Controller
             });
         }
 
-        $messages = $query->orderBy('created_at', 'asc')->get();
+        $sinceId = (int) ($validated['since_id'] ?? 0);
+        if ($sinceId > 0) {
+            $query->where('id', '>', $sinceId);
+        }
+
+        $limit = (int) ($validated['limit'] ?? 100);
+
+        // Fetch newest first for DB efficiency, then reverse for chat chronology.
+        $messages = $query
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->reverse()
+            ->values();
+
+        if ($hasRecipientContext && $recipientId && $messages->isNotEmpty()) {
+            Message::query()
+                ->withoutGlobalScopes()
+                ->where('tenant_id', $orgId)
+                ->where('user_id', $recipientId)
+                ->where('recipient_id', $user->id)
+                ->whereNull('read_at')
+                ->update(['read_at' => now()]);
+        }
 
         return response()->api($messages);
     }
@@ -130,11 +172,7 @@ class MessageController extends Controller
                     return response()->json(['message' => 'Unauthorized. Staff can only direct-message candidates.'], 403);
                 }
             } elseif ($isCandidate) {
-                if ((string) ($recipient->role ?? '') === 'org_super_admin') {
-                    return response()->json(['message' => 'Unauthorized. Candidates cannot message organization owners.'], 403);
-                }
-
-                $candidateAllowedStaffRoles = ['admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'];
+                $candidateAllowedStaffRoles = ['org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics', 'platform_admin'];
                 if (!in_array((string) ($recipient->role ?? ''), $candidateAllowedStaffRoles, true)) {
                     return response()->json(['message' => 'Unauthorized. Candidates can only message staff.'], 403);
                 }

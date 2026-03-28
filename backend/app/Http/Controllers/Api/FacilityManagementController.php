@@ -146,22 +146,85 @@ class FacilityManagementController extends Controller
         ]);
 
         return response()->api([
-            'facility' => [
-                'id' => $facility->id,
-                'name' => $facility->name,
-                'address' => $facility->address,
-                'city' => $facility->city,
-                'state' => $facility->state,
-                'country' => $facility->country,
-                'postal_code' => $facility->postal_code,
-                'timezone' => $facility->timezone,
-                'facility_type' => $facility->facility_type,
-                'facility_type_other' => $facility->facility_type_other,
-                'contact_person_name' => $facility->contact_person_name,
-                'contact_email' => $facility->contact_email,
-                'contact_phone' => $facility->contact_phone,
-            ],
+            'facility' => $this->serializeFacility($facility),
         ], 201, [], 'Facility created.');
+    }
+
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $orgId = Org::id($request);
+        if (!$orgId) {
+            return response()->json(['message' => 'Organization context missing.'], 400);
+        }
+
+        $facility = Facility::query()
+            ->where('organization_id', $orgId)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => ['sometimes', 'string', 'max:255'],
+            'address' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'city' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'state' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'country' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'postal_code' => ['sometimes', 'nullable', 'string', 'max:40'],
+            'timezone' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'facility_type' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'facility_type_other' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'contact_person_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'contact_email' => ['sometimes', 'nullable', 'string', 'email', 'max:255'],
+            'contact_phone' => ['sometimes', 'nullable', 'string', 'max:50'],
+        ]);
+
+        $updates = [];
+        foreach ($validated as $key => $value) {
+            if ($key === 'contact_email') {
+                $updates[$key] = $value ?: null;
+                continue;
+            }
+
+            if ($value === null || $value === '') {
+                $updates[$key] = null;
+                continue;
+            }
+
+            $updates[$key] = htmlspecialchars(strip_tags((string) $value), ENT_QUOTES, 'UTF-8');
+        }
+
+        if (!empty($updates)) {
+            $facility->update($updates);
+        }
+
+        return response()->api([
+            'facility' => $this->serializeFacility($facility->fresh()),
+        ], 200, [], 'Facility updated.');
+    }
+
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $orgId = Org::id($request);
+        if (!$orgId) {
+            return response()->json(['message' => 'Organization context missing.'], 400);
+        }
+
+        $facility = Facility::query()
+            ->where('organization_id', $orgId)
+            ->withCount('users')
+            ->withCount('contracts')
+            ->findOrFail($id);
+
+        if ((int) ($facility->users_count ?? 0) > 0 || (int) ($facility->contracts_count ?? 0) > 0) {
+            return response()->json([
+                'message' => 'Cannot delete facility with active users or contracts. Reassign or remove linked records first.',
+            ], 422);
+        }
+
+        $facility->delete();
+
+        return response()->api([
+            'deleted' => true,
+            'id' => $id,
+        ], 200, [], 'Facility deleted.');
     }
 
     public function createFacilityUser(Request $request, Facility $facility): JsonResponse
@@ -237,5 +300,24 @@ class FacilityManagementController extends Controller
             ],
             'email_sent' => $emailSent,
         ], 201, [], 'Facility user created.');
+    }
+
+    private function serializeFacility(Facility $facility): array
+    {
+        return [
+            'id' => $facility->id,
+            'name' => $facility->name,
+            'address' => $facility->address,
+            'city' => $facility->city,
+            'state' => $facility->state,
+            'country' => $facility->country,
+            'postal_code' => $facility->postal_code,
+            'timezone' => $facility->timezone,
+            'facility_type' => $facility->facility_type,
+            'facility_type_other' => $facility->facility_type_other,
+            'contact_person_name' => $facility->contact_person_name,
+            'contact_email' => $facility->contact_email,
+            'contact_phone' => $facility->contact_phone,
+        ];
     }
 }

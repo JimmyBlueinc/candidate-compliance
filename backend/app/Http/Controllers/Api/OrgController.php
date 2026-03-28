@@ -18,7 +18,7 @@ class OrgController extends Controller
             return response()->json(['message' => 'Organization context missing.'], 400);
         }
 
-        $staffRoles = ['admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'];
+        $staffRoles = ['org_super_admin', 'platform_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'];
         $q = trim((string) $request->query('q', ''));
 
         $query = User::query()

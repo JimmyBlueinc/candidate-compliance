@@ -101,7 +101,6 @@ class UserPresenceController extends Controller
         $count = Message::query()
             ->where('tenant_id', $orgId)
             ->where('recipient_id', $user->id)
-            ->where('created_at', '>=', now()->subDay())
             ->whereNull('read_at')
             ->count();
 

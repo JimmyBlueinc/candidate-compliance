@@ -1,6 +1,6 @@
 <template>
-  <div class="space-y-8 max-w-5xl">
-    <UiPageHeader title="Your Profile" subtitle="Manage your personal information and account security." />
+  <div class="space-y-8 max-w-6xl pb-6">
+    <UiPageHeader title="Profile & Account" subtitle="Manage identity, security, and your recruiting workspace preferences." />
 
     <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
     <Message v-if="success" severity="success" :closable="false">{{ success }}</Message>
@@ -34,6 +34,15 @@
       </div>
 
       <div class="lg:col-span-2 space-y-6">
+        <UiCard title="Quick Access">
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <button type="button" class="quick-tile" @click="goToRoute('dashboard.profile')">Profile Settings</button>
+            <button type="button" class="quick-tile" @click="goToRoute('dashboard.change_password')">Security</button>
+            <button type="button" class="quick-tile" @click="goToRoute('dashboard.notifications')">Notifications</button>
+            <button type="button" class="quick-tile" @click="goToRoute('dashboard.templates')">Preferences</button>
+          </div>
+        </UiCard>
+
         <UiCard title="Personal Information">
           <form class="space-y-6" @submit.prevent="handleSubmit">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -108,6 +117,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { apiGet, apiPut } from '../../lib/api';
 import { useAuthStore } from '../../stores/auth';
@@ -120,6 +130,7 @@ import Message from 'primevue/message';
 import Password from 'primevue/password';
 
 const auth = useAuthStore();
+const router = useRouter();
 
 const formData = ref({
     name: auth.user?.name || '',
@@ -164,6 +175,11 @@ function onAvatarChange(e) {
     if (file) {
         avatarObjectUrl.value = URL.createObjectURL(file);
     }
+}
+
+function goToRoute(name) {
+    if (!name) return;
+    router.push({ name });
 }
 
 async function fetchProfile() {
@@ -276,3 +292,24 @@ onBeforeUnmount(() => {
     }
 });
 </script>
+
+<style scoped>
+.quick-tile {
+    border-radius: 0.9rem;
+    border: 1px solid var(--aq-border);
+    background: color-mix(in srgb, var(--aq-surface-2) 88%, transparent);
+    color: var(--aq-fg);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 0.72rem 0.8rem;
+    text-align: left;
+    transition: border-color var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
+}
+
+.quick-tile:hover {
+    border-color: color-mix(in srgb, var(--aq-primary) 45%, var(--aq-border));
+    background: color-mix(in srgb, var(--aq-primary) 12%, var(--aq-surface-2));
+    transform: translateY(-1px);
+}
+</style>

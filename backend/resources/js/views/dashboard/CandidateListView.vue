@@ -3,6 +3,7 @@
     <UiPageHeader title="Candidates" subtitle="Manage and search your candidate database.">
       <template #actions>
         <Button label="Refresh" icon="pi pi-refresh" severity="secondary" outlined size="small" @click="refresh" />
+        <Button label="Save Search" icon="pi pi-save" severity="secondary" outlined size="small" @click="openSaveSearchDialog" />
         <Button v-if="canCreateCandidate" label="Create Candidate" icon="pi pi-plus" size="small" @click="showCreateDialog = true" />
       </template>
     </UiPageHeader>
@@ -47,7 +48,11 @@
         </Column>
         <Column header="Actions" class="text-right">
           <template #body="{ data }">
-            <Button icon="pi pi-user" label="Profile" size="small" text @click="viewProfile(data.id)" />
+            <div class="inline-flex items-center gap-1">
+              <Button icon="pi pi-user" label="Profile" size="small" text @click="viewProfile(data.id)" />
+              <Button v-if="canManageCandidate" icon="pi pi-pencil" label="Edit" size="small" text @click="openEditCandidate(data)" />
+              <Button v-if="canManageCandidate" icon="pi pi-trash" label="Delete" size="small" text severity="danger" @click="openDeleteCandidate(data)" />
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -248,13 +253,86 @@
         </div>
       </form>
     </Dialog>
+
+    <Dialog v-model:visible="showEditDialog" modal header="Edit Candidate" :style="{ width: 'min(600px, 95vw)' }">
+      <form @submit.prevent="updateCandidate" class="space-y-4 pt-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--aq-muted)]">First Name</label>
+            <InputText v-model="editCandidate.first_name" class="w-full" required size="small" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--aq-muted)]">Last Name</label>
+            <InputText v-model="editCandidate.last_name" class="w-full" required size="small" />
+          </div>
+        </div>
+        <div class="space-y-2">
+          <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--aq-muted)]">Email</label>
+          <InputText v-model="editCandidate.email" type="email" class="w-full" required size="small" />
+        </div>
+        <div class="space-y-2">
+          <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--aq-muted)]">Phone</label>
+          <InputText v-model="editCandidate.phone" class="w-full" size="small" />
+        </div>
+        <div class="space-y-2">
+          <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--aq-muted)]">Specialty</label>
+          <InputText v-model="editCandidate.specialty" class="w-full" size="small" />
+        </div>
+        <div class="space-y-2">
+          <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--aq-muted)]">Tags (comma separated)</label>
+          <InputText v-model="editCandidate.tagsText" class="w-full" size="small" />
+        </div>
+        <Message v-if="editError" severity="error" :closable="false">{{ editError }}</Message>
+        <div class="flex justify-end pt-2">
+          <Button type="submit" label="Save Changes" :loading="editing" />
+        </div>
+      </form>
+    </Dialog>
+
+    <Dialog v-model:visible="showDeleteDialog" modal header="Delete Candidate" :style="{ width: 'min(520px, 95vw)' }">
+      <div class="space-y-4">
+        <p class="text-sm text-[color:var(--aq-muted)]">
+          Type <span class="font-semibold text-[color:var(--aq-fg)]">{{ deleteCandidate?.name || deleteCandidate?.email }}</span> to confirm permanent deletion.
+        </p>
+        <InputText v-model="deleteConfirmText" class="w-full" :placeholder="deleteCandidate?.name || deleteCandidate?.email || ''" />
+        <Message v-if="deleteError" severity="error" :closable="false">{{ deleteError }}</Message>
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button label="Cancel" severity="secondary" outlined @click="showDeleteDialog = false" />
+          <Button
+            label="Delete Candidate"
+            severity="danger"
+            :disabled="!canConfirmDelete"
+            :loading="deleting"
+            @click="removeCandidate"
+          />
+        </div>
+      </template>
+    </Dialog>
+
+    <Dialog v-model:visible="showSaveSearchDialog" modal header="Save Search" :style="{ width: 'min(520px, 95vw)' }">
+      <div class="space-y-4">
+        <div class="space-y-2">
+          <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--aq-muted)]">Name</label>
+          <InputText v-model="saveSearchName" class="w-full" placeholder="e.g. Night shift candidates" />
+        </div>
+        <Message v-if="saveSearchError" severity="error" :closable="false">{{ saveSearchError }}</Message>
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button label="Cancel" severity="secondary" outlined @click="showSaveSearchDialog = false" />
+          <Button label="Save" :loading="saveSearchLoading" @click="saveCurrentSearch" />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { apiGet, apiPost } from '../../lib/api';
+import { apiDelete, apiGet, apiPost, apiPut } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import { useAuthStore } from '../../stores/auth';
 import axios from 'axios';
@@ -297,8 +375,59 @@ const createError = ref('');
 const createSuccess = ref('');
 
 const showCreateDialog = ref(false);
+const showSaveSearchDialog = ref(false);
+const saveSearchName = ref('');
+const saveSearchLoading = ref(false);
+const saveSearchError = ref('');
+const showEditDialog = ref(false);
+const showDeleteDialog = ref(false);
+const editError = ref('');
+const editing = ref(false);
+const deleting = ref(false);
+const deleteError = ref('');
+const deleteConfirmText = ref('');
+const deleteCandidate = ref(null);
+const editCandidate = ref({
+    id: null,
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    specialty: '',
+    tagsText: '',
+});
 
 const canCreateCandidate = computed(() => ['recruiter', 'compliance', 'admin', 'org_super_admin', 'platform_admin'].includes(String(auth.user?.role || '')));
+const canManageCandidate = computed(() => ['admin', 'org_super_admin', 'platform_admin', 'recruiter', 'compliance'].includes(String(auth.user?.role || '')));
+const canConfirmDelete = computed(() => {
+    const target = deleteCandidate.value;
+    if (!target) return false;
+    const expected = String(target.name || target.email || '').trim();
+    return expected.length > 0 && deleteConfirmText.value.trim() === expected;
+});
+
+async function applySavedFilterIfPresent() {
+    const savedFilterId = String(router.currentRoute.value?.query?.saved_filter_id || '').trim();
+    if (!savedFilterId) return false;
+
+    try {
+        const res = await apiGet('/filters');
+        const rows = Array.isArray(res?.data) ? res.data : [];
+        const row = rows.find((r) => String(r?.id) === savedFilterId);
+        if (!row || String(row?.filters?.context || '') !== 'candidates.list') return false;
+
+        const q = String(row?.filters?.query || '');
+        searchQuery.value = q;
+        if (q) {
+            await runSearch();
+        } else {
+            await refresh();
+        }
+        return true;
+    } catch {
+        return false;
+    }
+}
 
 const importOpen = ref(false);
 const importStep = ref(1);
@@ -443,6 +572,107 @@ async function createCandidate() {
         createError.value = e?.response?.data?.message || e?.message || 'Failed to create candidate';
     } finally {
         creating.value = false;
+    }
+}
+
+function openEditCandidate(row) {
+    if (!canManageCandidate.value) return;
+    editCandidate.value = {
+        id: Number(row?.id || 0),
+        first_name: row?.first_name || '',
+        last_name: row?.last_name || '',
+        email: row?.email || '',
+        phone: row?.phone || '',
+        specialty: row?.specialty || '',
+        tagsText: Array.isArray(row?.tags) ? row.tags.join(', ') : '',
+    };
+    editError.value = '';
+    showEditDialog.value = true;
+}
+
+async function updateCandidate() {
+    if (!canManageCandidate.value || !editCandidate.value.id) return;
+
+    try {
+        editing.value = true;
+        editError.value = '';
+        const tags = String(editCandidate.value.tagsText || '')
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean);
+
+        await apiPut(`/v1/candidates/${editCandidate.value.id}`, {
+            first_name: editCandidate.value.first_name,
+            last_name: editCandidate.value.last_name,
+            email: editCandidate.value.email,
+            phone: editCandidate.value.phone || null,
+            specialty: editCandidate.value.specialty || null,
+            tags,
+        });
+
+        showEditDialog.value = false;
+        await refresh();
+    } catch (e) {
+        editError.value = e?.response?.data?.message || e?.message || 'Failed to update candidate.';
+    } finally {
+        editing.value = false;
+    }
+}
+
+function openDeleteCandidate(row) {
+    if (!canManageCandidate.value) return;
+    deleteCandidate.value = row;
+    deleteConfirmText.value = '';
+    deleteError.value = '';
+    showDeleteDialog.value = true;
+}
+
+async function removeCandidate() {
+    if (!canManageCandidate.value || !deleteCandidate.value?.id || !canConfirmDelete.value) return;
+
+    try {
+        deleting.value = true;
+        deleteError.value = '';
+        await apiDelete(`/v1/candidates/${deleteCandidate.value.id}`);
+        showDeleteDialog.value = false;
+        deleteCandidate.value = null;
+        deleteConfirmText.value = '';
+        await refresh();
+    } catch (e) {
+        deleteError.value = e?.response?.data?.message || e?.message || 'Failed to delete candidate.';
+    } finally {
+        deleting.value = false;
+    }
+}
+
+function openSaveSearchDialog() {
+    saveSearchName.value = '';
+    saveSearchError.value = '';
+    showSaveSearchDialog.value = true;
+}
+
+async function saveCurrentSearch() {
+    const name = String(saveSearchName.value || '').trim();
+    if (!name) {
+        saveSearchError.value = 'Please enter a filter name.';
+        return;
+    }
+
+    try {
+        saveSearchLoading.value = true;
+        saveSearchError.value = '';
+        await apiPost('/filters', {
+            name,
+            filters: {
+                context: 'candidates.list',
+                query: String(searchQuery.value || '').trim(),
+            },
+        });
+        showSaveSearchDialog.value = false;
+    } catch (e) {
+        saveSearchError.value = e?.response?.data?.message || e?.message || 'Failed to save search.';
+    } finally {
+        saveSearchLoading.value = false;
     }
 }
 
@@ -628,11 +858,26 @@ async function downloadTemplate() {
 }
 
 onMounted(() => {
-    refresh();
+    applySavedFilterIfPresent().then((applied) => {
+        if (!applied) refresh();
+    });
     pollTimer = window.setInterval(() => {
-        if (!loading.value) refresh();
+        if (loading.value) return;
+        const hasQuery = String(searchQuery.value || '').trim().length > 0;
+        if (hasQuery) {
+            runSearch();
+        } else {
+            refresh();
+        }
     }, 20000);
 });
+
+watch(
+    () => router.currentRoute.value?.query?.saved_filter_id,
+    async () => {
+        await applySavedFilterIfPresent();
+    }
+);
 
 let pollTimer = null;
 onBeforeUnmount(() => {

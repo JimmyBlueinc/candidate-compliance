@@ -143,6 +143,9 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             Route::post('/credentials/{id}/upload', [\App\Http\Controllers\Api\PortalCredentialController::class, 'upload']);
             Route::get('/jobs', [\App\Http\Controllers\Api\PortalJobsController::class, 'index']);
             Route::get('/jobs/{id}', [\App\Http\Controllers\Api\PortalJobsController::class, 'show']);
+            Route::get('/bookmarks', [\App\Http\Controllers\Api\PortalJobsController::class, 'bookmarks']);
+            Route::put('/bookmarks/{jobOrderId}', [\App\Http\Controllers\Api\PortalJobsController::class, 'upsertBookmark']);
+            Route::delete('/bookmarks/{jobOrderId}', [\App\Http\Controllers\Api\PortalJobsController::class, 'removeBookmark']);
             Route::get('/my-travel', [\App\Http\Controllers\Api\PortalPlacementController::class, 'myTravel']);
             Route::post('/placements/{id}/confirm-arrival', [\App\Http\Controllers\Api\PortalPlacementController::class, 'confirmArrival']);
 
@@ -161,6 +164,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             Route::get('/timesheets', [\App\Http\Controllers\Api\CandidatePortalController::class, 'timesheets']);
             Route::post('/timesheets', [\App\Http\Controllers\Api\CandidatePortalController::class, 'storeTimesheet']);
             Route::get('/payments', [\App\Http\Controllers\Api\CandidatePortalController::class, 'payments']);
+            Route::get('/interviews', [\App\Http\Controllers\Api\CandidatePortalController::class, 'interviews']);
         });
 
         // Placements (candidate action)
@@ -199,9 +203,9 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             Route::get('/', [\App\Http\Controllers\Api\CandidateController::class, 'index'])->middleware('role.candidate_view');
             Route::get('/search', [\App\Http\Controllers\Api\CandidateController::class, 'search'])->middleware('role.candidate_view');
             Route::get('/export', [\App\Http\Controllers\Api\CandidateController::class, 'export'])->middleware('role.candidate_view');
-            Route::get('/{id}', [\App\Http\Controllers\Api\CandidateController::class, 'show'])->middleware('role.candidate_view');
-            Route::get('/{id}/documents', [\App\Http\Controllers\Api\CandidateController::class, 'documents'])->middleware('role.candidate_view');
-            Route::get('/{id}/credentials', [\App\Http\Controllers\Api\CandidateController::class, 'credentials'])->middleware('role.candidate_view');
+            Route::get('/{id}', [\App\Http\Controllers\Api\CandidateController::class, 'show'])->where('id', '[0-9]+')->middleware('role.candidate_view');
+            Route::get('/{id}/documents', [\App\Http\Controllers\Api\CandidateController::class, 'documents'])->where('id', '[0-9]+')->middleware('role.candidate_view');
+            Route::get('/{id}/credentials', [\App\Http\Controllers\Api\CandidateController::class, 'credentials'])->where('id', '[0-9]+')->middleware('role.candidate_view');
 
             Route::prefix('import')->middleware('role.candidate_manage')->group(function () {
                 Route::get('/template', [\App\Http\Controllers\Api\CandidateImportController::class, 'template']);
@@ -210,9 +214,16 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             });
 
             Route::post('/', [\App\Http\Controllers\Api\CandidateController::class, 'store'])->middleware('role.candidate_manage');
-            Route::put('/{id}', [\App\Http\Controllers\Api\CandidateController::class, 'update'])->middleware('role.candidate_manage');
-            Route::delete('/{id}', [\App\Http\Controllers\Api\CandidateController::class, 'destroy'])->middleware('role.candidate_manage');
-            Route::post('/{id}/documents', [\App\Http\Controllers\Api\CandidateController::class, 'uploadDocuments'])->middleware('role.candidate_manage');
+            Route::put('/{id}', [\App\Http\Controllers\Api\CandidateController::class, 'update'])->where('id', '[0-9]+')->middleware('role.candidate_manage');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\CandidateController::class, 'destroy'])->where('id', '[0-9]+')->middleware('role.candidate_manage');
+            Route::get('/{id}/notes', [\App\Http\Controllers\Api\CandidateNotesController::class, 'index'])->where('id', '[0-9]+')->middleware('role.candidate_view');
+            Route::post('/{id}/notes', [\App\Http\Controllers\Api\CandidateNotesController::class, 'store'])->where('id', '[0-9]+')->middleware('role.candidate_manage');
+            Route::delete('/notes/{noteId}', [\App\Http\Controllers\Api\CandidateNotesController::class, 'destroy'])->middleware('role.candidate_manage');
+            Route::get('/{id}/interviews', [\App\Http\Controllers\Api\CandidateInterviewsController::class, 'index'])->where('id', '[0-9]+')->middleware('role.candidate_view');
+            Route::post('/{id}/interviews', [\App\Http\Controllers\Api\CandidateInterviewsController::class, 'store'])->where('id', '[0-9]+')->middleware('role.candidate_manage');
+            Route::put('/interviews/{interviewId}', [\App\Http\Controllers\Api\CandidateInterviewsController::class, 'update'])->middleware('role.candidate_manage');
+            Route::delete('/interviews/{interviewId}', [\App\Http\Controllers\Api\CandidateInterviewsController::class, 'destroy'])->middleware('role.candidate_manage');
+            Route::post('/{id}/documents', [\App\Http\Controllers\Api\CandidateController::class, 'uploadDocuments'])->where('id', '[0-9]+')->middleware('role.candidate_manage');
             Route::delete('/documents/{documentId}', [\App\Http\Controllers\Api\CandidateController::class, 'deleteDocument'])->middleware('role.candidate_manage');
         });
 
@@ -341,6 +352,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             Route::get('/', [\App\Http\Controllers\Api\FacilityManagementController::class, 'index']);
             Route::get('/export', [\App\Http\Controllers\Api\FacilityManagementController::class, 'export']);
             Route::post('/', [\App\Http\Controllers\Api\FacilityManagementController::class, 'store']);
+            Route::put('/{id}', [\App\Http\Controllers\Api\FacilityManagementController::class, 'update'])->where('id', '[0-9]+');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\FacilityManagementController::class, 'destroy'])->where('id', '[0-9]+');
             
             // Facility detail workspace (must come before {facility}/users to avoid route conflict)
             Route::get('/{id}', [\App\Http\Controllers\Api\FacilityController::class, 'show'])->where('id', '[0-9]+');

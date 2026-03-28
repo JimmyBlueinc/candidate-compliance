@@ -35,11 +35,11 @@
       <!-- Notification Bell -->
       <NotificationBell />
       
-      <!-- User Profile -->
+      <!-- User Profile Menu -->
       <button
         type="button"
         class="flex items-center gap-2 p-1.5 rounded-full border border-[color:var(--p-surface-border)] bg-[color:var(--p-surface-0)] hover:bg-[color:var(--p-surface-hover)] transition-colors"
-        @click="goProfile"
+        @click="toggleUserMenu"
       >
         <div class="w-7 h-7 rounded-full overflow-hidden border border-[color:var(--p-surface-border)] shrink-0">
           <img
@@ -49,16 +49,18 @@
           />
         </div>
       </button>
+      <Menu ref="userMenuRef" :model="userMenuItems" :popup="true" />
     </div>
   </header>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useUiStore } from '../../stores/ui';
 import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
 import { useRouter } from 'vue-router';
+import Menu from 'primevue/menu';
 import NotificationBell from '../NotificationBell.vue';
 import OnlineUsers from './OnlineUsers.vue';
 import QuickMessage from './QuickMessage.vue';
@@ -67,14 +69,50 @@ const ui = useUiStore();
 const auth = useAuthStore();
 const brand = useBrandStore();
 const router = useRouter();
+const userMenuRef = ref(null);
 const emit = defineEmits(['open-command']);
 
 const isCandidate = computed(() => auth.user?.role === 'candidate');
 
-const roleLabel = computed(() => {
+const userMenuItems = computed(() => {
     const role = String(auth.user?.role || '');
-    if (role === 'org_super_admin') return '';
-    return role;
+    const isCandidate = role === 'candidate';
+    const isStaff = ['platform_admin', 'org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'].includes(role);
+    const items = [
+        { label: 'Profile', icon: 'pi pi-user', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.profile' }) },
+        { label: 'Profile Settings', icon: 'pi pi-id-card', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.profile' }) },
+        { label: 'Account Settings', icon: 'pi pi-cog', command: () => router.push({ name: 'dashboard.profile' }) },
+        { label: 'Notifications', icon: 'pi pi-bell', command: () => router.push({ name: isCandidate ? 'portal.messages' : 'dashboard.notifications' }) },
+        { label: 'Security', icon: 'pi pi-shield', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.change_password' }) },
+        { label: 'Preferences', icon: 'pi pi-sliders-h', command: () => router.push({ name: 'dashboard.profile' }) },
+    ];
+
+    if (isCandidate) {
+        items.push(
+            { separator: true },
+            { label: 'Resume / CV', icon: 'pi pi-file', command: () => router.push({ name: 'portal.profile' }) },
+            { label: 'Work Preferences', icon: 'pi pi-briefcase', command: () => router.push({ name: 'portal.availability' }) },
+            { label: 'Availability', icon: 'pi pi-calendar', command: () => router.push({ name: 'portal.availability' }) },
+            { label: 'Applications', icon: 'pi pi-send', command: () => router.push({ name: 'portal.jobs' }) },
+            { label: 'Saved Jobs', icon: 'pi pi-bookmark', command: () => router.push({ name: 'portal.jobs' }) },
+            { label: 'Documents', icon: 'pi pi-folder', command: () => router.push({ name: 'portal.credentials' }) },
+            { label: 'Compliance / Verification', icon: 'pi pi-check-circle', command: () => router.push({ name: 'portal.credentials' }) },
+        );
+    }
+
+    if (isStaff) {
+        items.push(
+            { separator: true },
+            { label: 'Organization Settings', icon: 'pi pi-building', command: () => router.push({ name: 'dashboard.agency_settings' }) },
+        );
+    }
+
+    items.push(
+        { separator: true },
+        { label: 'Logout', icon: 'pi pi-sign-out', command: async () => { await auth.logout(); router.push({ name: 'login' }); } },
+    );
+
+    return items;
 });
 
 defineProps({
@@ -88,7 +126,7 @@ defineProps({
     },
 });
 
-function goProfile() {
-    router.push({ name: 'dashboard.profile' });
+function toggleUserMenu(event) {
+    userMenuRef.value?.toggle(event);
 }
 </script>

@@ -208,8 +208,6 @@ import {
   Gauge,
   Activity,
   Megaphone,
-  CloudUpload,
-  Rss,
   Search,
   PlugZap,
 } from 'lucide-vue-next';
@@ -332,8 +330,6 @@ const groups = computed(() => {
       show: isOrgSuperAdmin.value || isRecruiter.value,
       items: [
         { id: 'candidates', label: 'Candidates', icon: 'search', routeName: 'dashboard.candidates' },
-        { id: 'intake_feed', label: 'Intake Feed', icon: 'rss', routeName: 'dashboard.intake_feed' },
-        { id: 'intake_external', label: 'External Sources', icon: 'upload', routeName: 'dashboard.intake_external' },
       ],
     },
     {
@@ -370,6 +366,8 @@ const groups = computed(() => {
       label: 'Platform Administration',
       show: isPlatformAdmin.value,
       items: [
+        { id: 'platform_candidates', label: 'Candidates', icon: 'search', routeName: 'dashboard.candidates' },
+        { id: 'platform_facilities', label: 'Facilities', icon: 'building', routeName: 'dashboard.facilities.list' },
         { id: 'health', label: 'System Health', icon: 'health', routeName: 'dashboard.platform_health' },
         { id: 'tenants', label: 'Organizations', icon: 'building', routeName: 'dashboard.platform_organizations' },
         { id: 'broadcast', label: 'Broadcast', icon: 'megaphone', routeName: 'dashboard.broadcast' },
@@ -467,8 +465,6 @@ function resolveIcon(key) {
     gauge: Gauge,
     activity: Activity,
     megaphone: Megaphone,
-    upload: CloudUpload,
-    rss: Rss,
     search: Search,
     integrations: PlugZap,
   };

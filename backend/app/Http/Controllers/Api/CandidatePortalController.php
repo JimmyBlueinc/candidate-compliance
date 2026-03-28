@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Assignment;
 use App\Models\Candidate;
+use App\Models\CandidateInterview;
 use App\Models\Credential;
 use App\Models\Notification;
 use App\Models\Payment;
@@ -322,5 +323,25 @@ class CandidatePortalController extends Controller
             ->get();
 
         return response()->api($payments);
+    }
+
+    public function interviews(Request $request): JsonResponse
+    {
+        $orgId = Org::id($request);
+        $candidate = $this->getCandidate($request, $orgId);
+
+        if (!$candidate) {
+            return response()->json(['message' => 'Candidate profile not found.'], 404);
+        }
+
+        $rows = CandidateInterview::query()
+            ->where('tenant_id', $orgId)
+            ->where('candidate_id', $candidate->id)
+            ->with('scheduler:id,name,role')
+            ->orderBy('starts_at')
+            ->limit(100)
+            ->get();
+
+        return response()->api($rows);
     }
 }

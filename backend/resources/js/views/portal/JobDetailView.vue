@@ -97,6 +97,15 @@
             >
               {{ acting ? 'Saving…' : 'Express Interest' }}
             </button>
+          <button
+            type="button"
+            class="mt-2 w-full px-4 py-3 rounded-2xl text-xs font-black tracking-widest uppercase border transition-all"
+            :style="{ borderColor: primarySoftBorder, color: primaryColor, backgroundColor: job?.is_bookmarked ? primarySoftBg : 'transparent' }"
+            :disabled="bookmarking"
+            @click="toggleBookmark"
+          >
+            {{ bookmarking ? 'Updating…' : (job?.is_bookmarked ? 'Saved Job' : 'Save Job') }}
+          </button>
 
             <div v-if="message" class="mt-3 text-sm text-[color:var(--p-text-muted-color)]">{{ message }}</div>
           </div>
@@ -125,7 +134,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { apiGet, apiPost } from '../../lib/api';
+import { apiDelete, apiGet, apiPost, apiPut } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
@@ -142,6 +151,7 @@ const job = ref(null);
 const loading = ref(false);
 const error = ref('');
 const acting = ref(false);
+const bookmarking = ref(false);
 const message = ref('');
 const onboarding = ref(null);
 const credentialsDialogOpen = ref(false);
@@ -221,6 +231,26 @@ async function expressInterest() {
         message.value = e?.message || 'Failed to submit interest.';
     } finally {
         acting.value = false;
+    }
+}
+
+async function toggleBookmark() {
+    if (!job.value?.id || bookmarking.value) return;
+    bookmarking.value = true;
+    try {
+        if (job.value.is_bookmarked) {
+            await apiDelete(`/v1/portal/bookmarks/${job.value.id}`);
+            job.value.is_bookmarked = false;
+            message.value = 'Removed from saved jobs.';
+        } else {
+            await apiPut(`/v1/portal/bookmarks/${job.value.id}`, {});
+            job.value.is_bookmarked = true;
+            message.value = 'Saved to your bookmarked jobs.';
+        }
+    } catch (e) {
+        message.value = e?.response?.data?.message || e?.message || 'Failed to update bookmark.';
+    } finally {
+        bookmarking.value = false;
     }
 }
 

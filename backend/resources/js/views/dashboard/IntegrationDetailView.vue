@@ -70,13 +70,22 @@
       <AppCard title="Credentials" subtitle="Stored per organization. Secret values are masked after save.">
         <div class="space-y-3">
           <div v-for="field in integration.credentials_schema || []" :key="`cred-${field.key}`">
-            <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-[color:var(--aq-muted)]">{{ field.label }}</label>
+            <div class="mb-1 flex items-center justify-between">
+              <label class="block text-xs font-semibold uppercase tracking-[0.1em] text-[color:var(--aq-muted)]">{{ field.label }}</label>
+              <span
+                v-if="integration?.credential_presence?.[field.key]"
+                class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-emerald-300"
+              >
+                Configured
+              </span>
+            </div>
             <input
               v-model="form.credentials[field.key]"
               :type="field.type === 'password' ? 'password' : 'text'"
-              :placeholder="field.required ? 'Required' : 'Optional'"
+              :placeholder="integration?.credential_presence?.[field.key] ? 'Stored securely. Enter new value to rotate.' : (field.required ? 'Required' : 'Optional')"
               class="w-full rounded-lg border border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)] px-3 py-2 text-sm text-[color:var(--aq-fg)]"
             />
+            <p v-if="field.help_text" class="mt-1 text-xs text-[color:var(--aq-muted)]">{{ field.help_text }}</p>
           </div>
         </div>
       </AppCard>
@@ -169,13 +178,22 @@ async function save() {
   status.value = '';
   error.value = '';
   try {
+    const credentialsPayload = {};
+    for (const [key, value] of Object.entries(form.credentials || {})) {
+      if (value !== null && value !== undefined && String(value).trim() !== '') {
+        credentialsPayload[key] = value;
+      }
+    }
+    const hasCredentialUpdates = Object.keys(credentialsPayload).length > 0;
+
     const response = await apiPut(`/v1/integrations/${encodeURIComponent(integrationKey())}`, {
       enabled: !!form.enabled,
       status: form.enabled ? 'connected' : 'disconnected',
       settings: form.settings,
-      credentials: form.credentials,
+      ...(hasCredentialUpdates ? { credentials: credentialsPayload } : {}),
     });
     integration.value = response?.data?.integration || response?.integration || integration.value;
+    form.credentials = {};
     status.value = `${integration.value?.label || 'Integration'} settings saved.`;
   } catch (e) {
     error.value = e?.response?.data?.message || e?.message || 'Failed to save integration settings.';

@@ -86,4 +86,19 @@ class Candidate extends Model
     {
         return $this->hasMany(CandidateAvailability::class);
     }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(CandidateNote::class);
+    }
+
+    public function interviews(): HasMany
+    {
+        return $this->hasMany(CandidateInterview::class);
+    }
+
+    public function jobBookmarks(): HasMany
+    {
+        return $this->hasMany(CandidateJobBookmark::class);
+    }
 }

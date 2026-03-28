@@ -104,7 +104,7 @@ import {
     ROLE_FACILITY
 } from '../lib/roles';
 
-const STAFF_CHAT_ROLES = [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS];
+const STAFF_CHAT_ROLES = [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS];
 
 const base = window.location.pathname.startsWith('/app') ? '/app' : undefined;
 
@@ -471,14 +471,14 @@ const router = createRouter({
                     path: 'candidates',
                     name: 'dashboard.candidates',
                     component: CandidateListView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS] },
                 },
 
                 {
                     path: 'candidate-search',
                     name: 'dashboard.candidate_search',
                     component: CandidateSearch,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS] },
                 },
 
                 {
@@ -506,14 +506,14 @@ const router = createRouter({
                     path: 'candidates/:id',
                     name: 'dashboard.candidate_profile',
                     component: CandidateProfileView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS] },
                 },
 
                 {
                     path: 'candidates/:id/credentials',
                     name: 'dashboard.candidate_credentials',
                     component: CandidateCredentialsView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS] },
                 },
 
                 {
@@ -632,24 +632,24 @@ const router = createRouter({
                     path: 'facilities',
                     name: 'dashboard.facilities',
                     redirect: { name: 'dashboard.facilities.list' },
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN] },
                 },
                 {
                     path: 'facilities/dashboard',
                     name: 'dashboard.facilities.dashboard',
                     component: FacilitiesView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN] },
                 },
                 {
                     path: 'facilities/list',
                     name: 'dashboard.facilities.list',
                     component: FacilitiesView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN] },
                 },
                 {
                     path: 'facilities/create',
                     name: 'dashboard.facilities.create',
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN] },
                     component: FacilitiesView,
                 },
 
@@ -657,7 +657,7 @@ const router = createRouter({
                     path: 'facilities/:id',
                     name: 'dashboard.facilities.detail',
                     component: FacilityDetailView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN] },
                 },
 
                 {

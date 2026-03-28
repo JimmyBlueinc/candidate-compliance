@@ -8,6 +8,14 @@
         <button
           type="button"
           class="px-3 py-1.5 rounded-full text-xs font-bold border transition-colors"
+          :style="{ backgroundColor: activeFilter === 'bookmarked' ? primarySoftBg : 'transparent', borderColor: primarySoftBorder, color: primaryColor }"
+          @click="toggleFilter"
+        >
+          {{ activeFilter === 'bookmarked' ? 'Showing Saved' : 'Saved Jobs' }}
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 rounded-full text-xs font-bold border transition-colors"
           :style="{ backgroundColor: primarySoftBg, borderColor: primarySoftBorder, color: primaryColor }"
           @click="refresh"
         >
@@ -23,11 +31,13 @@
       class="p-8"
     >
       <div v-if="loading" class="mt-2 text-sm text-[color:var(--p-text-muted-color)]">Loading...</div>
-      <div v-else-if="items.length === 0" class="mt-2 text-sm text-[color:var(--p-text-muted-color)]">No matching jobs right now.</div>
+      <div v-else-if="filteredItems.length === 0" class="mt-2 text-sm text-[color:var(--p-text-muted-color)]">
+        {{ activeFilter === 'bookmarked' ? 'No bookmarked jobs yet.' : 'No matching jobs right now.' }}
+      </div>
 
       <div v-else class="mt-6 space-y-3">
         <div
-          v-for="(j, idx) in items"
+          v-for="(j, idx) in filteredItems"
           :key="j.id"
           v-motion
           :initial="{ opacity: 0, y: 8 }"
@@ -61,6 +71,15 @@
             >
               {{ actingId === j.id ? 'Saving…' : 'Express Interest' }}
             </button>
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-full text-xs font-bold border transition-colors shrink-0"
+              :style="{ borderColor: primarySoftBorder, color: primaryColor, backgroundColor: j.is_bookmarked ? primarySoftBg : 'transparent' }"
+              :disabled="bookmarkActingId === j.id"
+              @click.stop="toggleBookmark(j)"
+            >
+              {{ bookmarkActingId === j.id ? 'Updating…' : (j.is_bookmarked ? 'Saved' : 'Save') }}
+            </button>
           </div>
         </div>
       </div>
@@ -73,7 +92,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { apiGet, apiPost, normalizeApiList } from '../../lib/api';
+import { apiDelete, apiGet, apiPost, apiPut, normalizeApiList } from '../../lib/api';
 import UiCard from '../../components/ui/UiCard.vue';
 import UiPageHeader from '../../components/ui/UiPageHeader.vue';
 import { useBrandStore } from '../../stores/brand';
@@ -88,7 +107,16 @@ const primarySoftBorder = computed(() => `color-mix(in srgb, ${primaryColor.valu
 const items = ref([]);
 const loading = ref(false);
 const actingId = ref(null);
+const bookmarkActingId = ref(null);
 const message = ref('');
+const activeFilter = ref('all');
+
+const filteredItems = computed(() => {
+    if (activeFilter.value === 'bookmarked') {
+        return items.value.filter((i) => i?.is_bookmarked === true);
+    }
+    return items.value;
+});
 
 function money(v) {
     if (v === null || v === undefined || v === '') return '—';
@@ -122,6 +150,26 @@ async function expressInterest(job) {
     } finally {
         actingId.value = null;
     }
+}
+
+async function toggleBookmark(job) {
+    if (!job?.id) return;
+    bookmarkActingId.value = job.id;
+    try {
+        if (job.is_bookmarked) {
+            await apiDelete(`/v1/portal/bookmarks/${job.id}`);
+            job.is_bookmarked = false;
+        } else {
+            await apiPut(`/v1/portal/bookmarks/${job.id}`, {});
+            job.is_bookmarked = true;
+        }
+    } finally {
+        bookmarkActingId.value = null;
+    }
+}
+
+function toggleFilter() {
+    activeFilter.value = activeFilter.value === 'all' ? 'bookmarked' : 'all';
 }
 
 refresh();

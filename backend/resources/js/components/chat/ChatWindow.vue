@@ -108,8 +108,10 @@ const sending = ref(false);
 const newMessage = ref('');
 const sendError = ref('');
 const messageContainer = ref(null);
+const hasLoadedOnce = ref(false);
+const lastLoadedMessageId = ref(0);
 
-async function loadMessages() {
+async function loadMessages({ incremental = false } = {}) {
   if (loading.value) return;
   loading.value = true;
   try {
@@ -120,9 +122,39 @@ async function loadMessages() {
     else if (props.recipientId) params.recipient_id = props.recipientId;
     else return; // Need a context
 
-    const res = await apiGet('/messages', { params });
-    messages.value = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
-    await scrollToBottom();
+    params.limit = incremental ? 80 : 120;
+    if (incremental && lastLoadedMessageId.value > 0) {
+      params.since_id = lastLoadedMessageId.value;
+    }
+
+    const res = await apiGet('/messages', {
+      params,
+      timeout: 20000,
+    });
+    const incoming = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+
+    if (!incremental || !hasLoadedOnce.value) {
+      messages.value = incoming;
+      hasLoadedOnce.value = true;
+      lastLoadedMessageId.value = messages.value.length > 0
+        ? Number(messages.value[messages.value.length - 1].id || 0)
+        : 0;
+      await scrollToBottom();
+      return;
+    }
+
+    if (incoming.length === 0) return;
+
+    const existingIds = new Set(messages.value.map((m) => Number(m.id)));
+    const next = incoming.filter((m) => !existingIds.has(Number(m.id)));
+    if (next.length === 0) return;
+
+    const shouldStick = isNearBottom();
+    messages.value.push(...next);
+    lastLoadedMessageId.value = Number(messages.value[messages.value.length - 1]?.id || lastLoadedMessageId.value || 0);
+    if (shouldStick) {
+      await scrollToBottom();
+    }
   } catch (e) {
     console.error('Failed to load messages:', e);
   } finally {
@@ -151,11 +183,12 @@ async function sendMessage() {
     const msg = res?.data ?? res;
     if (msg && typeof msg === 'object' && msg.id) {
       messages.value.push(msg);
+      lastLoadedMessageId.value = Math.max(lastLoadedMessageId.value, Number(msg.id || 0));
       newMessage.value = '';
       await scrollToBottom();
     } else {
       newMessage.value = '';
-      await loadMessages();
+      await loadMessages({ incremental: true });
     }
   } catch (e) {
     console.error('Failed to send message:', e);
@@ -178,12 +211,30 @@ function formatTime(dateStr) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function isNearBottom() {
+  if (!messageContainer.value) return true;
+  const c = messageContainer.value;
+  const remaining = c.scrollHeight - c.scrollTop - c.clientHeight;
+  return remaining < 80;
+}
+
+function resetConversation() {
+  messages.value = [];
+  hasLoadedOnce.value = false;
+  lastLoadedMessageId.value = 0;
+  sendError.value = '';
+}
+
 let pollInterval = null;
 
 onMounted(() => {
-  loadMessages();
-  // Poll for new messages every 10 seconds as a fallback since we don't have WebSockets fully set up for this yet
-  pollInterval = setInterval(loadMessages, 10000);
+  loadMessages({ incremental: false });
+  // Poll for new messages every 15s without overlapping request bursts.
+  pollInterval = setInterval(() => {
+    if (!document.hidden && !loading.value) {
+      loadMessages({ incremental: true });
+    }
+  }, 15000);
 });
 
 onUnmounted(() => {
@@ -193,7 +244,8 @@ onUnmounted(() => {
 });
 
 watch(() => [props.jobOrderId, props.submissionId, props.placementId, props.recipientId], () => {
-  loadMessages();
+  resetConversation();
+  loadMessages({ incremental: false });
 });
 </script>
 

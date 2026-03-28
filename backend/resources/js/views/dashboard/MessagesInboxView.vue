@@ -1,5 +1,5 @@
 <template>
-  <div class="h-[calc(100vh-11rem)] flex flex-col gap-5">
+  <div class="min-h-[calc(100vh-11rem)] pb-6 flex flex-col gap-6">
     <UiPageHeader
       title="Messages"
       subtitle="Recruiter-candidate communication center with live presence and fast search."
@@ -140,8 +140,16 @@ async function runSearch() {
   try {
     loading.value = true;
     error.value = '';
-    const res = await apiGet('/org/candidate-users', { params: { q: query.value || '' } });
-    candidates.value = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+    const activeId = Number(selectedRecipientId.value || 0);
+    const res = await apiGet('/org/candidate-users', {
+      params: { q: query.value || '' },
+      timeout: 20000,
+    });
+    const next = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+    candidates.value = next;
+    if (activeId > 0 && !next.some((c) => Number(c.id) === activeId)) {
+      selectedRecipientId.value = null;
+    }
   } catch (e) {
     error.value = e?.response?.data?.message || e?.message || 'Failed to load candidates.';
     candidates.value = [];
@@ -154,8 +162,8 @@ let pollTimer = null;
 onMounted(() => {
   runSearch();
   pollTimer = window.setInterval(() => {
-    if (!loading.value) runSearch();
-  }, 20000);
+    if (!document.hidden && !loading.value) runSearch();
+  }, 30000);
 });
 
 onBeforeUnmount(() => {

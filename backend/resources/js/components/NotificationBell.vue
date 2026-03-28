@@ -64,6 +64,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { apiGet, apiPost } from '../lib/api';
 import { usePolling } from '../composables/usePolling';
 
@@ -71,6 +72,7 @@ const isOpen = ref(false);
 const items = ref([]);
 const loading = ref(false);
 const unreadCount = computed(() => items.value.filter(i => !i.read_at).length);
+const router = useRouter();
 
 async function loadNotifications() {
   try {
@@ -100,7 +102,11 @@ async function handleAction(n) {
     }
   }
   
-  // Handle navigation based on n.type if needed
+  if (n.type === 'message' || n.type === 'new_message') {
+    router.push({ name: 'dashboard.messages' });
+  } else {
+    router.push({ name: 'dashboard.notifications' });
+  }
   isOpen.value = false;
 }
 

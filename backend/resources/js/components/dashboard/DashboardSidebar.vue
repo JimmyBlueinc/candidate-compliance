@@ -192,8 +192,6 @@ const groups = computed(() => {
             show: isOrgSuperAdmin.value || isRecruiter.value,
             items: [
                 { id: 'candidates', label: 'Candidates', icon: 'person_search', routeName: 'dashboard.candidates' },
-                { id: 'intake_feed', label: 'Intake', icon: 'rss_feed', routeName: 'dashboard.intake_feed' },
-                { id: 'intake_external', label: 'External', icon: 'cloud_upload', routeName: 'dashboard.intake_external' },
             ],
         },
         {
@@ -230,6 +228,8 @@ const groups = computed(() => {
             label: 'Platform',
             show: isPlatformAdmin.value,
             items: [
+                { id: 'platform_candidates', label: 'Candidates', icon: 'person_search', routeName: 'dashboard.candidates' },
+                { id: 'platform_facilities', label: 'Facilities', icon: 'domain', routeName: 'dashboard.facilities' },
                 { id: 'health', label: 'Health', icon: 'monitor_heart', routeName: 'dashboard.platform_health' },
                 { id: 'tenants', label: 'Orgs', icon: 'domain', routeName: 'dashboard.platform_organizations' },
                 { id: 'broadcast', label: 'Broadcast', icon: 'campaign', routeName: 'dashboard.broadcast' },

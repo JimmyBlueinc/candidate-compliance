@@ -250,6 +250,7 @@
               <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contact</th>
               <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Users</th>
               <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contracts</th>
+              <th v-if="canManageFacilities" class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[color:var(--aq-border)]">
@@ -295,6 +296,12 @@
                 >
                   {{ facility.contracts_count || 0 }}
                 </AppButton>
+              </td>
+              <td v-if="canManageFacilities" class="px-6 py-4 text-right">
+                <div class="inline-flex items-center gap-2">
+                  <AppButton variant="secondary" size="sm" @click.stop="openEditFacility(facility)">Edit</AppButton>
+                  <AppButton variant="ghost" size="sm" @click.stop="openDeleteFacility(facility)">Delete</AppButton>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -423,14 +430,75 @@
         </div>
       </template>
     </AppModal>
+
+    <AppModal v-model="editFacilityOpen" title="Edit Facility" subtitle="Update facility details and contact information.">
+      <form class="space-y-4" @submit.prevent="submitFacilityEdit">
+        <div class="space-y-2">
+          <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Name</label>
+          <input v-model="editFacilityForm.name" type="text" class="app-input" required />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">City</label>
+            <input v-model="editFacilityForm.city" type="text" class="app-input" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">State</label>
+            <input v-model="editFacilityForm.state" type="text" class="app-input" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contact Name</label>
+            <input v-model="editFacilityForm.contact_person_name" type="text" class="app-input" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contact Email</label>
+            <input v-model="editFacilityForm.contact_email" type="email" class="app-input" />
+          </div>
+        </div>
+      </form>
+      <template #footer>
+        <div class="flex items-center gap-3 justify-end">
+          <AppButton variant="ghost" @click="editFacilityOpen = false">Cancel</AppButton>
+          <AppButton :loading="editingFacility" @click="submitFacilityEdit">Save Changes</AppButton>
+        </div>
+      </template>
+    </AppModal>
+
+    <AppModal v-model="deleteFacilityOpen" title="Delete Facility" subtitle="This action is permanent and cannot be undone.">
+      <div class="space-y-4">
+        <p class="text-sm text-[color:var(--aq-muted)]">
+          To confirm, type <span class="font-semibold text-[color:var(--aq-fg)]">{{ pendingDeleteFacility?.name }}</span> below.
+        </p>
+        <input
+          v-model="deleteFacilityConfirmText"
+          type="text"
+          class="app-input"
+          :placeholder="pendingDeleteFacility?.name || 'Facility name'"
+        />
+      </div>
+      <template #footer>
+        <div class="flex items-center gap-3 justify-end">
+          <AppButton variant="ghost" @click="deleteFacilityOpen = false">Cancel</AppButton>
+          <AppButton
+            variant="secondary"
+            :disabled="deleteFacilityConfirmText !== (pendingDeleteFacility?.name || '')"
+            :loading="deletingFacility"
+            @click="submitFacilityDelete"
+          >
+            Delete Facility
+          </AppButton>
+        </div>
+      </template>
+    </AppModal>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { apiGet, apiPost } from '../../lib/api';
+import { apiDelete, apiGet, apiPost, apiPut } from '../../lib/api';
 import { useFeatureFlagStore } from '../../stores/featureFlags';
+import { useAuthStore } from '../../stores/auth';
 import { Building2, Users, FileText, Plus, UserPlus, RefreshCw, CheckCircle, AlertCircle, Copy } from 'lucide-vue-next';
 import AppCard from '../../components/ui/AppCard.vue';
 import AppStatCard from '../../components/ui/AppStatCard.vue';
@@ -444,6 +512,7 @@ import AppSkeleton from '../../components/ui/AppSkeleton.vue';
 const router = useRouter();
 const route = useRoute();
 const featureFlagStore = useFeatureFlagStore();
+const auth = useAuthStore();
 
 const facilities = ref([]);
 const loading = ref(true);
@@ -504,6 +573,20 @@ const createdCredentials = ref(null);
 
 const facilityDetailsOpen = ref(false);
 const selectedFacility = ref(null);
+const editFacilityOpen = ref(false);
+const editingFacility = ref(false);
+const editFacilityForm = ref({
+  id: null,
+  name: '',
+  city: '',
+  state: '',
+  contact_person_name: '',
+  contact_email: '',
+});
+const deleteFacilityOpen = ref(false);
+const deleteFacilityConfirmText = ref('');
+const deletingFacility = ref(false);
+const pendingDeleteFacility = ref(null);
 
 const facilityOptions = computed(() => {
   return facilities.value.map((f) => ({ label: f.name, value: String(f.id) }));
@@ -563,6 +646,7 @@ const dashboardRows = computed(() => {
     .slice(0, 6);
 });
 const facilitiesWithContracts = computed(() => facilities.value.filter((f) => Number(f.contracts_count || 0) > 0).length);
+const canManageFacilities = computed(() => ['org_super_admin', 'platform_admin'].includes(String(auth.user?.role || '')));
 const pageTitle = computed(() => {
   if (isFacilitiesDashboardPage.value) return 'Facilities Dashboard';
   if (isFacilitiesCreatePage.value) return 'Create New Facility';
@@ -652,6 +736,69 @@ function openFacilityDetails(facility) {
     name: 'dashboard.facilities.detail',
     params: { id: facility.id },
   });
+}
+
+function openEditFacility(facility) {
+  if (!canManageFacilities.value) return;
+  editFacilityForm.value = {
+    id: Number(facility?.id || 0),
+    name: facility?.name || '',
+    city: facility?.city || '',
+    state: facility?.state || '',
+    contact_person_name: facility?.contact_person_name || '',
+    contact_email: facility?.contact_email || '',
+  };
+  editFacilityOpen.value = true;
+}
+
+async function submitFacilityEdit() {
+  const id = Number(editFacilityForm.value?.id || 0);
+  if (!id || !canManageFacilities.value) return;
+
+  try {
+    editingFacility.value = true;
+    error.value = '';
+    await apiPut(`/v1/facilities/${id}`, {
+      name: editFacilityForm.value.name,
+      city: editFacilityForm.value.city || null,
+      state: editFacilityForm.value.state || null,
+      contact_person_name: editFacilityForm.value.contact_person_name || null,
+      contact_email: editFacilityForm.value.contact_email || null,
+    });
+    editFacilityOpen.value = false;
+    await load();
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || 'Failed to update facility.';
+  } finally {
+    editingFacility.value = false;
+  }
+}
+
+function openDeleteFacility(facility) {
+  if (!canManageFacilities.value) return;
+  pendingDeleteFacility.value = facility;
+  deleteFacilityConfirmText.value = '';
+  deleteFacilityOpen.value = true;
+}
+
+async function submitFacilityDelete() {
+  const id = Number(pendingDeleteFacility.value?.id || 0);
+  if (!id || !canManageFacilities.value) return;
+  if (deleteFacilityConfirmText.value !== String(pendingDeleteFacility.value?.name || '')) return;
+
+  try {
+    deletingFacility.value = true;
+    error.value = '';
+    await apiDelete(`/v1/facilities/${id}`);
+    deleteFacilityOpen.value = false;
+    pendingDeleteFacility.value = null;
+    deleteFacilityConfirmText.value = '';
+    await load();
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || 'Failed to delete facility.';
+  } finally {
+    deletingFacility.value = false;
+  }
 }
 
 function goToCreateFacilityPage() {
