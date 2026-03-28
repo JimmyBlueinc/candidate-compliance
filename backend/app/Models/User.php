@@ -23,6 +23,8 @@ class User extends Authenticatable implements CanResetPassword
         'organization_id',
         'name',
         'email',
+        'auth_provider',
+        'provider_id',
         'phone',
         'address',
         'job_title',

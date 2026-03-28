@@ -44,43 +44,43 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="pt-32 pb-20 px-6 relative overflow-hidden">
-      <!-- Background gradient -->
-      <div class="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 pointer-events-none" />
-      <div class="absolute top-20 right-0 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
-      <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-100/30 rounded-full blur-3xl pointer-events-none" />
-      
-      <div class="max-w-4xl mx-auto text-center relative">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-medium text-slate-600 mb-6">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          Hiring now
-        </div>
-        
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight text-slate-900 mb-6">
-          Find your next<br />
-          <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">healthcare opportunity</span>
-        </h1>
-        
-        <p class="text-lg text-slate-500 max-w-xl mx-auto mb-10 leading-relaxed">
-          Join {{ brand.name || 'our' }} talent network. Get matched with positions that fit your skills, schedule, and career goals.
-        </p>
-        
-        <div class="flex flex-col sm:flex-row gap-3 justify-center">
-          <button
-            type="button"
-            class="px-8 py-3.5 text-sm font-semibold text-white rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
-            :style="{ backgroundColor: primarySolid }"
-            @click="showRegisterModal = true"
-          >
-            Join Talent Network
-          </button>
-          <button
-            type="button"
-            class="px-8 py-3.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all"
-            @click="goToJobs"
-          >
-            Browse Open Positions
-          </button>
+    <section class="pt-24 pb-16 px-6 relative overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-br from-slate-100 via-white to-blue-100/40 pointer-events-none" />
+      <div class="max-w-6xl mx-auto relative rounded-3xl overflow-hidden border border-slate-200 shadow-[0_30px_80px_rgba(15,23,42,0.14)]">
+        <img
+          src="https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?auto=format&fit=crop&w=1800&q=80"
+          alt="Healthcare professionals"
+          class="absolute inset-0 h-full w-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/78 via-slate-900/52 to-slate-900/20" />
+        <div class="relative z-10 p-8 md:p-12 lg:p-14">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 border border-white/25 text-xs font-semibold text-white mb-6">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Hiring now
+          </div>
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight text-white mb-6 max-w-3xl">
+            Build your next chapter in healthcare.
+          </h1>
+          <p class="text-lg text-white/80 max-w-2xl mb-10 leading-relaxed">
+            Join {{ brand.name || 'our' }} care network and access roles aligned to your specialty, schedule, and long-term growth.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              class="px-8 py-3.5 text-sm font-semibold text-white rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
+              :style="{ backgroundColor: primarySolid }"
+              @click="showRegisterModal = true"
+            >
+              Join Talent Network
+            </button>
+            <button
+              type="button"
+              class="px-8 py-3.5 text-sm font-semibold text-slate-900 bg-white/90 rounded-xl hover:bg-white transition-all"
+              @click="goToJobs"
+            >
+              Browse Open Positions
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -114,7 +114,8 @@
         </div>
         
         <div class="grid md:grid-cols-3 gap-5">
-          <div class="group p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm transition-all">
+          <div class="group p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm transition-all overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=900&q=80" alt="Nurse placement" class="w-full h-32 object-cover rounded-xl mb-4" />
             <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
               <span class="material-symbols-outlined text-xl text-blue-600">work</span>
             </div>
@@ -124,7 +125,8 @@
             </p>
           </div>
           
-          <div class="group p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm transition-all">
+          <div class="group p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm transition-all overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=900&q=80" alt="Credential review" class="w-full h-32 object-cover rounded-xl mb-4" />
             <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 group-hover:bg-emerald-100 transition-colors">
               <span class="material-symbols-outlined text-xl text-emerald-600">verified</span>
             </div>
@@ -134,7 +136,8 @@
             </p>
           </div>
           
-          <div class="group p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm transition-all">
+          <div class="group p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm transition-all overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1551601651-2a8555f1a136?auto=format&fit=crop&w=900&q=80" alt="Career growth" class="w-full h-32 object-cover rounded-xl mb-4" />
             <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center mb-4 group-hover:bg-purple-100 transition-colors">
               <span class="material-symbols-outlined text-xl text-purple-600">speed</span>
             </div>

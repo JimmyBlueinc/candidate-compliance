@@ -638,6 +638,22 @@
     }
 }
 
+/* Dashboard color depth so light mode still feels premium */
+.app-stat-card {
+    box-shadow: 0 16px 34px -24px color-mix(in srgb, var(--aq-primary) 30%, transparent);
+}
+
+.app-stat-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(220px 110px at 100% 0%, color-mix(in srgb, var(--aq-primary) 12%, transparent), transparent 72%),
+        radial-gradient(180px 90px at 0% 100%, color-mix(in srgb, var(--aq-accent-2) 10%, transparent), transparent 74%);
+    opacity: 0.8;
+}
+
 ::-webkit-scrollbar {
     width: 6px;
 }

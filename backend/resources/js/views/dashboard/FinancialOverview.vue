@@ -36,17 +36,59 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <AppStatCard label="Gross Revenue" :value="money(totals.gross_revenue)" :icon="CircleDollarSign" format="currency" />
-      <AppStatCard label="Labor Cost" :value="money(totals.labor_cost)" :icon="Wallet" format="currency" />
-      <AppStatCard label="Net Margin" :value="money(totals.margin)" :icon="TrendingUp" format="currency" />
-      <AppStatCard label="Projected Profit" :value="money(projectedProfit)" :icon="Sparkles" format="currency" />
+      <AppStatCard
+        label="Gross Revenue"
+        :value="money(totals.gross_revenue)"
+        :icon="CircleDollarSign"
+        format="currency"
+        color="emerald"
+        :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-primary) 15%, var(--aq-surface-card)), var(--aq-surface-card))' }"
+      />
+      <AppStatCard
+        label="Labor Cost"
+        :value="money(totals.labor_cost)"
+        :icon="Wallet"
+        format="currency"
+        color="amber"
+        :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-accent-4) 14%, var(--aq-surface-card)), var(--aq-surface-card))' }"
+      />
+      <AppStatCard
+        label="Net Margin"
+        :value="money(totals.margin)"
+        :icon="TrendingUp"
+        format="currency"
+        color="violet"
+        :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-accent-2) 15%, var(--aq-surface-card)), var(--aq-surface-card))' }"
+      />
+      <AppStatCard
+        label="Projected Profit"
+        :value="money(projectedProfit)"
+        :icon="Sparkles"
+        format="currency"
+        color="cyan"
+        :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-accent-5) 14%, var(--aq-surface-card)), var(--aq-surface-card))' }"
+      />
     </div>
 
     <!-- Main Content Grid -->
     <div class="grid grid-cols-12 gap-6">
-      <!-- Facility Profitability Table -->
-      <div v-if="widgetEnabled('facilityProfitability')" class="col-span-12 lg:col-span-7">
-        <AppCard title="Facility Profitability" subtitle="Where you make (and lose) money">
+      <div
+        v-for="widgetKey in orderedWidgetKeys"
+        :key="widgetKey"
+        :class="[widgetLayoutClass(widgetKey), 'dashboard-widget-card', dragOverKey === widgetKey && dragSourceKey !== widgetKey ? 'dashboard-widget-card--over' : '']"
+        draggable="true"
+        @dragstart="onDragStart(widgetKey, $event)"
+        @dragover.prevent="onDragOver(widgetKey)"
+        @dragleave="onDragLeave(widgetKey)"
+        @drop.prevent="onDrop(widgetKey)"
+        @dragend="onDragEnd"
+      >
+        <div class="dashboard-widget-handle" :title="`Drag to reorder: ${widgetLabel(widgetKey)}`">
+          <i class="pi pi-bars text-[10px]" />
+          <span>{{ widgetLabel(widgetKey) }}</span>
+        </div>
+
+        <AppCard v-if="widgetKey === 'facilityProfitability'" title="Facility Profitability" subtitle="Where you make (and lose) money">
           <template #actions>
             <AppBadge variant="default" size="sm">Active placements</AppBadge>
           </template>
@@ -94,12 +136,8 @@
             {{ error }}
           </div>
         </AppCard>
-      </div>
 
-      <!-- Right Column -->
-      <div class="col-span-12 lg:col-span-5 space-y-6">
-        <!-- Compliance Trend -->
-        <AppCard v-if="widgetEnabled('complianceTrend')" title="Compliance Trend" subtitle="Status distribution snapshot">
+        <AppCard v-else-if="widgetKey === 'complianceTrend'" title="Compliance Trend" subtitle="Status distribution snapshot">
           <template #actions>
             <div class="flex items-center gap-1 p-1 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)]">
               <button
@@ -148,7 +186,6 @@
             </div>
           </div>
 
-          <!-- Quick Stats -->
           <div class="mt-6 grid grid-cols-2 gap-4">
             <div class="p-4 rounded-[var(--radius-lg)] border border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)]/50">
               <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Expiring (30d)</div>
@@ -161,8 +198,7 @@
           </div>
         </AppCard>
 
-        <!-- Risk Exposure -->
-        <AppCard v-if="widgetEnabled('riskExposure')" title="Risk Exposure" subtitle="Quantified compliance risk across departments">
+        <AppCard v-else-if="widgetKey === 'riskExposure'" title="Risk Exposure" subtitle="Quantified compliance risk across departments">
           <div class="space-y-5">
             <div v-for="metric in riskMetrics" :key="metric.label">
               <div class="flex justify-between items-center mb-2">
@@ -186,11 +222,11 @@
           </div>
         </AppCard>
 
-        <AppCard v-if="featureFlagStore.enabled('dashboard.live_activity_feed', true) && widgetEnabled('activityFeed')" title="Operational Activity" subtitle="Live system actions and change stream">
+        <AppCard v-else-if="widgetKey === 'activityFeed'" title="Operational Activity" subtitle="Live system actions and change stream">
           <DashboardActivityFeed />
         </AppCard>
 
-        <AppCard v-if="widgetEnabled('notifications')" title="Alert Snapshot" subtitle="Unread and actionable notifications">
+        <AppCard v-else-if="widgetKey === 'notifications'" title="Alert Snapshot" subtitle="Unread and actionable notifications">
           <div class="space-y-3">
             <div class="p-4 rounded-[var(--radius-lg)] border border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)]/50">
               <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Unread Notifications</div>
@@ -239,6 +275,16 @@ const unreadNotifications = ref(0);
 const mode = ref('by_status');
 const analytics = ref(null);
 const analyticsLoading = ref(false);
+const dragSourceKey = ref('');
+const dragOverKey = ref('');
+
+const widgetMeta = {
+  facilityProfitability: { label: 'Facility Profitability', layoutClass: 'col-span-12 lg:col-span-7' },
+  complianceTrend: { label: 'Compliance Trend', layoutClass: 'col-span-12 lg:col-span-5' },
+  riskExposure: { label: 'Risk Exposure', layoutClass: 'col-span-12 lg:col-span-5' },
+  activityFeed: { label: 'Activity Feed', layoutClass: 'col-span-12 lg:col-span-5' },
+  notifications: { label: 'Notifications', layoutClass: 'col-span-12 lg:col-span-5' },
+};
 
 const modeOptions = [
   { label: 'By status', value: 'by_status' },
@@ -269,13 +315,7 @@ const projectedProfit = computed(() => {
   return projectedRevenue - laborCost;
 });
 
-const widgetToggles = [
-  { key: 'facilityProfitability', label: 'Facility Profitability' },
-  { key: 'complianceTrend', label: 'Compliance Trend' },
-  { key: 'riskExposure', label: 'Risk Exposure' },
-  { key: 'activityFeed', label: 'Activity Feed' },
-  { key: 'notifications', label: 'Notifications' },
-];
+const widgetToggles = Object.entries(widgetMeta).map(([key, meta]) => ({ key, label: meta.label }));
 
 function widgetEnabled(key) {
   return ui.dashboardWidgets?.[key] !== false;
@@ -283,6 +323,93 @@ function widgetEnabled(key) {
 
 function toggleWidget(key, visible) {
   ui.setDashboardWidgetVisibility(key, visible);
+}
+
+function widgetLabel(key) {
+  return widgetMeta[key]?.label || key;
+}
+
+function widgetLayoutClass(key) {
+  return widgetMeta[key]?.layoutClass || 'col-span-12';
+}
+
+function widgetAllowedByFlags(key) {
+  if (key === 'activityFeed') {
+    return featureFlagStore.enabled('dashboard.live_activity_feed', true);
+  }
+  return true;
+}
+
+function widgetVisible(key) {
+  return widgetEnabled(key) && widgetAllowedByFlags(key);
+}
+
+const normalizedWidgetOrder = computed(() => {
+  const allowedKeys = Object.keys(widgetMeta);
+  const incomingOrder = Array.isArray(ui.dashboardWidgetOrder) ? ui.dashboardWidgetOrder : [];
+  const ordered = [];
+
+  for (const key of incomingOrder) {
+    if (allowedKeys.includes(key) && !ordered.includes(key)) {
+      ordered.push(key);
+    }
+  }
+
+  for (const key of allowedKeys) {
+    if (!ordered.includes(key)) {
+      ordered.push(key);
+    }
+  }
+
+  return ordered;
+});
+
+const orderedWidgetKeys = computed(() => normalizedWidgetOrder.value.filter((key) => widgetVisible(key)));
+
+function onDragStart(widgetKey, event) {
+  dragSourceKey.value = widgetKey;
+  dragOverKey.value = '';
+  if (event?.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', widgetKey);
+  }
+}
+
+function onDragOver(widgetKey) {
+  if (!dragSourceKey.value || dragSourceKey.value === widgetKey) return;
+  dragOverKey.value = widgetKey;
+}
+
+function onDragLeave(widgetKey) {
+  if (dragOverKey.value === widgetKey) {
+    dragOverKey.value = '';
+  }
+}
+
+function onDrop(targetKey) {
+  const sourceKey = dragSourceKey.value;
+  if (!sourceKey || sourceKey === targetKey) {
+    onDragEnd();
+    return;
+  }
+
+  const next = [...normalizedWidgetOrder.value];
+  const fromIndex = next.indexOf(sourceKey);
+  const toIndex = next.indexOf(targetKey);
+  if (fromIndex === -1 || toIndex === -1) {
+    onDragEnd();
+    return;
+  }
+
+  next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, sourceKey);
+  ui.setDashboardWidgetOrder(next);
+  onDragEnd();
+}
+
+function onDragEnd() {
+  dragSourceKey.value = '';
+  dragOverKey.value = '';
 }
 
 function money(v) {
@@ -388,3 +515,35 @@ function exportFacilities() {
 
 refresh();
 </script>
+
+<style scoped>
+.dashboard-widget-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.dashboard-widget-card--over {
+  border-radius: var(--radius-xl);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--aq-primary) 35%, transparent);
+}
+
+.dashboard-widget-handle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.45rem 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-md);
+  border: 1px dashed color-mix(in srgb, var(--aq-border) 85%, transparent);
+  color: var(--aq-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  user-select: none;
+  cursor: grab;
+}
+
+.dashboard-widget-card:active .dashboard-widget-handle {
+  cursor: grabbing;
+}
+</style>

@@ -5,6 +5,8 @@ import { useAuthStore } from './auth';
 const THEME_STORAGE_KEY = 'ui.theme';
 const SIDEBAR_COLLAPSED_KEY = 'ui.sidebarCollapsed';
 const DASHBOARD_WIDGETS_KEY = 'ui.dashboardWidgets';
+const DASHBOARD_WIDGET_ORDER_KEY = 'ui.dashboardWidgetOrder';
+const DEFAULT_DASHBOARD_WIDGET_ORDER = ['facilityProfitability', 'complianceTrend', 'riskExposure', 'activityFeed', 'notifications'];
 
 function applyThemeClass() {
     const root = document.documentElement;
@@ -24,6 +26,7 @@ export const useUiStore = defineStore('ui', {
             activityFeed: true,
             notifications: true,
         },
+        dashboardWidgetOrder: [...DEFAULT_DASHBOARD_WIDGET_ORDER],
     }),
 
     actions: {
@@ -47,6 +50,18 @@ export const useUiStore = defineStore('ui', {
                 }
             } catch {
                 // ignore bad local storage payloads
+            }
+
+            try {
+                const widgetOrderRaw = localStorage.getItem(DASHBOARD_WIDGET_ORDER_KEY);
+                if (widgetOrderRaw) {
+                    const parsed = JSON.parse(widgetOrderRaw);
+                    this.setDashboardWidgetOrder(parsed, { persist: false });
+                } else {
+                    this.dashboardWidgetOrder = [...DEFAULT_DASHBOARD_WIDGET_ORDER];
+                }
+            } catch {
+                this.dashboardWidgetOrder = [...DEFAULT_DASHBOARD_WIDGET_ORDER];
             }
         },
 
@@ -75,6 +90,10 @@ export const useUiStore = defineStore('ui', {
                         ...settings.dashboard_widgets,
                     };
                     localStorage.setItem(DASHBOARD_WIDGETS_KEY, JSON.stringify(this.dashboardWidgets));
+                }
+
+                if (Array.isArray(settings?.dashboard_widget_order)) {
+                    this.setDashboardWidgetOrder(settings.dashboard_widget_order, { persist: false });
                 }
 
                 this.serverSynced = true;
@@ -125,6 +144,37 @@ export const useUiStore = defineStore('ui', {
             };
             localStorage.setItem(DASHBOARD_WIDGETS_KEY, JSON.stringify(this.dashboardWidgets));
             this.persistToServer({ dashboard_widgets: this.dashboardWidgets });
+        },
+
+        setDashboardWidgetOrder(order, options = {}) {
+            const persist = options.persist !== false;
+            const incoming = Array.isArray(order) ? order : [];
+            const allowed = new Set(Object.keys(this.dashboardWidgets));
+            const deduped = [];
+
+            for (const key of incoming) {
+                if (!allowed.has(key) || deduped.includes(key)) continue;
+                deduped.push(key);
+            }
+
+            for (const key of DEFAULT_DASHBOARD_WIDGET_ORDER) {
+                if (allowed.has(key) && !deduped.includes(key)) {
+                    deduped.push(key);
+                }
+            }
+
+            for (const key of Object.keys(this.dashboardWidgets)) {
+                if (!deduped.includes(key)) {
+                    deduped.push(key);
+                }
+            }
+
+            this.dashboardWidgetOrder = deduped;
+            localStorage.setItem(DASHBOARD_WIDGET_ORDER_KEY, JSON.stringify(this.dashboardWidgetOrder));
+
+            if (persist) {
+                this.persistToServer({ dashboard_widget_order: this.dashboardWidgetOrder });
+            }
         },
     },
 });

@@ -1,9 +1,9 @@
 <template>
   <div class="relative">
     <button type="button" 
-            class="relative w-8 h-8 rounded-full bg-[color:var(--p-surface-0)] border border-[color:var(--p-surface-border)] flex items-center justify-center text-[color:var(--p-text-muted-color)] hover:bg-[color:var(--p-surface-hover)] hover:text-[color:var(--p-text-color)] transition-all"
+            class="relative w-8 h-8 rounded-full bg-[color:var(--p-surface-0)] border border-[color:var(--p-surface-border)] flex items-center justify-center text-[color:var(--aq-fg)] hover:bg-[color:var(--p-surface-hover)] hover:text-[color:var(--aq-primary)] transition-all"
             @click="togglePanel">
-      <span class="material-symbols-outlined text-[18px]">notifications</span>
+      <i class="pi pi-bell text-[13px]" aria-hidden="true" />
       <span v-if="unreadCount > 0" 
             class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 border-2 border-[color:var(--p-surface-card)] rounded-full text-[9px] font-bold flex items-center justify-center text-white">
         {{ unreadCount > 9 ? '9+' : unreadCount }}

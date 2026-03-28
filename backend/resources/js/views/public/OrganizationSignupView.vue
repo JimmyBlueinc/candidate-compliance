@@ -120,6 +120,16 @@
             </template>
           </button>
 
+          <div class="pt-1">
+            <div class="flex items-center gap-3 text-[11px] text-slate-500">
+              <div class="h-px flex-1 bg-[color:var(--p-surface-border)]" />
+              <span>or prefill with</span>
+              <div class="h-px flex-1 bg-[color:var(--p-surface-border)]" />
+            </div>
+            <div ref="googleButtonEl" class="mt-3 flex justify-center" />
+            <p v-if="googleMessage" class="mt-2 text-[11px] text-[color:var(--p-text-muted-color)] text-center">{{ googleMessage }}</p>
+          </div>
+
           <div class="pt-2 text-center">
             <span class="text-slate-500 text-xs font-medium">Already have an account? </span>
             <RouterLink to="/login" class="text-white text-xs font-black transition-colors" :style="linkStyle">Sign in</RouterLink>
@@ -171,9 +181,11 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import axios from 'axios';
 import { useUiStore } from '../../stores/ui';
+import { apiPost } from '../../lib/api';
+import { renderGoogleButton } from '../../lib/googleIdentity';
 
 const ui = useUiStore();
 
@@ -187,6 +199,8 @@ const tempPassword = ref(null);
 const emailSent = ref(null);
 const showTestModal = ref(false);
 const errorMessage = ref(null);
+const googleButtonEl = ref(null);
+const googleMessage = ref('');
 
 const isDark = computed(() => ui.theme !== 'light');
 
@@ -241,4 +255,41 @@ async function submit() {
     submitting.value = false;
   }
 }
+
+async function handleGooglePrefill(idToken) {
+  if (!idToken) return;
+  googleMessage.value = '';
+  try {
+    const res = await apiPost('/google/profile', { id_token: idToken });
+    const payload = res?.data ? res.data : res;
+    const profile = payload?.profile || {};
+    if (profile?.name) {
+      adminName.value = profile.name;
+    }
+    if (profile?.email) {
+      adminEmail.value = profile.email;
+    }
+    googleMessage.value = 'Google profile loaded. Complete organization name and continue.';
+  } catch (e) {
+    googleMessage.value = e?.response?.data?.message || e?.message || 'Google profile lookup failed.';
+  }
+}
+
+async function initGoogleButton() {
+  const clientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+  if (!clientId || !googleButtonEl.value) return;
+  try {
+    await renderGoogleButton(googleButtonEl.value, clientId, handleGooglePrefill, {
+      text: 'continue_with',
+      width: 330,
+      theme: 'outline',
+    });
+  } catch (e) {
+    googleMessage.value = e?.message || 'Google sign-up is currently unavailable.';
+  }
+}
+
+onMounted(() => {
+  initGoogleButton();
+});
 </script>

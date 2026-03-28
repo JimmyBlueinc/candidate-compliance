@@ -12,8 +12,8 @@
           <div>
             <p class="text-xs uppercase tracking-[0.18em] font-bold text-white/80">AgencyHQ Healthcare Staffing</p>
             <h2 class="mt-4 text-white font-display text-4xl leading-tight max-w-xl">
-              Silicon-grade operations,
-              <span class="block">purpose-built for clinical staffing.</span>
+              Precision staffing intelligence,
+              <span class="block">purpose-built for clinical teams.</span>
             </h2>
             <p class="mt-5 text-white/80 text-sm leading-relaxed max-w-xl">
               Coordinate recruiters, facilities, compliance and finance from a single trusted platform built for healthcare velocity.
@@ -153,6 +153,15 @@
               </button>
             </div>
           </form>
+                      <div class="mt-5">
+                        <div class="flex items-center gap-3 text-xs text-slate-400">
+                          <div class="h-px flex-1 bg-slate-200" />
+                          <span>or continue with</span>
+                          <div class="h-px flex-1 bg-slate-200" />
+                        </div>
+                        <div ref="googleButtonEl" class="mt-4 flex justify-center" />
+                        <p v-if="googleMessage" class="mt-2 text-[11px] text-center text-slate-500">{{ googleMessage }}</p>
+                      </div>
         </div>
       </section>
     </div>
@@ -164,6 +173,8 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
+import { apiPost } from '../../lib/api';
+import { renderGoogleButton } from '../../lib/googleIdentity';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -174,6 +185,8 @@ const password = ref('');
 const showPassword = ref(false);
 const rememberMe = ref(false);
 const tenantId = ref(auth.tenantId || '');
+const googleButtonEl = ref(null);
+const googleMessage = ref('');
 
 const isSubmitting = computed(() => auth.status === 'loading');
 
@@ -217,40 +230,75 @@ async function submit() {
       tenantId: tenantId.value,
     });
 
-    // Load brand to get organization subdomain
-    if (!brand.loaded && !brand.loading) {
-      await brand.load();
-    }
-
-    // Check if we need to redirect to tenant subdomain
-    const currentHost = window.location.hostname;
-    const isOnApex = currentHost === 'agenchq.com' || currentHost === 'www.agenchq.com';
-    const hasTenantSubdomain = brand.subdomain && brand.subdomain !== '';
-
-    if (isOnApex && hasTenantSubdomain) {
-      // Redirect to tenant subdomain
-      const tenantUrl = `https://${brand.subdomain}.agenchq.com/dashboard`;
-      window.location.href = tenantUrl;
-      return;
-    }
-
-    if (auth.user?.needs_onboarding) {
-      try {
-        await router.push({ name: 'onboarding' });
-      } catch (navErr) {
-        console.error('[SUBMIT] NAVIGATION ERROR:', navErr);
-      }
-      return;
-    }
-
-    if (auth.user?.role === 'candidate') {
-      await router.push({ name: 'portal.dashboard' });
-      return;
-    }
-
-    await router.push('/dashboard');
+    await redirectAfterAuth();
   } catch (err) {
     console.error(err);
+  }
+}
+
+async function redirectAfterAuth() {
+  if (!brand.loaded && !brand.loading) {
+    await brand.load();
+  }
+
+  const currentHost = window.location.hostname;
+  const isOnApex = currentHost === 'agenchq.com' || currentHost === 'www.agenchq.com';
+  const hasTenantSubdomain = brand.subdomain && brand.subdomain !== '';
+
+  if (isOnApex && hasTenantSubdomain) {
+    window.location.href = `https://${brand.subdomain}.agenchq.com/dashboard`;
+    return;
+  }
+
+  if (auth.user?.needs_onboarding) {
+    await router.push({ name: 'onboarding' });
+    return;
+  }
+
+  if (auth.user?.role === 'candidate') {
+    await router.push({ name: 'portal.dashboard' });
+    return;
+  }
+
+  await router.push('/dashboard');
+}
+
+async function handleGoogleCredential(idToken) {
+  if (!idToken) return;
+  googleMessage.value = '';
+  try {
+    const response = await apiPost('/google/authenticate', {
+      id_token: idToken,
+      intent: 'login',
+      tenant_id: tenantId.value ? Number(tenantId.value) : null,
+    });
+
+    const payload = response?.data ? response.data : response;
+    if (!payload?.token || !payload?.user) {
+      throw new Error('Google login response is missing session data.');
+    }
+
+    auth.setSession({ token: payload.token, user: payload.user });
+    if (payload.user?.organization_id) {
+      auth.setTenantId(String(payload.user.organization_id));
+    }
+    await redirectAfterAuth();
+  } catch (e) {
+    googleMessage.value = e?.response?.data?.message || e?.message || 'Google sign-in failed.';
+  }
+}
+
+async function initGoogleButton() {
+  const clientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+  if (!clientId || !googleButtonEl.value) return;
+  try {
+    await renderGoogleButton(googleButtonEl.value, clientId, handleGoogleCredential, {
+      text: 'continue_with',
+      width: 340,
+      theme: 'outline',
+    });
+  } catch (e) {
+    googleMessage.value = e?.message || 'Google sign-in is currently unavailable.';
   }
 }
 
@@ -258,5 +306,6 @@ onMounted(async () => {
   if (!brand.loaded && !brand.loading) {
     await brand.load();
   }
+  await initGoogleButton();
 });
 </script>

@@ -211,6 +211,7 @@ import {
   CloudUpload,
   Rss,
   Search,
+  PlugZap,
 } from 'lucide-vue-next';
 
 import {
@@ -248,6 +249,7 @@ const primaryColor = computed(() => brand.primaryColor || 'var(--aq-primary)');
 const expandedGroups = ref({
   facilities_menu: true,
   finance_menu: true,
+  app_platform_menu: true,
 });
 
 // Format role for display
@@ -294,8 +296,9 @@ const groups = computed(() => {
           label: 'Facilities',
           icon: 'building',
           children: [
-            { id: 'facilities', label: 'Facility Directory', routeName: 'dashboard.facilities' },
-            { id: 'contracts_workspace', label: 'Contracts Workspace', routeName: 'dashboard.facilities' },
+            { id: 'facilities_dash', label: 'Facilities Dashboard', routeName: 'dashboard.facilities.dashboard' },
+            { id: 'facilities_list', label: 'List of Facilities', routeName: 'dashboard.facilities.list' },
+            { id: 'facilities_create', label: 'Create New Facility', routeName: 'dashboard.facilities.create' },
             { id: 'activity_logs', label: 'Activity & Audit', routeName: 'dashboard.activity_logs' },
           ],
         },
@@ -310,6 +313,7 @@ const groups = computed(() => {
         },
         { id: 'org_users', label: 'Team Members', icon: 'users', routeName: 'dashboard.org_users' },
         { id: 'settings', label: 'Settings', icon: 'settings', routeName: 'dashboard.agency_settings' },
+        { id: 'integrations', label: 'Integrations', icon: 'integrations', routeName: 'dashboard.integrations' },
       ],
     },
     {
@@ -466,6 +470,7 @@ function resolveIcon(key) {
     upload: CloudUpload,
     rss: Rss,
     search: Search,
+    integrations: PlugZap,
   };
 
   return map[String(key || '')] || LayoutGrid;

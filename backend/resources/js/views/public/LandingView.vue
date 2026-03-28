@@ -113,43 +113,56 @@
         </div>
 
         <div class="relative max-w-6xl mx-auto">
-          <div class="relative rounded-2xl border border-blue-100 shadow-[0_0_100px_rgba(30,58,138,0.05)] overflow-hidden bg-white aspect-[16/10] md:aspect-[16/9]">
-            <div class="absolute inset-0 bg-blue-50/30" />
-
-            <div class="absolute left-0 top-0 bottom-0 w-64 border-r border-blue-50 bg-white hidden md:block p-6">
-              <div class="flex items-center gap-2 mb-10">
-                <div class="w-6 h-6 rounded-md" :style="{ backgroundColor: primarySolid }" />
-                <div class="w-24 h-3 bg-blue-50 rounded-full" />
-              </div>
-              <div class="space-y-6">
-                <div v-for="i in 5" :key="i" class="flex items-center gap-3">
-                  <div class="w-4 h-4 bg-blue-50/50 rounded" />
-                  <div class="h-2 bg-blue-50 rounded-full" :class="i === 1 ? 'w-20' : 'w-16'" />
+          <div class="relative rounded-3xl border border-blue-100 shadow-[0_30px_120px_rgba(30,58,138,0.10)] overflow-hidden bg-white">
+            <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[500px]">
+              <div class="lg:col-span-7 relative">
+                <img
+                  src="https://images.unsplash.com/photo-1516549655669-df72c3c1f866?auto=format&fit=crop&w=1600&q=80"
+                  alt="Healthcare command center"
+                  class="absolute inset-0 h-full w-full object-cover"
+                />
+                <div class="absolute inset-0 bg-gradient-to-r from-slate-950/65 via-slate-900/45 to-slate-900/10" />
+                <div class="relative z-10 p-8 md:p-10 h-full flex flex-col justify-end">
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-white/75 font-bold">Healthcare Operations</p>
+                  <h3 class="text-3xl md:text-4xl font-bold text-white tracking-tight mt-2">Run staffing like a modern command center.</h3>
+                  <p class="text-sm text-white/80 mt-3 max-w-lg">
+                    Real-time visibility across placements, facilities, compliance, and payroll in one premium system.
+                  </p>
                 </div>
               </div>
-            </div>
-
-            <div class="absolute left-0 md:left-64 right-0 top-0 bottom-0 p-8">
-              <div class="flex justify-between items-center mb-10">
-                <div class="w-32 h-6 bg-blue-50 rounded-lg" />
-                <div class="flex gap-2">
-                  <div class="w-8 h-8 rounded-full bg-blue-50/50" />
-                  <div class="w-8 h-8 rounded-full bg-blue-50/50" />
-                </div>
-              </div>
-              <div class="grid grid-cols-3 gap-6 mb-10">
-                <div v-for="i in 3" :key="i" class="h-24 rounded-2xl border border-blue-50 bg-white p-4">
-                  <div class="w-8 h-2 bg-blue-50/50 rounded-full mb-3" />
-                  <div class="w-16 h-4 bg-blue-50 rounded-full" />
-                </div>
-              </div>
-              <div class="space-y-4">
-                <div v-for="i in 4" :key="i" class="h-16 rounded-xl border border-blue-50 bg-white flex items-center px-6 justify-between">
-                  <div class="flex items-center gap-4">
-                    <div class="w-8 h-8 rounded-full bg-blue-50/50" />
-                    <div class="w-32 h-3 bg-blue-50 rounded-full" />
+              <div class="lg:col-span-5 p-6 md:p-8 bg-gradient-to-b from-white to-blue-50/45">
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="rounded-2xl overflow-hidden border border-blue-100 bg-white">
+                    <img
+                      src="https://images.unsplash.com/photo-1580281657521-8cf0f6f5f6f3?auto=format&fit=crop&w=900&q=80"
+                      alt="Nurse team collaboration"
+                      class="h-28 w-full object-cover"
+                    />
+                    <div class="p-3">
+                      <div class="text-xs font-semibold text-blue-900">Staffing Velocity</div>
+                      <div class="text-[11px] text-slate-500 mt-1">Scale teams faster.</div>
+                    </div>
                   </div>
-                  <div class="w-16 h-2 bg-blue-50/50 rounded-full" />
+                  <div class="rounded-2xl overflow-hidden border border-blue-100 bg-white">
+                    <img
+                      src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80"
+                      alt="Clinical data workflows"
+                      class="h-28 w-full object-cover"
+                    />
+                    <div class="p-3">
+                      <div class="text-xs font-semibold text-blue-900">Compliance Clarity</div>
+                      <div class="text-[11px] text-slate-500 mt-1">Track every credential.</div>
+                    </div>
+                  </div>
+                  <div class="col-span-2 rounded-2xl border border-blue-100 p-4 bg-white">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs uppercase tracking-wider font-bold text-slate-500">Live Fill Rate</span>
+                      <span class="text-sm font-bold text-emerald-600">94.2%</span>
+                    </div>
+                    <div class="mt-3 h-2 rounded-full bg-blue-50 overflow-hidden">
+                      <div class="h-full bg-emerald-500 w-[94%]" />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

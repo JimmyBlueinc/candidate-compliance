@@ -1,8 +1,26 @@
 <template>
   <div class="space-y-6">
     <!-- Page Header -->
-    <AppPageHeader title="Facilities" subtitle="Manage facilities and provision facility users.">
+    <AppPageHeader :title="pageTitle" :subtitle="pageSubtitle">
       <template #actions>
+        <AppButton
+          v-if="!isFacilitiesCreatePage"
+          variant="secondary"
+          size="sm"
+          @click="goToCreateFacilityPage"
+        >
+          <Plus class="w-4 h-4" />
+          New Facility
+        </AppButton>
+        <AppButton
+          v-if="!isFacilitiesListPage"
+          variant="secondary"
+          size="sm"
+          @click="goToFacilitiesListPage"
+        >
+          <Building2 class="w-4 h-4" />
+          View Facilities
+        </AppButton>
         <AppButton variant="secondary" size="sm" @click="load">
           <RefreshCw class="w-4 h-4" />
           Refresh
@@ -11,11 +29,80 @@
     </AppPageHeader>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <AppStatCard label="Total Facilities" :value="facilities.length" :icon="Building2" />
-      <AppStatCard label="Total Users" :value="totalFacilityUsers" :icon="Users" />
-      <AppStatCard label="Active Facilities" :value="activeFacilitiesCount" :icon="Building2" />
-      <AppStatCard label="Contracts (MSA/SOW)" :value="totalContracts" :icon="FileText" />
+    <div v-if="showStatsCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <AppStatCard label="Total Facilities" :value="facilities.length" :icon="Building2" color="violet" />
+      <AppStatCard label="Total Users" :value="totalFacilityUsers" :icon="Users" color="cyan" />
+      <AppStatCard label="Active Facilities" :value="activeFacilitiesCount" :icon="Building2" color="emerald" />
+      <AppStatCard label="Contracts (MSA/SOW)" :value="totalContracts" :icon="FileText" color="amber" />
+    </div>
+
+    <div v-if="isFacilitiesDashboardPage" class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+      <AppCard class="xl:col-span-8" title="Facilities Operations Dashboard" subtitle="Live facility posture across your organization.">
+        <div v-if="loading" class="py-8">
+          <div class="space-y-3">
+            <AppSkeleton v-for="i in 4" :key="`facilities-dashboard-skeleton-${i}`" variant="text" />
+          </div>
+        </div>
+        <div v-else class="overflow-x-auto -mx-6">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-[color:var(--aq-border)]">
+                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Facility</th>
+                <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Users</th>
+                <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contracts</th>
+                <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Quick Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[color:var(--aq-border)]">
+              <tr
+                v-for="f in dashboardRows"
+                :key="`dashboard-row-${f.id}`"
+                class="hover:bg-[color:var(--aq-surface-2)] transition-colors"
+              >
+                <td class="px-6 py-4">
+                  <div class="font-semibold text-[color:var(--aq-fg)]">{{ f.name }}</div>
+                  <div class="text-xs text-[color:var(--aq-muted)] mt-0.5">{{ [f.city, f.state, f.country].filter(Boolean).join(', ') || 'Location pending' }}</div>
+                </td>
+                <td class="px-6 py-4 text-right font-semibold text-[color:var(--aq-primary)]">{{ Number(f.users_count || 0) }}</td>
+                <td class="px-6 py-4 text-right">
+                  <AppBadge :variant="Number(f.contracts_count || 0) > 0 ? 'success' : 'default'" size="sm">
+                    {{ Number(f.contracts_count || 0) }}
+                  </AppBadge>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <AppButton variant="secondary" size="sm" @click="openFacilityDetails(f)">
+                    Open
+                  </AppButton>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </AppCard>
+
+      <div class="xl:col-span-4 space-y-4">
+        <AppCard title="Quick Access" subtitle="Jump to key facility workflows">
+          <div class="space-y-3">
+            <AppButton class="w-full" @click="goToCreateFacilityPage">
+              <Plus class="w-4 h-4" />
+              Create New Facility
+            </AppButton>
+            <AppButton variant="secondary" class="w-full" @click="goToFacilitiesListPage">
+              <Building2 class="w-4 h-4" />
+              List of Facilities
+            </AppButton>
+          </div>
+        </AppCard>
+        <AppCard title="Contracts Snapshot" subtitle="MSA readiness at a glance">
+          <div class="rounded-[var(--radius-lg)] p-4 border border-[color:var(--aq-border)] bg-[color:var(--aq-primary)]/10">
+            <div class="text-xs uppercase tracking-wider font-semibold text-[color:var(--aq-muted)]">Facilities with contracts</div>
+            <div class="mt-2 text-3xl font-bold text-[color:var(--aq-primary)]">
+              {{ facilitiesWithContracts }}
+              <span class="text-sm text-[color:var(--aq-muted)]">/ {{ facilities.length || 0 }}</span>
+            </div>
+          </div>
+        </AppCard>
+      </div>
     </div>
 
     <!-- Error Message -->
@@ -24,7 +111,7 @@
     </div>
 
     <!-- New Facility Form -->
-    <AppCard title="New Facility" subtitle="Add a facility to your organization.">
+    <AppCard v-if="isFacilitiesCreatePage" title="Create New Facility" subtitle="Add a facility to your organization.">
       <form class="space-y-6" @submit.prevent="createFacility">
         <!-- Basic Info -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -105,7 +192,7 @@
     </AppCard>
 
     <!-- Facilities Table -->
-    <AppCard title="Facilities" subtitle="All registered facilities in your organization.">
+    <AppCard v-if="isFacilitiesListPage" title="List of Facilities" subtitle="All registered facilities in your organization.">
       <template #actions>
         <AppButton v-if="facilities.length > 0 && featureFlagStore.enabled('dashboard.advanced_exports', true)" variant="secondary" size="sm" @click="exportFacilities">
           <i class="pi pi-download text-xs" />
@@ -149,7 +236,7 @@
       <AppEmpty
         v-else-if="facilities.length === 0"
         title="No facilities yet"
-        description="Create your first facility using the form above."
+        description="Create your first facility from the Create New Facility page."
         :icon="Building2"
       />
 
@@ -341,7 +428,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { apiGet, apiPost } from '../../lib/api';
 import { useFeatureFlagStore } from '../../stores/featureFlags';
 import { Building2, Users, FileText, Plus, UserPlus, RefreshCw, CheckCircle, AlertCircle, Copy } from 'lucide-vue-next';
@@ -355,6 +442,7 @@ import AppEmpty from '../../components/ui/AppEmpty.vue';
 import AppSkeleton from '../../components/ui/AppSkeleton.vue';
 
 const router = useRouter();
+const route = useRoute();
 const featureFlagStore = useFeatureFlagStore();
 
 const facilities = ref([]);
@@ -464,6 +552,28 @@ const totalContracts = computed(() => {
   return facilities.value.reduce((acc, f) => acc + Number(f.contracts_count || 0), 0);
 });
 
+const currentRouteName = computed(() => String(route.name || ''));
+const isFacilitiesDashboardPage = computed(() => currentRouteName.value === 'dashboard.facilities.dashboard');
+const isFacilitiesListPage = computed(() => currentRouteName.value === 'dashboard.facilities.list' || currentRouteName.value === 'dashboard.facilities');
+const isFacilitiesCreatePage = computed(() => currentRouteName.value === 'dashboard.facilities.create');
+const showStatsCards = computed(() => isFacilitiesDashboardPage.value || isFacilitiesListPage.value);
+const dashboardRows = computed(() => {
+  return [...facilities.value]
+    .sort((a, b) => Number(b.contracts_count || 0) - Number(a.contracts_count || 0))
+    .slice(0, 6);
+});
+const facilitiesWithContracts = computed(() => facilities.value.filter((f) => Number(f.contracts_count || 0) > 0).length);
+const pageTitle = computed(() => {
+  if (isFacilitiesDashboardPage.value) return 'Facilities Dashboard';
+  if (isFacilitiesCreatePage.value) return 'Create New Facility';
+  return 'List of Facilities';
+});
+const pageSubtitle = computed(() => {
+  if (isFacilitiesDashboardPage.value) return 'Operational overview of facilities, users, and contracts.';
+  if (isFacilitiesCreatePage.value) return 'Provision a facility profile and prepare account access.';
+  return 'Directory of all registered facilities in your organization.';
+});
+
 async function load() {
   loading.value = true;
   error.value = '';
@@ -542,6 +652,14 @@ function openFacilityDetails(facility) {
     name: 'dashboard.facilities.detail',
     params: { id: facility.id },
   });
+}
+
+function goToCreateFacilityPage() {
+  router.push({ name: 'dashboard.facilities.create' });
+}
+
+function goToFacilitiesListPage() {
+  router.push({ name: 'dashboard.facilities.list' });
 }
 
 function exportFacilities() {

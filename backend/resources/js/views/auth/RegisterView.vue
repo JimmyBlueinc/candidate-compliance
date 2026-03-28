@@ -164,6 +164,16 @@
               </template>
             </button>
 
+            <div class="pt-2">
+              <div class="flex items-center gap-3 text-[11px] text-slate-500">
+                <div class="h-px flex-1 bg-[color:var(--p-surface-border)]" />
+                <span>or sign up with</span>
+                <div class="h-px flex-1 bg-[color:var(--p-surface-border)]" />
+              </div>
+              <div ref="googleButtonEl" class="mt-3 flex justify-center" />
+              <p v-if="googleMessage" class="mt-2 text-[11px] text-center text-[color:var(--p-text-muted-color)]">{{ googleMessage }}</p>
+            </div>
+
             <div class="pt-4 text-center">
               <span class="text-slate-500 text-xs font-medium">Already registered? </span>
               <button type="button" class="text-white text-xs font-black transition-colors" :style="linkStyle" @click="router.push('/login')">
@@ -178,11 +188,13 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
 import { useUiStore } from '../../stores/ui';
+import { apiPost } from '../../lib/api';
+import { renderGoogleButton } from '../../lib/googleIdentity';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -195,6 +207,8 @@ const password = ref('');
 const passwordConfirmation = ref('');
 const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
+const googleButtonEl = ref(null);
+const googleMessage = ref('');
 
 const isSubmitting = computed(() => auth.status === 'loading');
 
@@ -287,4 +301,46 @@ async function handleSubmit() {
 
     await router.push('/dashboard');
 }
+
+async function handleGoogleCredential(idToken) {
+    if (!idToken) return;
+    googleMessage.value = '';
+    try {
+        const response = await apiPost('/google/authenticate', {
+            id_token: idToken,
+            intent: 'signup',
+            tenant_id: auth.tenantId ? Number(auth.tenantId) : null,
+            role: 'candidate',
+        });
+        const payload = response?.data ? response.data : response;
+        if (!payload?.token || !payload?.user) {
+            throw new Error('Google signup response is missing session data.');
+        }
+        auth.setSession({ token: payload.token, user: payload.user });
+        if (payload.user?.organization_id) {
+            auth.setTenantId(String(payload.user.organization_id));
+        }
+        await router.push('/dashboard');
+    } catch (e) {
+        googleMessage.value = e?.response?.data?.message || e?.message || 'Google sign-up failed.';
+    }
+}
+
+async function initGoogleButton() {
+    const clientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+    if (!clientId || !googleButtonEl.value) return;
+    try {
+        await renderGoogleButton(googleButtonEl.value, clientId, handleGoogleCredential, {
+            text: 'signup_with',
+            width: 340,
+            theme: 'filled_blue',
+        });
+    } catch (e) {
+        googleMessage.value = e?.message || 'Google sign-up is currently unavailable.';
+    }
+}
+
+onMounted(() => {
+    initGoogleButton();
+});
 </script>

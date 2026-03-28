@@ -57,6 +57,8 @@ Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'regi
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login'])->middleware('throttle:5,1'); // 5 requests per minute
 Route::post('/forgot-password', [\App\Http\Controllers\Api\AuthController::class, 'forgotPassword'])->middleware('throttle:3,1'); // 3 requests per minute
 Route::post('/reset-password', [\App\Http\Controllers\Api\AuthController::class, 'resetPassword'])->middleware('throttle:3,1'); // 3 requests per minute
+Route::post('/google/profile', [\App\Http\Controllers\Api\GoogleAuthController::class, 'profile'])->middleware('throttle:20,1');
+Route::post('/google/authenticate', [\App\Http\Controllers\Api\GoogleAuthController::class, 'authenticate'])->middleware('throttle:20,1');
 
 // Platform admin creation (special endpoint)
 // - If no platform admin exists: requires secret key (public endpoint)
@@ -317,6 +319,11 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             Route::put('/branding', [\App\Http\Controllers\Api\AgencyBrandingController::class, 'update']);
             Route::get('/settings', [\App\Http\Controllers\Api\OrganizationSettingsController::class, 'show']);
             Route::put('/settings', [\App\Http\Controllers\Api\OrganizationSettingsController::class, 'update']);
+        });
+
+        Route::prefix('v1/integrations')->middleware('role.org_owner')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\IntegrationController::class, 'index']);
+            Route::put('/{key}', [\App\Http\Controllers\Api\IntegrationController::class, 'upsert']);
         });
 
         // Tenant onboarding (org_super_admin)
