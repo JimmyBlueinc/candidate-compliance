@@ -23,6 +23,7 @@ class OrganizationSettingsController extends Controller
             OrganizationSetting::defaults()
         );
 
+        $settings->module_preferences = $this->mergeModulePreferences($settings->module_preferences);
         $settings->public_home_content = $this->mergePublicHomeContent($settings->public_home_content);
 
         return response()->api(['settings' => $settings]);
@@ -44,6 +45,17 @@ class OrganizationSettingsController extends Controller
             'expiry_reminders_enabled' => 'sometimes|boolean',
             'reminder_days_before' => 'sometimes|integer|min:1|max:365',
             'module_preferences' => 'sometimes|array',
+            'module_preferences.matching_weights' => 'sometimes|array',
+            'module_preferences.matching_weights.exact_specialty' => 'sometimes|integer|min:0|max:100',
+            'module_preferences.matching_weights.specialty_overlap' => 'sometimes|integer|min:0|max:100',
+            'module_preferences.matching_weights.keyword_alignment_per_hit' => 'sometimes|integer|min:0|max:50',
+            'module_preferences.matching_weights.keyword_alignment_cap' => 'sometimes|integer|min:0|max:200',
+            'module_preferences.matching_weights.name_relevance' => 'sometimes|integer|min:0|max:100',
+            'module_preferences.matching_weights.email_relevance' => 'sometimes|integer|min:0|max:100',
+            'module_preferences.matching_weights.specialty_relevance' => 'sometimes|integer|min:0|max:100',
+            'module_preferences.matching_weights.experience_cap' => 'sometimes|integer|min:0|max:50',
+            'module_preferences.matching_weights.recency_30d' => 'sometimes|integer|min:0|max:50',
+            'module_preferences.matching_weights.recency_90d' => 'sometimes|integer|min:0|max:50',
             'public_home_content' => 'sometimes|array',
             'public_home_content.hero_heading' => 'sometimes|string|max:160',
             'public_home_content.hero_subheading' => 'sometimes|string|max:600',
@@ -69,12 +81,16 @@ class OrganizationSettingsController extends Controller
         );
 
         $validated = $validator->validated();
+        if (array_key_exists('module_preferences', $validated)) {
+            $validated['module_preferences'] = $this->mergeModulePreferences($validated['module_preferences']);
+        }
         if (array_key_exists('public_home_content', $validated)) {
             $validated['public_home_content'] = $this->mergePublicHomeContent($validated['public_home_content']);
         }
 
         $settings->update($validated);
         $fresh = $settings->fresh();
+        $fresh->module_preferences = $this->mergeModulePreferences($fresh->module_preferences);
         $fresh->public_home_content = $this->mergePublicHomeContent($fresh->public_home_content);
 
         return response()->api(['settings' => $fresh], 200, [], 'Organization settings updated.');
@@ -84,5 +100,11 @@ class OrganizationSettingsController extends Controller
     {
         $defaults = OrganizationSetting::defaults()['public_home_content'] ?? [];
         return array_merge($defaults, $incoming ?? []);
+    }
+
+    private function mergeModulePreferences(?array $incoming): array
+    {
+        $defaults = OrganizationSetting::defaults()['module_preferences'] ?? [];
+        return array_replace_recursive($defaults, $incoming ?? []);
     }
 }

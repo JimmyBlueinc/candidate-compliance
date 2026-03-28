@@ -117,6 +117,7 @@ const pageTitle = computed(() => {
     'dashboard.credentials': 'Credentials',
     'dashboard.personnel': 'Personnel Database',
     'dashboard.pipeline': 'Credentialing Pipeline',
+    'dashboard.recruiter_tasks': 'Recruiter Tasks',
     'dashboard.placements': 'Placements',
     'dashboard.shifts': 'Shifts',
     'dashboard.timesheets': 'Timesheets',

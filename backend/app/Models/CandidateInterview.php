@@ -12,6 +12,7 @@ class CandidateInterview extends Model
         'tenant_id',
         'candidate_id',
         'scheduled_by_user_id',
+        'interviewer_user_ids',
         'stage',
         'location',
         'meeting_link',
@@ -24,6 +25,7 @@ class CandidateInterview extends Model
     protected $casts = [
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
+        'interviewer_user_ids' => 'array',
     ];
 
     protected static function booted(): void

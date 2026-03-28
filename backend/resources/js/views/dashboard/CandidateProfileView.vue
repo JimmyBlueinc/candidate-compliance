@@ -248,6 +248,11 @@
                   <input v-model="interviewForm.starts_at" type="datetime-local" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100" />
                   <input v-model="interviewForm.location" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100" placeholder="Location (optional)" />
                   <input v-model="interviewForm.meeting_link" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100" placeholder="Meeting link (optional)" />
+                  <select v-model="interviewForm.interviewer_user_ids" multiple class="md:col-span-2 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100 min-h-[110px]">
+                    <option v-for="r in recruiters" :key="r.id" :value="Number(r.id)">
+                      {{ r.name }} ({{ r.role }})
+                    </option>
+                  </select>
                 </div>
                 <div class="mt-2 flex justify-end">
                   <button
@@ -269,6 +274,9 @@
                         <div class="text-sm font-semibold text-slate-100">{{ iv.stage }}</div>
                         <div class="mt-1 text-xs text-slate-300">{{ formatDateTime(iv.starts_at) }}</div>
                         <div v-if="iv.location" class="text-xs text-[color:var(--p-text-muted-color)]">{{ iv.location }}</div>
+                        <div v-if="resolvePanelNames(iv).length" class="text-xs text-[color:var(--p-text-muted-color)]">
+                          Panel: {{ resolvePanelNames(iv).join(', ') }}
+                        </div>
                       </div>
                       <div class="flex items-center gap-2">
                         <select
@@ -284,7 +292,36 @@
                         <button type="button" class="text-[10px] uppercase font-black tracking-widest text-rose-300" @click="deleteInterview(iv)">Delete</button>
                       </div>
                     </div>
-                    <a v-if="iv.meeting_link" :href="iv.meeting_link" target="_blank" rel="noreferrer" class="mt-2 inline-block text-xs font-semibold underline" :style="{ color: primaryColor }">Open Meeting Link</a>
+                    <div class="mt-2 flex flex-wrap items-center gap-3">
+                      <a v-if="iv.meeting_link" :href="iv.meeting_link" target="_blank" rel="noreferrer" class="inline-block text-xs font-semibold underline" :style="{ color: primaryColor }">Open Meeting Link</a>
+                      <button
+                        type="button"
+                        class="text-xs font-semibold underline"
+                        :style="{ color: primaryColor }"
+                        :disabled="calendarLoadingId === iv.id"
+                        @click="openCalendarLink(iv, 'google')"
+                      >
+                        Add to Google Calendar
+                      </button>
+                      <button
+                        type="button"
+                        class="text-xs font-semibold underline"
+                        :style="{ color: primaryColor }"
+                        :disabled="calendarLoadingId === iv.id"
+                        @click="openCalendarLink(iv, 'outlook')"
+                      >
+                        Add to Outlook
+                      </button>
+                      <button
+                        type="button"
+                        class="text-xs font-semibold underline"
+                        :style="{ color: primaryColor }"
+                        :disabled="calendarLoadingId === iv.id"
+                        @click="downloadInterviewIcs(iv)"
+                      >
+                        Download .ics
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -415,12 +452,15 @@ const noteSaving = ref(false);
 const newNoteBody = ref('');
 const interviews = ref([]);
 const interviewsLoading = ref(false);
+const calendarLoadingId = ref(null);
 const interviewSaving = ref(false);
+const recruiters = ref([]);
 const interviewForm = ref({
     stage: '',
     starts_at: '',
     location: '',
     meeting_link: '',
+    interviewer_user_ids: [],
 });
 
 const jobOrders = ref([]);
@@ -507,12 +547,16 @@ async function createInterview() {
             starts_at: new Date(interviewForm.value.starts_at).toISOString(),
             location: interviewForm.value.location || null,
             meeting_link: interviewForm.value.meeting_link || null,
+            interviewer_user_ids: Array.isArray(interviewForm.value.interviewer_user_ids)
+                ? interviewForm.value.interviewer_user_ids.map((id) => Number(id)).filter((id) => id > 0)
+                : [],
         });
         interviewForm.value = {
             stage: '',
             starts_at: '',
             location: '',
             meeting_link: '',
+            interviewer_user_ids: [],
         };
         await loadInterviews();
     } finally {
@@ -534,11 +578,66 @@ async function deleteInterview(interview) {
     await loadInterviews();
 }
 
+async function openCalendarLink(interview, provider) {
+    if (!interview?.id || !provider) return;
+    calendarLoadingId.value = interview.id;
+    try {
+        const res = await apiGet(`/v1/candidates/interviews/${interview.id}/calendar-links`);
+        const payload = res?.data || res || {};
+        const url = provider === 'outlook' ? payload?.outlook : payload?.google;
+        if (url) {
+            window.open(String(url), '_blank', 'noopener,noreferrer');
+        }
+    } finally {
+        calendarLoadingId.value = null;
+    }
+}
+
+async function downloadInterviewIcs(interview) {
+    if (!interview?.id) return;
+    calendarLoadingId.value = interview.id;
+    try {
+        const ics = await apiGet(`/v1/candidates/interviews/${interview.id}/calendar.ics`, {
+            responseType: 'text',
+            headers: {
+                Accept: 'text/calendar',
+            },
+        });
+        const blob = new Blob([String(ics || '')], { type: 'text/calendar;charset=utf-8' });
+        const href = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = href;
+        a.download = `interview-${interview.id}.ics`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(href);
+    } finally {
+        calendarLoadingId.value = null;
+    }
+}
+
 function formatDateTime(v) {
     if (!v) return '—';
     const d = new Date(v);
     if (Number.isNaN(d.getTime())) return String(v);
     return d.toLocaleString();
+}
+
+function resolvePanelNames(interview) {
+    const ids = Array.isArray(interview?.interviewer_user_ids) ? interview.interviewer_user_ids.map((id) => Number(id)) : [];
+    if (ids.length === 0) return [];
+    const map = new Map(recruiters.value.map((r) => [Number(r.id), r.name]));
+    return ids.map((id) => map.get(id)).filter(Boolean);
+}
+
+async function loadRecruiters() {
+    try {
+        const res = await apiGet('/v1/org/recruiters');
+        recruiters.value = normalizeApiList(res);
+    } catch {
+        recruiters.value = [];
+    }
 }
 
 async function copyLink(url) {
@@ -621,4 +720,5 @@ function goToCredentials() {
 }
 
 refresh();
+loadRecruiters();
 </script>

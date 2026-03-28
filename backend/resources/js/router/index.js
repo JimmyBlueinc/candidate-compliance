@@ -18,6 +18,7 @@ import WorkAuthorizationsView from '../views/dashboard/WorkAuthorizationsView.vu
 import ActivityLogsView from '../views/dashboard/ActivityLogsView.vue';
 import PersonnelDatabaseView from '../views/dashboard/PersonnelDatabaseView.vue';
 import PipelineView from '../views/dashboard/PipelineView.vue';
+import RecruiterTasksView from '../views/dashboard/RecruiterTasksView.vue';
 import ConfigurationView from '../views/dashboard/ConfigurationView.vue';
 import AccessControlsView from '../views/dashboard/AccessControlsView.vue';
 import PublicSubmissionView from '../views/public/PublicSubmissionView.vue';
@@ -559,6 +560,12 @@ const router = createRouter({
                     path: 'pipeline',
                     name: 'dashboard.pipeline',
                     component: PipelineView,
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
+                },
+                {
+                    path: 'recruiter-tasks',
+                    name: 'dashboard.recruiter_tasks',
+                    component: RecruiterTasksView,
                     meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {

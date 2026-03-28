@@ -53,6 +53,19 @@
               />
             </div>
 
+            <div class="space-y-2">
+              <label class="text-[10px] font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Job Order Match</label>
+              <select
+                v-model="filters.job_order_id"
+                class="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white outline-none focus:border-white/20"
+              >
+                <option value="">No job context</option>
+                <option v-for="job in jobOrders" :key="job.id" :value="String(job.id)">
+                  {{ job.facility_name || 'Facility' }} - {{ job.title || 'Job' }}
+                </option>
+              </select>
+            </div>
+
             <div class="flex items-center gap-2">
               <button
                 type="button"
@@ -107,6 +120,8 @@
                 </div>
 
                 <div class="shrink-0 text-right">
+                  <div class="text-[10px] font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Match</div>
+                  <div class="mt-1 text-xs font-bold text-emerald-300">{{ Number(c.match_score || 0) }}</div>
                   <div class="text-[10px] font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Compliance</div>
                   <div class="mt-1 text-xs font-bold" :style="{ color: complianceColor(c.compliance_status) }">
                     {{ (c.compliance_status || 'unknown').replaceAll('_', ' ') }}
@@ -168,11 +183,13 @@ const filters = reactive({
     specialty: '',
     compliance_status: '',
     zip: '',
+    job_order_id: '',
 });
 
 const loading = ref(false);
 const error = ref('');
 const rows = ref([]);
+const jobOrders = ref([]);
 
 const selected = ref(null);
 const detailOpen = ref(false);
@@ -185,6 +202,8 @@ async function refresh() {
         if (filters.specialty) params.set('specialty', filters.specialty);
         if (filters.compliance_status) params.set('compliance_status', filters.compliance_status);
         if (filters.zip) params.set('zip', filters.zip);
+        if (filters.job_order_id) params.set('job_order_id', filters.job_order_id);
+        params.set('sort_match', '1');
 
         const res = await apiGet(`/v1/candidates/search?${params.toString()}`);
         rows.value = normalizeApiList(res);
@@ -200,8 +219,18 @@ function reset() {
     filters.specialty = '';
     filters.compliance_status = '';
     filters.zip = '';
+    filters.job_order_id = '';
     rows.value = [];
     error.value = '';
+}
+
+async function loadJobOrders() {
+    try {
+        const res = await apiGet('/v1/job-orders');
+        jobOrders.value = normalizeApiList(res).slice(0, 200);
+    } catch {
+        jobOrders.value = [];
+    }
 }
 
 function displayName(c) {
@@ -226,4 +255,6 @@ function goProfile() {
     detailOpen.value = false;
     router.push({ name: 'dashboard.candidate_profile', params: { id: selected.value.id } });
 }
+
+loadJobOrders();
 </script>

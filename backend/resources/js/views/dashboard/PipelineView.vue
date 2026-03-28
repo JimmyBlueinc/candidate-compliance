@@ -23,6 +23,23 @@
         Loading...
       </div>
 
+      <div v-else class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div class="text-[10px] uppercase tracking-widest font-black text-[color:var(--p-text-muted-color)]">Tracked Candidates</div>
+          <div class="mt-2 text-2xl font-semibold text-white">{{ funnel.total_candidates }}</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div class="text-[10px] uppercase tracking-widest font-black text-[color:var(--p-text-muted-color)]">Transitions ({{ funnel.days }}d)</div>
+          <div class="mt-2 text-2xl font-semibold text-indigo-300">{{ funnel.total_transitions }}</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div class="text-[10px] uppercase tracking-widest font-black text-[color:var(--p-text-muted-color)]">Top Conversion</div>
+          <div class="mt-2 text-sm font-semibold text-emerald-300">
+            {{ topTransitionLabel }}
+          </div>
+        </div>
+      </div>
+
       <PipelineBoard v-else class="mt-6">
         <PipelineColumn
           v-for="col in columns"
@@ -100,6 +117,12 @@ const acting = ref(false);
 const noteModalOpen = ref(false);
 const newNote = ref('');
 const selectedItem = ref(null);
+const funnel = ref({
+  days: 30,
+  total_candidates: 0,
+  total_transitions: 0,
+  transitions: [],
+});
 
 const grouped = computed(() => {
   const out = {};
@@ -157,12 +180,31 @@ async function submitNote() {
 async function refresh() {
   loading.value = true;
   try {
-    const res = await apiGet('/v1/candidate-pipeline');
-    items.value = normalizeApiList(res);
+    const [pipelineRes, funnelRes] = await Promise.all([
+      apiGet('/v1/candidate-pipeline'),
+      apiGet('/analytics/pipeline-funnel?days=30'),
+    ]);
+    items.value = normalizeApiList(pipelineRes);
+    const data = funnelRes?.data || {};
+    const transitions = Array.isArray(data.transitions) ? data.transitions : [];
+    const stageCounts = Array.isArray(data.stage_counts) ? data.stage_counts : [];
+    funnel.value = {
+      days: Number(data.days || 30),
+      total_candidates: stageCounts.reduce((sum, row) => sum + Number(row.count || 0), 0),
+      total_transitions: transitions.reduce((sum, row) => sum + Number(row.count || 0), 0),
+      transitions,
+    };
   } finally {
     loading.value = false;
   }
 }
+
+const topTransitionLabel = computed(() => {
+  const t = [...(funnel.value.transitions || [])]
+    .sort((a, b) => Number(b.count || 0) - Number(a.count || 0))[0];
+  if (!t) return 'No recent transitions';
+  return `${String(t.from_stage || 'n/a')} -> ${String(t.to_stage || 'n/a')} (${Number(t.conversion_pct || 0)}%)`;
+});
 
 onMounted(refresh);
 </script>

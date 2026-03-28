@@ -12,6 +12,8 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Models\Credential;
 use App\Models\Document;
+use App\Models\JobOrder;
+use App\Models\OrganizationSetting;
 use App\Models\Scopes\TenantScope;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
@@ -27,11 +29,19 @@ class CandidateController extends Controller
             return response()->json(['message' => 'Organization context missing.'], 400);
         }
 
+        $validated = $request->validate([
+            'q' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'specialty' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'job_order_id' => ['sometimes', 'nullable', 'integer'],
+            'sort_match' => ['sometimes', 'boolean'],
+            'per_page' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:200'],
+        ]);
+
         $query = Candidate::query()
             ->where('tenant_id', $orgId);
 
-        if ($request->filled('q')) {
-            $q = trim((string) $request->input('q'));
+        if (!empty($validated['q'])) {
+            $q = trim((string) $validated['q']);
             $query->where(function ($sub) use ($q) {
                 $sub->where('name', 'like', '%' . $q . '%')
                     ->orWhere('first_name', 'like', '%' . $q . '%')
@@ -41,11 +51,18 @@ class CandidateController extends Controller
             });
         }
 
-        if ($request->filled('specialty')) {
-            $query->where('specialty', $request->input('specialty'));
+        if (!empty($validated['specialty'])) {
+            $query->where('specialty', $validated['specialty']);
         }
 
-        $perPage = (int) $request->integer('per_page', 25);
+        $jobOrder = null;
+        if (!empty($validated['job_order_id'])) {
+            $jobOrder = JobOrder::query()
+                ->where('tenant_id', $orgId)
+                ->find((int) $validated['job_order_id']);
+        }
+
+        $perPage = (int) ($validated['per_page'] ?? 25);
         if ($perPage < 1) {
             $perPage = 25;
         }
@@ -58,12 +75,138 @@ class CandidateController extends Controller
             ->orderByDesc('created_at')
             ->paginate($perPage);
 
-        return response()->api($paginator->items(), 200, [
+        $sortMatch = array_key_exists('sort_match', $validated) ? (bool) $validated['sort_match'] : true;
+        $weights = $this->resolveMatchingWeights($orgId);
+        $searchQuery = strtolower(trim((string) ($validated['q'] ?? '')));
+
+        $items = collect($paginator->items())
+            ->map(function (Candidate $candidate) use ($jobOrder, $searchQuery, $weights) {
+                [$score, $reasons] = $this->calculateMatchScore($candidate, $jobOrder, $searchQuery, $weights);
+                $row = $candidate->toArray();
+                $row['match_score'] = $score;
+                $row['match_reasons'] = $reasons;
+                return $row;
+            });
+
+        if ($sortMatch) {
+            $items = $items->sortByDesc('match_score')->values();
+        }
+
+        return response()->api($items->all(), 200, [
             'current_page' => $paginator->currentPage(),
             'per_page' => $paginator->perPage(),
             'total' => $paginator->total(),
             'last_page' => $paginator->lastPage(),
+            'matching_weights' => $weights,
         ]);
+    }
+
+    private function calculateMatchScore(Candidate $candidate, ?JobOrder $jobOrder, string $searchQuery, array $weights): array
+    {
+        $score = 0;
+        $reasons = [];
+
+        $candidateSpecialty = strtolower(trim((string) ($candidate->specialty ?? '')));
+        $candidateName = strtolower(trim((string) ($candidate->name ?? '')));
+        $candidateEmail = strtolower(trim((string) ($candidate->email ?? '')));
+        $candidateTags = collect($candidate->tags ?? [])
+            ->map(fn ($tag) => strtolower(trim((string) $tag)))
+            ->filter()
+            ->values()
+            ->all();
+
+        if ($jobOrder) {
+            $jobSpecialty = strtolower(trim((string) ($jobOrder->specialty ?? '')));
+            $jobTitle = strtolower(trim((string) ($jobOrder->title ?? '')));
+            $jobRole = strtolower(trim((string) ($jobOrder->role ?? '')));
+
+            if ($jobSpecialty !== '' && $candidateSpecialty === $jobSpecialty) {
+                $score += (int) $weights['exact_specialty'];
+                $reasons[] = 'Exact specialty match';
+            } elseif ($jobSpecialty !== '' && str_contains($candidateSpecialty, $jobSpecialty)) {
+                $score += (int) $weights['specialty_overlap'];
+                $reasons[] = 'Specialty overlap';
+            }
+
+            $keywords = collect([$jobSpecialty, $jobTitle, $jobRole])
+                ->flatMap(fn ($text) => preg_split('/\s+/', $text ?: ''))
+                ->map(fn ($word) => strtolower(trim((string) $word)))
+                ->filter(fn ($word) => strlen($word) >= 3)
+                ->unique()
+                ->values();
+
+            $hits = 0;
+            foreach ($keywords as $keyword) {
+                if (
+                    str_contains($candidateName, $keyword) ||
+                    str_contains($candidateSpecialty, $keyword) ||
+                    in_array($keyword, $candidateTags, true)
+                ) {
+                    $hits++;
+                }
+            }
+
+            if ($hits > 0) {
+                $score += min((int) $weights['keyword_alignment_cap'], $hits * (int) $weights['keyword_alignment_per_hit']);
+                $reasons[] = 'Keyword alignment';
+            }
+        }
+
+        if ($searchQuery !== '') {
+            if (str_contains($candidateName, $searchQuery)) {
+                $score += (int) $weights['name_relevance'];
+                $reasons[] = 'Name relevance';
+            }
+            if (str_contains($candidateEmail, $searchQuery)) {
+                $score += (int) $weights['email_relevance'];
+            }
+            if (str_contains($candidateSpecialty, $searchQuery)) {
+                $score += (int) $weights['specialty_relevance'];
+            }
+        }
+
+        $years = (float) ($candidate->years_experience ?? 0);
+        if ($years > 0) {
+            $score += min((int) $weights['experience_cap'], (int) floor($years));
+            if ($years >= 5) {
+                $reasons[] = 'Experienced candidate';
+            }
+        }
+
+        if ($candidate->last_applied_at) {
+            $days = abs((int) now()->diffInDays($candidate->last_applied_at));
+            if ($days <= 30) {
+                $score += (int) $weights['recency_30d'];
+            } elseif ($days <= 90) {
+                $score += (int) $weights['recency_90d'];
+            }
+        }
+
+        return [$score, array_values(array_unique($reasons))];
+    }
+
+    private function resolveMatchingWeights(int $orgId): array
+    {
+        $defaults = OrganizationSetting::defaults()['module_preferences']['matching_weights'] ?? [];
+        $settings = OrganizationSetting::query()
+            ->where('organization_id', $orgId)
+            ->first();
+
+        $fromSettings = (array) data_get($settings?->module_preferences, 'matching_weights', []);
+        $merged = array_merge($defaults, $fromSettings);
+
+        return [
+            'exact_specialty' => max(0, (int) ($merged['exact_specialty'] ?? 40)),
+            'specialty_overlap' => max(0, (int) ($merged['specialty_overlap'] ?? 24)),
+            'keyword_alignment_per_hit' => max(0, (int) ($merged['keyword_alignment_per_hit'] ?? 4)),
+            'keyword_alignment_cap' => max(0, (int) ($merged['keyword_alignment_cap'] ?? 22)),
+            'name_relevance' => max(0, (int) ($merged['name_relevance'] ?? 20)),
+            'email_relevance' => max(0, (int) ($merged['email_relevance'] ?? 10)),
+            'specialty_relevance' => max(0, (int) ($merged['specialty_relevance'] ?? 12)),
+            'experience_cap' => max(0, (int) ($merged['experience_cap'] ?? 14)),
+            'recency_30d' => max(0, (int) ($merged['recency_30d'] ?? 8)),
+            'recency_90d' => max(0, (int) ($merged['recency_90d'] ?? 4)),
+        ];
     }
 
     public function index(Request $request): JsonResponse

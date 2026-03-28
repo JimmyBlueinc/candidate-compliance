@@ -40,7 +40,20 @@ class OrganizationSetting extends Model
             'email_notifications_enabled' => true,
             'expiry_reminders_enabled' => true,
             'reminder_days_before' => 30,
-            'module_preferences' => [],
+            'module_preferences' => [
+                'matching_weights' => [
+                    'exact_specialty' => 40,
+                    'specialty_overlap' => 24,
+                    'keyword_alignment_per_hit' => 4,
+                    'keyword_alignment_cap' => 22,
+                    'name_relevance' => 20,
+                    'email_relevance' => 10,
+                    'specialty_relevance' => 12,
+                    'experience_cap' => 14,
+                    'recency_30d' => 8,
+                    'recency_90d' => 4,
+                ],
+            ],
             'public_home_content' => [
                 'hero_heading' => 'Build your next chapter with our team.',
                 'hero_subheading' => 'Discover meaningful healthcare staffing opportunities and apply in minutes.',

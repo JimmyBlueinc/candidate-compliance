@@ -171,6 +171,40 @@
               Save Workspace Preferences
             </AppButton>
           </div>
+
+          <div class="pt-3 border-t border-[color:var(--aq-border)]">
+            <h4 class="text-sm font-semibold text-[color:var(--aq-fg)]">Candidate Match Scoring Weights</h4>
+            <p class="text-xs text-[color:var(--aq-muted)] mt-1">
+              Fine-tune how candidate search scores are calculated for your organization.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Exact Specialty</label>
+              <input v-model.number="preferences.module_preferences.matching_weights.exact_specialty" type="number" min="0" max="100" class="app-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Specialty Overlap</label>
+              <input v-model.number="preferences.module_preferences.matching_weights.specialty_overlap" type="number" min="0" max="100" class="app-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Keyword Per Hit</label>
+              <input v-model.number="preferences.module_preferences.matching_weights.keyword_alignment_per_hit" type="number" min="0" max="50" class="app-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Keyword Cap</label>
+              <input v-model.number="preferences.module_preferences.matching_weights.keyword_alignment_cap" type="number" min="0" max="200" class="app-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Name Relevance</label>
+              <input v-model.number="preferences.module_preferences.matching_weights.name_relevance" type="number" min="0" max="100" class="app-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Experience Cap</label>
+              <input v-model.number="preferences.module_preferences.matching_weights.experience_cap" type="number" min="0" max="50" class="app-input" />
+            </div>
+          </div>
         </div>
       </AppCard>
 
@@ -246,6 +280,20 @@ const preferences = ref({
   email_notifications_enabled: true,
   expiry_reminders_enabled: true,
   reminder_days_before: 30,
+  module_preferences: {
+    matching_weights: {
+      exact_specialty: 40,
+      specialty_overlap: 24,
+      keyword_alignment_per_hit: 4,
+      keyword_alignment_cap: 22,
+      name_relevance: 20,
+      email_relevance: 10,
+      specialty_relevance: 12,
+      experience_cap: 14,
+      recency_30d: 8,
+      recency_90d: 4,
+    },
+  },
   public_home_content: {
     hero_heading: 'Build your next chapter with our team.',
     hero_subheading: 'Discover meaningful healthcare staffing opportunities and apply in minutes.',
@@ -309,6 +357,12 @@ async function reload() {
       email_notifications_enabled: s.email_notifications_enabled !== false,
       expiry_reminders_enabled: s.expiry_reminders_enabled !== false,
       reminder_days_before: Number(s.reminder_days_before || 30),
+      module_preferences: {
+        matching_weights: {
+          ...preferences.value.module_preferences.matching_weights,
+          ...((s.module_preferences || {}).matching_weights || {}),
+        },
+      },
       public_home_content: {
         ...preferences.value.public_home_content,
         ...(s.public_home_content || {}),
@@ -373,6 +427,11 @@ async function savePreferences() {
       email_notifications_enabled: !!preferences.value.email_notifications_enabled,
       expiry_reminders_enabled: !!preferences.value.expiry_reminders_enabled,
       reminder_days_before: Number(preferences.value.reminder_days_before || 30),
+      module_preferences: {
+        matching_weights: {
+          ...preferences.value.module_preferences.matching_weights,
+        },
+      },
       public_home_content: {
         ...preferences.value.public_home_content,
       },

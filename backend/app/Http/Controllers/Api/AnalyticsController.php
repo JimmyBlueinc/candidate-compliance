@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Credential;
+use App\Models\CandidatePipeline;
+use App\Models\CandidatePipelineStageEvent;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\User;
@@ -314,6 +316,68 @@ class AnalyticsController extends Controller
             'data' => [
                 'avg_job_fill_time_days' => round($avg, 1),
                 'jobs_count' => count($diffs),
+            ],
+        ]);
+    }
+
+    public function pipelineFunnel(Request $request): JsonResponse
+    {
+        $orgId = Org::id($request);
+        if (!$orgId) {
+            return response()->json(['message' => 'Organization context missing.'], 400);
+        }
+
+        $days = max(7, min(180, (int) $request->integer('days', 30)));
+        $from = now()->subDays($days);
+
+        $stageCounts = CandidatePipeline::query()
+            ->where('tenant_id', $orgId)
+            ->selectRaw('stage, COUNT(*) as total')
+            ->groupBy('stage')
+            ->get()
+            ->map(fn ($row) => [
+                'stage' => (string) $row->stage,
+                'count' => (int) $row->total,
+            ])
+            ->values();
+
+        $transitions = CandidatePipelineStageEvent::query()
+            ->where('tenant_id', $orgId)
+            ->where('created_at', '>=', $from)
+            ->selectRaw('from_stage, to_stage, COUNT(*) as total')
+            ->groupBy('from_stage', 'to_stage')
+            ->orderByDesc('total')
+            ->get()
+            ->map(fn ($row) => [
+                'from_stage' => (string) $row->from_stage,
+                'to_stage' => (string) $row->to_stage,
+                'count' => (int) $row->total,
+            ])
+            ->values();
+
+        $conversionByFrom = $transitions
+            ->groupBy('from_stage')
+            ->map(function ($rows) {
+                $total = max(1, (int) collect($rows)->sum('count'));
+                return collect($rows)->map(function ($row) use ($total) {
+                    $count = (int) ($row['count'] ?? 0);
+                    return [
+                        'from_stage' => (string) ($row['from_stage'] ?? ''),
+                        'to_stage' => (string) ($row['to_stage'] ?? ''),
+                        'count' => $count,
+                        'conversion_pct' => round(($count / $total) * 100, 1),
+                    ];
+                })->values();
+            })
+            ->values()
+            ->flatten(1)
+            ->values();
+
+        return response()->json([
+            'data' => [
+                'days' => $days,
+                'stage_counts' => $stageCounts,
+                'transitions' => $conversionByFrom,
             ],
         ]);
     }

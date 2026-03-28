@@ -223,6 +223,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             Route::post('/{id}/interviews', [\App\Http\Controllers\Api\CandidateInterviewsController::class, 'store'])->where('id', '[0-9]+')->middleware('role.candidate_manage');
             Route::put('/interviews/{interviewId}', [\App\Http\Controllers\Api\CandidateInterviewsController::class, 'update'])->middleware('role.candidate_manage');
             Route::delete('/interviews/{interviewId}', [\App\Http\Controllers\Api\CandidateInterviewsController::class, 'destroy'])->middleware('role.candidate_manage');
+            Route::get('/interviews/{interviewId}/calendar-links', [\App\Http\Controllers\Api\CandidateInterviewsController::class, 'calendarLinks'])->middleware('role.candidate_view');
+            Route::get('/interviews/{interviewId}/calendar.ics', [\App\Http\Controllers\Api\CandidateInterviewsController::class, 'downloadIcs'])->middleware('role.candidate_view');
             Route::post('/{id}/documents', [\App\Http\Controllers\Api\CandidateController::class, 'uploadDocuments'])->where('id', '[0-9]+')->middleware('role.candidate_manage');
             Route::delete('/documents/{documentId}', [\App\Http\Controllers\Api\CandidateController::class, 'deleteDocument'])->middleware('role.candidate_manage');
         });
@@ -234,6 +236,14 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             Route::put('/{candidateId}/stage', [\App\Http\Controllers\Api\CandidatePipelineController::class, 'setStage']);
             Route::put('/{candidateId}/recruiter', [\App\Http\Controllers\Api\CandidatePipelineController::class, 'assignRecruiter']);
             Route::post('/{candidateId}/notes', [\App\Http\Controllers\Api\CandidatePipelineController::class, 'addNote']);
+        });
+
+        Route::prefix('recruiter-tasks')->middleware('role.recruiter')->group(function () {
+            Route::get('/stats', [\App\Http\Controllers\Api\RecruiterTaskController::class, 'stats']);
+            Route::get('/', [\App\Http\Controllers\Api\RecruiterTaskController::class, 'index']);
+            Route::post('/', [\App\Http\Controllers\Api\RecruiterTaskController::class, 'store']);
+            Route::put('/{id}', [\App\Http\Controllers\Api\RecruiterTaskController::class, 'update']);
+            Route::delete('/{id}', [\App\Http\Controllers\Api\RecruiterTaskController::class, 'destroy']);
         });
 
         Route::prefix('placements')->middleware('role.recruiter')->group(function () {
@@ -478,6 +488,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('/analytics/facility-performance', [\App\Http\Controllers\Api\AnalyticsController::class, 'facilityPerformance']);
     Route::get('/analytics/recruiter-performance', [\App\Http\Controllers\Api\AnalyticsController::class, 'recruiterPerformance']);
     Route::get('/analytics/job-fill-time', [\App\Http\Controllers\Api\AnalyticsController::class, 'jobFillTime']);
+    Route::get('/analytics/pipeline-funnel', [\App\Http\Controllers\Api\AnalyticsController::class, 'pipelineFunnel']);
     
     // Activity Log
     Route::get('/activity-logs', [\App\Http\Controllers\Api\ActivityLogController::class, 'index']);

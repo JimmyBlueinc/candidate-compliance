@@ -101,6 +101,7 @@ export default function DashboardSidebar({
           { id: 'jobs', label: 'Jobs', icon: 'work_outline', routeName: 'dashboard.job_orders', show: isOrgSuperAdmin || isRecruiter },
           { id: 'job_sources', label: 'Sources', icon: 'hub', routeName: 'dashboard.job_sources', show: isOrgSuperAdmin || isRecruiter },
           { id: 'placements', label: 'Placements', icon: 'swap_horiz', routeName: 'dashboard.placements', show: isOrgSuperAdmin || isRecruiter || isLogistics },
+          { id: 'recruiter_tasks', label: 'Recruiter Tasks', icon: 'task_alt', routeName: 'dashboard.recruiter_tasks', show: isOrgSuperAdmin || isRecruiter },
           { id: 'shifts', label: 'Shifts', icon: 'calendar_today', routeName: 'dashboard.shifts', show: isOrgSuperAdmin || isRecruiter || isScheduler },
           { id: 'timesheets', label: 'Timesheets', icon: 'timer', routeName: 'dashboard.timesheets', show: isOrgSuperAdmin || isRecruiter },
           { id: 'compliance', label: 'Compliance', icon: 'verified', routeName: 'dashboard.compliance', show: isOrgSuperAdmin || isRecruiter },
