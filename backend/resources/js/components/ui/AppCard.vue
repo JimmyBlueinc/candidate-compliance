@@ -12,7 +12,7 @@
     <div
       v-if="accent"
       class="absolute top-0 left-0 right-0 h-[2px] opacity-80"
-      :class="accentGradientClass"
+      :style="accentGradientStyle"
     />
     
     <!-- Header slot -->
@@ -76,15 +76,18 @@ const surfaceClasses = computed(() => {
   return surfaces[props.surface] || surfaces.default;
 });
 
-const accentGradientClass = computed(() => {
+const accentGradientStyle = computed(() => {
   const colors = {
-    primary: 'bg-gradient-to-r from-transparent via-[var(--aq-primary)] to-transparent',
-    emerald: 'bg-gradient-to-r from-transparent via-emerald-500 to-transparent',
-    violet: 'bg-gradient-to-r from-transparent via-violet-500 to-transparent',
-    cyan: 'bg-gradient-to-r from-transparent via-cyan-500 to-transparent',
-    rose: 'bg-gradient-to-r from-transparent via-rose-500 to-transparent',
-    amber: 'bg-gradient-to-r from-transparent via-amber-500 to-transparent',
+    primary: 'var(--aq-primary)',
+    emerald: '#10b981',
+    violet: '#8b5cf6',
+    cyan: '#06b6d4',
+    rose: '#f43f5e',
+    amber: '#f59e0b',
   };
-  return colors[props.accentColor] || colors.primary;
+  const color = colors[props.accentColor] || colors.primary;
+  return {
+    background: `linear-gradient(to right, transparent, ${color}, transparent)`,
+  };
 });
 </script>
