@@ -23,7 +23,7 @@
             </label>
           </div>
         </div>
-        <AppButton variant="secondary" size="sm" @click="exportFacilities">
+        <AppButton v-if="featureFlagStore.enabled('dashboard.advanced_exports', true)" variant="secondary" size="sm" @click="exportFacilities">
           <i class="pi pi-download text-xs" />
           Export Facilities
         </AppButton>
@@ -186,7 +186,7 @@
           </div>
         </AppCard>
 
-        <AppCard v-if="widgetEnabled('activityFeed')" title="Operational Activity" subtitle="Live system actions and change stream">
+        <AppCard v-if="featureFlagStore.enabled('dashboard.live_activity_feed', true) && widgetEnabled('activityFeed')" title="Operational Activity" subtitle="Live system actions and change stream">
           <DashboardActivityFeed />
         </AppCard>
 
@@ -213,6 +213,7 @@ import { useRouter } from 'vue-router';
 import { apiGet } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import { useUiStore } from '../../stores/ui';
+import { useFeatureFlagStore } from '../../stores/featureFlags';
 import { CircleDollarSign, Wallet, TrendingUp, Sparkles, RefreshCw, Building2, BarChart3, FileText } from 'lucide-vue-next';
 import AppPageHeader from '../../components/ui/AppPageHeader.vue';
 import AppCard from '../../components/ui/AppCard.vue';
@@ -225,6 +226,7 @@ import DashboardActivityFeed from '../../components/dashboard/DashboardActivityF
 
 const brand = useBrandStore();
 const ui = useUiStore();
+const featureFlagStore = useFeatureFlagStore();
 const router = useRouter();
 
 const primaryColor = computed(() => brand.primaryColor || 'var(--aq-primary)');

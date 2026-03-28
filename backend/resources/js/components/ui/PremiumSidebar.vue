@@ -63,35 +63,54 @@
 
         <!-- Nav Items -->
         <div class="space-y-1">
-          <button
-            v-for="item in group.items"
-            :key="item.id"
-            type="button"
-            class="nav-item relative w-full flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-lg)] transition-all duration-[var(--transition-fast)]"
-            :class="navItemClass(item)"
-            :style="navItemStyle(item)"
-            @click="navigateTo(item)"
-            :title="item.label"
-          >
-            <!-- Icon -->
-            <component 
-              :is="resolveIcon(item.icon)" 
-              class="w-[18px] h-[18px] shrink-0 transition-colors duration-[var(--transition-fast)]" 
-              :style="{ color: iconColor(item) }" 
-            />
-            
-            <!-- Label -->
-            <span v-if="!ui.sidebarCollapsed" class="text-[13px] font-medium truncate">
-              {{ item.label }}
-            </span>
+          <div v-for="item in group.items" :key="item.id" class="space-y-1">
+            <button
+              type="button"
+              class="nav-item relative w-full flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-lg)] transition-all duration-[var(--transition-fast)]"
+              :class="navItemClass(item)"
+              :style="navItemStyle(item)"
+              @click="navigateTo(item)"
+              :title="item.label"
+            >
+              <component
+                :is="resolveIcon(item.icon)"
+                class="w-[18px] h-[18px] shrink-0 transition-colors duration-[var(--transition-fast)]"
+                :style="{ color: iconColor(item) }"
+              />
 
-            <!-- Active Indicator -->
-            <span
-              v-if="isActiveRoute(item) && !ui.sidebarCollapsed"
-              class="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full"
-              :style="{ backgroundColor: primaryColor }"
-            />
-          </button>
+              <span v-if="!ui.sidebarCollapsed" class="text-[13px] font-medium truncate flex-1 text-left">
+                {{ item.label }}
+              </span>
+
+              <ChevronDown
+                v-if="!ui.sidebarCollapsed && itemHasChildren(item)"
+                class="w-3.5 h-3.5 text-[color:var(--aq-muted)] transition-transform"
+                :class="isGroupExpanded(item.id) ? 'rotate-180' : ''"
+              />
+
+              <span
+                v-if="isActiveRoute(item) && !ui.sidebarCollapsed && !itemHasChildren(item)"
+                class="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full"
+                :style="{ backgroundColor: primaryColor }"
+              />
+            </button>
+
+            <div
+              v-if="!ui.sidebarCollapsed && itemHasChildren(item) && isGroupExpanded(item.id)"
+              class="ml-6 pl-3 border-l border-[color:var(--aq-border)] space-y-1"
+            >
+              <button
+                v-for="child in item.children"
+                :key="child.id"
+                type="button"
+                class="w-full text-left px-2.5 py-2 rounded-[var(--radius-md)] text-[12px] font-medium transition-colors"
+                :class="isActiveRoute(child) ? 'bg-[color:var(--aq-primary)]/12 text-[color:var(--aq-primary)]' : 'text-[color:var(--aq-muted)] hover:bg-[color:var(--aq-surface-2)] hover:text-[color:var(--aq-fg)]'"
+                @click="navigateTo(child)"
+              >
+                {{ child.label }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
@@ -158,7 +177,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
@@ -184,6 +203,7 @@ import {
   Timer,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   LogOut,
   Gauge,
   Activity,
@@ -225,6 +245,10 @@ const isCandidate = computed(() => role.value === ROLE_CANDIDATE);
 const isFacility = computed(() => role.value === ROLE_FACILITY);
 
 const primaryColor = computed(() => brand.primaryColor || 'var(--aq-primary)');
+const expandedGroups = ref({
+  facilities_menu: true,
+  finance_menu: true,
+});
 
 // Format role for display
 function formatRole(r) {
@@ -265,11 +289,25 @@ const groups = computed(() => {
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', routeName: 'dashboard.finance' },
         { id: 'org_home', label: 'Organization Home', icon: 'home', tenantHome: true },
-        { id: 'invoices', label: 'Invoices', icon: 'file', routeName: 'dashboard.invoices' },
-        { id: 'accounts_receivable', label: 'Accounts Receivable', icon: 'gauge', routeName: 'dashboard.accounts_receivable' },
-        { id: 'facilities', label: 'Facilities', icon: 'building', routeName: 'dashboard.facilities' },
-        { id: 'msa_dashboard', label: 'MSA Dashboard', icon: 'file', routeName: 'dashboard.facilities' },
-        { id: 'activity_logs', label: 'Activity & Audit', icon: 'activity', routeName: 'dashboard.activity_logs' },
+        {
+          id: 'facilities_menu',
+          label: 'Facilities',
+          icon: 'building',
+          children: [
+            { id: 'facilities', label: 'Facility Directory', routeName: 'dashboard.facilities' },
+            { id: 'contracts_workspace', label: 'Contracts Workspace', routeName: 'dashboard.facilities' },
+            { id: 'activity_logs', label: 'Activity & Audit', routeName: 'dashboard.activity_logs' },
+          ],
+        },
+        {
+          id: 'finance_menu',
+          label: 'Finance',
+          icon: 'gauge',
+          children: [
+            { id: 'invoices', label: 'Invoices', routeName: 'dashboard.invoices' },
+            { id: 'accounts_receivable', label: 'Accounts Receivable', routeName: 'dashboard.accounts_receivable' },
+          ],
+        },
         { id: 'org_users', label: 'Team Members', icon: 'users', routeName: 'dashboard.org_users' },
         { id: 'settings', label: 'Settings', icon: 'settings', routeName: 'dashboard.agency_settings' },
       ],
@@ -367,6 +405,9 @@ const visibleGroups = computed(() => groups.value.filter((g) => g.show && Array.
 function isActiveRoute(item) {
   const current = String(route.name || '');
   if (item.routeName === current) return true;
+  if (itemHasChildren(item)) {
+    return item.children.some((child) => isActiveRoute(child));
+  }
   if (item.routeName === 'dashboard.candidates' && current === 'dashboard.candidate_profile') return true;
   return false;
 }
@@ -385,6 +426,18 @@ function navItemClass(item) {
 function iconColor(item) {
   if (isActiveRoute(item)) return primaryColor.value;
   return 'var(--aq-muted)';
+}
+
+function itemHasChildren(item) {
+  return Array.isArray(item?.children) && item.children.length > 0;
+}
+
+function isGroupExpanded(itemId) {
+  return !!expandedGroups.value[itemId];
+}
+
+function toggleItemGroup(itemId) {
+  expandedGroups.value[itemId] = !expandedGroups.value[itemId];
 }
 
 function resolveIcon(key) {
@@ -424,6 +477,11 @@ async function handleLogout() {
 }
 
 function navigateTo(item) {
+  if (itemHasChildren(item)) {
+    toggleItemGroup(item.id);
+    return;
+  }
+
   if (item.tenantHome) {
     const subdomain = String(brand.subdomain || '').trim();
     if (subdomain) {

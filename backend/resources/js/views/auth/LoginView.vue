@@ -1,54 +1,55 @@
 <template>
   <div class="min-h-screen bg-white text-slate-900 selection:bg-emerald-500/20 relative overflow-hidden">
-
     <div class="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
-      <div class="relative hidden lg:flex bg-[#F4F1EA]">
-        <div class="relative w-full p-12 flex flex-col">
-          <div class="flex-1 flex items-center">
-            <div class="max-w-xl">
-              <div class="text-xs font-semibold text-slate-700">Product updates</div>
-              <div class="mt-3 text-4xl font-display leading-tight text-slate-900">
-                Manage compliance.
-                <span class="block">Keep staffing moving.</span>
-              </div>
-              <div class="mt-4 text-sm text-slate-600 leading-relaxed max-w-lg">
-                A clean dashboard for recruiters, facility teams, and candidates—with organization-aware access and secure workflows.
-              </div>
-              <div class="mt-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="rounded-3xl bg-white/70 border border-black/5 p-5">
-                  <div class="text-xs font-semibold text-slate-900">Onboarding</div>
-                  <div class="mt-1 text-sm text-slate-600">Collect documents, track status, reduce back-and-forth.</div>
-                </div>
-                <div class="rounded-3xl bg-white/70 border border-black/5 p-5">
-                  <div class="text-xs font-semibold text-slate-900">Messaging</div>
-                  <div class="mt-1 text-sm text-slate-600">Keep candidates and staff aligned in one place.</div>
-                </div>
-              </div>
+      <section class="relative hidden lg:block overflow-hidden">
+        <img
+          src="https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=1800&q=80"
+          alt="Healthcare staffing operations"
+          class="absolute inset-0 w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/78 via-slate-900/52 to-slate-800/30" />
+        <div class="relative z-10 h-full p-12 flex flex-col justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-[0.18em] font-bold text-white/80">AgencyHQ Healthcare Staffing</p>
+            <h2 class="mt-4 text-white font-display text-4xl leading-tight max-w-xl">
+              Silicon-grade operations,
+              <span class="block">purpose-built for clinical staffing.</span>
+            </h2>
+            <p class="mt-5 text-white/80 text-sm leading-relaxed max-w-xl">
+              Coordinate recruiters, facilities, compliance and finance from a single trusted platform built for healthcare velocity.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 max-w-lg">
+            <div class="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-4">
+              <div class="text-white text-xl font-bold">98%</div>
+              <div class="text-[11px] text-white/80 mt-1">Credential visibility</div>
+            </div>
+            <div class="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-4">
+              <div class="text-white text-xl font-bold">24/7</div>
+              <div class="text-[11px] text-white/80 mt-1">Live coordination</div>
+            </div>
+            <div class="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-4">
+              <div class="text-white text-xl font-bold">1 Hub</div>
+              <div class="text-[11px] text-white/80 mt-1">Recruiter + Facility</div>
             </div>
           </div>
-
-          <div class="flex items-center justify-center gap-2 pt-10">
-            <span class="h-2 w-2 rounded-full bg-slate-900/30" />
-            <span class="h-2 w-2 rounded-full bg-slate-900/15" />
-            <span class="h-2 w-2 rounded-full bg-slate-900/15" />
-          </div>
         </div>
-      </div>
+      </section>
 
-      <div class="relative flex items-center justify-center px-6 py-12">
-
-        <div class="w-full max-w-[420px] space-y-8 relative z-10">
+      <section class="relative flex items-center justify-center px-6 py-12">
+        <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_12%_20%,rgba(16,185,129,0.12),transparent_45%),radial-gradient(circle_at_85%_80%,rgba(79,70,229,0.12),transparent_48%)]" />
+        <div class="w-full max-w-[440px] space-y-8 relative z-10">
           <div class="space-y-3">
             <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl shadow-lg ring-1 ring-black/5 overflow-hidden" :style="logoWrapStyle">
               <img v-if="brand.logoUrl" :src="brand.logoUrl" alt="Logo" class="h-9 w-9 object-contain" />
               <i v-else class="pi pi-shield text-white text-[22px]" aria-hidden="true" />
             </div>
             <h1 class="text-3xl font-display font-semibold tracking-tight text-slate-900 leading-tight">Welcome back</h1>
-            <p class="text-slate-600 text-sm font-medium leading-relaxed">Sign in to continue.</p>
+            <p class="text-slate-600 text-sm font-medium leading-relaxed">Sign in to continue to your staffing operations dashboard.</p>
           </div>
 
-          <form class="bg-white p-8 rounded-[32px] space-y-5 shadow-sm border border-slate-200" @submit.prevent="submit">
-
+          <form class="bg-white p-8 rounded-[30px] space-y-5 shadow-xl border border-slate-200/80" @submit.prevent="submit">
             <div v-if="errorMessage" class="p-3 bg-red-500/10 border border-red-500/20 text-red-700 text-xs font-bold rounded-2xl flex items-center gap-2">
               <i class="pi pi-exclamation-circle text-sm" aria-hidden="true" />
               {{ errorMessage }}
@@ -66,9 +67,7 @@
                     type="email"
                     autocomplete="email"
                     required
-                    class="w-full rounded-2xl pl-12 pr-5 py-3 text-sm placeholder-slate-400 focus:outline-none transition-all duration-200"
-                    :class="inputClass"
-                    :style="inputStyle"
+                    class="w-full rounded-2xl pl-12 pr-5 py-3 text-sm placeholder-slate-400 focus:outline-none transition-all duration-200 border border-slate-200 focus:border-[color:var(--p-primary-color)] focus:ring-4 focus:ring-[color:var(--p-primary-color)]/10"
                     placeholder="name@organization.com"
                   />
                 </div>
@@ -85,9 +84,7 @@
                     :type="showPassword ? 'text' : 'password'"
                     autocomplete="current-password"
                     required
-                    class="w-full rounded-2xl pl-12 pr-12 py-3 text-sm placeholder-slate-400 focus:outline-none transition-all duration-200"
-                    :class="inputClass"
-                    :style="inputStyle"
+                    class="w-full rounded-2xl pl-12 pr-12 py-3 text-sm placeholder-slate-400 focus:outline-none transition-all duration-200 border border-slate-200 focus:border-[color:var(--p-primary-color)] focus:ring-4 focus:ring-[color:var(--p-primary-color)]/10"
                     placeholder="••••••••"
                   />
                   <button
@@ -110,13 +107,11 @@
                   <input
                     v-model="tenantId"
                     type="text"
-                    class="w-full rounded-2xl px-5 py-3 text-sm placeholder-slate-400 focus:outline-none transition-all duration-200"
-                    :class="inputClass"
-                    :style="inputStyle"
+                    class="w-full rounded-2xl px-5 py-3 text-sm placeholder-slate-400 focus:outline-none transition-all duration-200 border border-slate-200 focus:border-[color:var(--p-primary-color)] focus:ring-4 focus:ring-[color:var(--p-primary-color)]/10"
                     placeholder="organization_id"
                   />
                   <p class="text-xs text-slate-500 leading-relaxed ml-1">
-                    If you use white-label domains, this can be auto-detected later.
+                    If you use white-label domains, this can be auto-detected.
                   </p>
                 </div>
               </details>
@@ -159,7 +154,7 @@
             </div>
           </form>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -169,12 +164,10 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
-import { useUiStore } from '../../stores/ui';
 
 const router = useRouter();
 const auth = useAuthStore();
 const brand = useBrandStore();
-const ui = useUiStore();
 
 const email = ref('');
 const password = ref('');
@@ -185,46 +178,10 @@ const tenantId = ref(auth.tenantId || '');
 const isSubmitting = computed(() => auth.status === 'loading');
 
 const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
-const primaryGlowA = computed(() => `color-mix(in srgb, ${primaryColor.value} 14%, transparent)`);
-const primaryGlowB = computed(() => `color-mix(in srgb, ${primaryColor.value} 10%, transparent)`);
-
-const inputClass = computed(() =>
-    'bg-white text-slate-900 border border-slate-200 focus:border-[color:var(--p-primary-color)] focus:ring-4 focus:ring-[color:var(--p-primary-color)]/10'
-);
-
-const inputStyle = computed(() => ({
-    boxShadow: '0 1px 0 rgba(15, 23, 42, 0.02)',
-}));
-
-const imageOverlayStyle = computed(() => {
-    const overlay = ui.theme === 'light'
-        ? 'linear-gradient(to right, rgba(2,6,23,0.78), rgba(2,6,23,0.45), rgba(2,6,23,0.10))'
-        : 'linear-gradient(to right, rgba(0,0,0,0.72), rgba(0,0,0,0.42), rgba(0,0,0,0.12))';
-
-    return {
-        backgroundImage: overlay,
-    };
-});
-
-const heroKickerClass = computed(() => 'text-white/85');
-const heroTitleClass = computed(() => 'text-white');
-const heroBodyClass = computed(() => 'text-white/80');
-
-const imagePanelStyle = computed(() => ({
-    backgroundImage: "url('/login-nursing-office.jpg')",
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-}));
 
 const logoWrapStyle = computed(() => ({
     background: `linear-gradient(135deg, ${primaryColor.value}, rgba(59,130,246,0.85))`,
     boxShadow: `0 25px 60px -20px color-mix(in srgb, ${primaryColor.value} 45%, transparent)`,
-}));
-
-const inputFocusStyle = computed(() => ({}));
-
-const iconActiveStyle = computed(() => ({
-    '--focus-color': primaryColor.value,
 }));
 
 const primaryButtonStyle = computed(() => ({
@@ -233,8 +190,6 @@ const primaryButtonStyle = computed(() => ({
     color: '#ffffff',
     boxShadow: `0 24px 45px -20px color-mix(in srgb, ${primaryColor.value} 35%, transparent)`,
 }));
-
-const primaryButtonTextClass = computed(() => 'text-white');
 
 const linkStyle = computed(() => ({
     color: primaryColor.value,

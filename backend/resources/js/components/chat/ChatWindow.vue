@@ -1,14 +1,14 @@
 <template>
-  <div class="flex flex-col h-[600px] glass-dark rounded-[24px] overflow-hidden border border-white/5 shadow-2xl">
+  <div class="flex flex-col h-[600px] rounded-[24px] overflow-hidden border border-[color:var(--aq-border)] bg-[color:var(--aq-surface-card)] shadow-[var(--shadow-premium)]">
     <!-- Header -->
-    <div class="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
+    <div class="p-4 border-b border-[color:var(--aq-border)] flex items-center justify-between bg-[color:var(--aq-surface-2)]">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
-          <span class="material-symbols-outlined text-primary">chat_bubble</span>
+        <div class="w-10 h-10 rounded-full bg-[color:var(--aq-primary)]/15 flex items-center justify-center border border-[color:var(--aq-primary)]/30">
+          <span class="material-symbols-outlined text-[color:var(--aq-primary)]">chat_bubble</span>
         </div>
         <div>
-          <h3 class="font-display text-lg text-white leading-tight">Messages</h3>
-          <p class="text-[10px] uppercase tracking-widest text-[color:var(--p-text-muted-color)] font-black">
+          <h3 class="font-display text-lg text-[color:var(--aq-fg)] leading-tight">Messages</h3>
+          <p class="text-[10px] uppercase tracking-widest text-[color:var(--aq-muted)] font-black">
             {{ contextTitle || 'Support Chat' }}
           </p>
         </div>
@@ -17,17 +17,17 @@
     </div>
 
     <!-- Messages List -->
-    <div ref="messageContainer" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-black/20">
+    <div ref="messageContainer" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-[color:var(--aq-surface-1)]/55">
       <div v-if="loading && messages.length === 0" class="flex flex-col items-center justify-center h-full space-y-2">
-        <i class="pi pi-spin pi-spinner text-primary text-2xl"></i>
-        <p class="text-xs text-[color:var(--p-text-muted-color)]">Loading conversation...</p>
+        <i class="pi pi-spin pi-spinner text-[color:var(--aq-primary)] text-2xl"></i>
+        <p class="text-xs text-[color:var(--aq-muted)]">Loading conversation...</p>
       </div>
       
       <div v-else-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center px-6 space-y-3">
-        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
-          <span class="material-symbols-outlined text-3xl text-white/20">forum</span>
+        <div class="w-16 h-16 rounded-full bg-[color:var(--aq-primary)]/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-3xl text-[color:var(--aq-primary)]/45">forum</span>
         </div>
-        <p class="text-sm text-[color:var(--p-text-muted-color)]">No messages yet. Start the conversation below.</p>
+        <p class="text-sm text-[color:var(--aq-muted)]">No messages yet. Start the conversation below.</p>
       </div>
 
       <template v-else>
@@ -35,7 +35,7 @@
              class="flex flex-col"
              :class="[msg.user_id === auth.user.id ? 'items-end' : 'items-start']">
           <div class="flex items-end gap-2 max-w-[85%]">
-            <div v-if="msg.user_id !== auth.user.id" class="w-6 h-6 rounded-full overflow-hidden shrink-0 border border-white/10">
+            <div v-if="msg.user_id !== auth.user.id" class="w-6 h-6 rounded-full overflow-hidden shrink-0 border border-[color:var(--aq-border)]">
               <img :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(msg.user?.name || 'U')}&background=random&color=fff`" class="w-full h-full object-cover" />
             </div>
             
@@ -43,7 +43,7 @@
                  :class="[
                    msg.user_id === auth.user.id 
                      ? 'bg-primary text-white rounded-br-none' 
-                     : 'bg-white/10 text-slate-200 border border-white/5 rounded-bl-none'
+                    : 'bg-[color:var(--aq-surface-2)] text-[color:var(--aq-fg)] border border-[color:var(--aq-border)] rounded-bl-none'
                  ]">
               {{ msg.body }}
               
@@ -52,7 +52,7 @@
               </div>
             </div>
           </div>
-          <div class="text-[9px] mt-1 text-[color:var(--p-text-muted-color)] px-1" v-if="msg.user_id !== auth.user.id">
+          <div class="text-[9px] mt-1 text-[color:var(--aq-muted)] px-1" v-if="msg.user_id !== auth.user.id">
             {{ msg.user?.name }} • {{ msg.user?.role }}
           </div>
         </div>
@@ -60,11 +60,11 @@
     </div>
 
     <!-- Input Area -->
-    <div class="p-4 border-t border-white/10 bg-white/5">
+    <div class="p-4 border-t border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)]/55">
       <form @submit.prevent="sendMessage" class="flex gap-2">
         <InputText v-model="newMessage" 
                   placeholder="Type a message..." 
-                  class="flex-1 !bg-white/5 !border-white/10 !rounded-full !px-4 text-sm"
+                  class="flex-1 !bg-[color:var(--aq-surface-card)] !border-[color:var(--aq-border)] !rounded-full !px-4 text-sm"
                   :disabled="sending" />
         <Button type="submit" 
                 icon="pi pi-send" 

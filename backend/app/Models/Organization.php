@@ -47,4 +47,9 @@ class Organization extends Model
     {
         return $this->hasMany(Job::class);
     }
+
+    public function settings(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(OrganizationSetting::class);
+    }
 }

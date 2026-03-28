@@ -16,6 +16,7 @@
     </div>
     <div class="flex items-center gap-3">
       <button
+        v-if="showCommand"
         type="button"
         class="hidden md:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-[color:var(--p-surface-border)] bg-[color:var(--p-surface-0)] text-[11px] font-semibold text-[color:var(--p-text-muted-color)] hover:text-[color:var(--p-text-color)] hover:bg-[color:var(--p-surface-hover)] transition-colors"
         @click="emit('open-command')"
@@ -80,6 +81,10 @@ defineProps({
     title: {
         type: String,
         required: true,
+    },
+    showCommand: {
+        type: Boolean,
+        default: true,
     },
 });
 

@@ -10,7 +10,11 @@
       <!-- Page Header -->
       <header class="app-header shrink-0 px-6 pt-5 pb-4 sticky top-0 z-10 backdrop-blur-sm bg-[color:var(--aq-bg)]/65 border-b border-[color:var(--aq-border)]/60">
         <div class="max-w-[1400px] mx-auto">
-          <DashboardHeader :title="pageTitle" @open-command="openCommandPalette" />
+          <DashboardHeader
+            :title="pageTitle"
+            :show-command="featureFlags.enabled('dashboard.command_palette', true)"
+            @open-command="openCommandPalette"
+          />
 
           <!-- Profile Completion Nudge -->
           <div
@@ -41,7 +45,7 @@
       </div>
     </main>
 
-    <CommandPalette ref="commandPaletteRef" />
+    <CommandPalette v-if="featureFlags.enabled('dashboard.command_palette', true)" ref="commandPaletteRef" />
   </div>
 </template>
 
@@ -52,6 +56,7 @@ import { apiPost } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import { useAuthStore } from '../../stores/auth';
 import { useUiStore } from '../../stores/ui';
+import { useFeatureFlagStore } from '../../stores/featureFlags';
 import { usePolling } from '../../composables/usePolling';
 import { AlertCircle } from 'lucide-vue-next';
 import DashboardHeader from '../dashboard/DashboardHeader.vue';
@@ -65,6 +70,7 @@ const router = useRouter();
 const brand = useBrandStore();
 const auth = useAuthStore();
 const ui = useUiStore();
+const featureFlags = useFeatureFlagStore();
 const commandPaletteRef = ref(null);
 
 const missingProfileFields = computed(() => {
@@ -92,6 +98,7 @@ function goToProfile() {
 }
 
 function openCommandPalette() {
+  if (!featureFlags.enabled('dashboard.command_palette', true)) return;
   commandPaletteRef.value?.openPalette?.();
 }
 
@@ -157,6 +164,9 @@ const pageTitle = computed(() => {
 
 onMounted(async () => {
   await brand.load();
+  if (!featureFlags.loaded) {
+    await featureFlags.load();
+  }
 });
 
 usePolling(sendHeartbeat, 45000, { immediate: true });

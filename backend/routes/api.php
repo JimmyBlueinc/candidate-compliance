@@ -315,6 +315,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
         // Agency branding (agency admin only)
         Route::prefix('agency')->middleware('role.org_owner')->group(function () {
             Route::put('/branding', [\App\Http\Controllers\Api\AgencyBrandingController::class, 'update']);
+            Route::get('/settings', [\App\Http\Controllers\Api\OrganizationSettingsController::class, 'show']);
+            Route::put('/settings', [\App\Http\Controllers\Api\OrganizationSettingsController::class, 'update']);
         });
 
         // Tenant onboarding (org_super_admin)

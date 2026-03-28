@@ -107,7 +107,7 @@
     <!-- Facilities Table -->
     <AppCard title="Facilities" subtitle="All registered facilities in your organization.">
       <template #actions>
-        <AppButton v-if="facilities.length > 0" variant="secondary" size="sm" @click="exportFacilities">
+        <AppButton v-if="facilities.length > 0 && featureFlagStore.enabled('dashboard.advanced_exports', true)" variant="secondary" size="sm" @click="exportFacilities">
           <i class="pi pi-download text-xs" />
           Export CSV
         </AppButton>
@@ -343,6 +343,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiGet, apiPost } from '../../lib/api';
+import { useFeatureFlagStore } from '../../stores/featureFlags';
 import { Building2, Users, FileText, Plus, UserPlus, RefreshCw, CheckCircle, AlertCircle, Copy } from 'lucide-vue-next';
 import AppCard from '../../components/ui/AppCard.vue';
 import AppStatCard from '../../components/ui/AppStatCard.vue';
@@ -354,6 +355,7 @@ import AppEmpty from '../../components/ui/AppEmpty.vue';
 import AppSkeleton from '../../components/ui/AppSkeleton.vue';
 
 const router = useRouter();
+const featureFlagStore = useFeatureFlagStore();
 
 const facilities = ref([]);
 const loading = ref(true);

@@ -75,6 +75,72 @@
       </AppCard>
     </div>
 
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <AppCard title="Workspace Preferences" subtitle="Control default behavior for your organization admins.">
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Language</label>
+              <select v-model="preferences.language" class="app-input">
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Timezone</label>
+              <input v-model="preferences.timezone" class="app-input" placeholder="America/New_York" />
+            </div>
+          </div>
+
+          <label class="setting-row">
+            <span class="text-sm text-[color:var(--aq-fg)]">Collapse sidebar by default</span>
+            <input v-model="preferences.sidebar_collapsed" type="checkbox" />
+          </label>
+          <label class="setting-row">
+            <span class="text-sm text-[color:var(--aq-fg)]">Enable in-app notifications</span>
+            <input v-model="preferences.notifications_enabled" type="checkbox" />
+          </label>
+          <label class="setting-row">
+            <span class="text-sm text-[color:var(--aq-fg)]">Enable email notifications</span>
+            <input v-model="preferences.email_notifications_enabled" type="checkbox" />
+          </label>
+          <label class="setting-row">
+            <span class="text-sm text-[color:var(--aq-fg)]">Credential expiry reminders</span>
+            <input v-model="preferences.expiry_reminders_enabled" type="checkbox" />
+          </label>
+
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Reminder Days Before Expiry</label>
+            <input v-model.number="preferences.reminder_days_before" type="number" min="1" max="365" class="app-input" />
+          </div>
+
+          <div class="pt-2">
+            <AppButton variant="secondary" :loading="savingPreferences" @click="savePreferences">
+              <Save class="w-4 h-4" />
+              Save Workspace Preferences
+            </AppButton>
+          </div>
+        </div>
+      </AppCard>
+
+      <AppCard title="Feature Modules" subtitle="Enable optional modules without redeploying core workflows.">
+        <div class="space-y-3">
+          <div v-for="flag in featureFlagDefs" :key="flag.key" class="setting-row">
+            <div>
+              <div class="text-sm font-semibold text-[color:var(--aq-fg)]">{{ flag.label }}</div>
+              <div class="text-xs text-[color:var(--aq-muted)] mt-0.5">{{ flag.description }}</div>
+            </div>
+            <input
+              type="checkbox"
+              :checked="featureFlags[flag.key] === true"
+              @change="toggleFeatureFlag(flag.key, $event.target.checked)"
+            />
+          </div>
+        </div>
+      </AppCard>
+    </div>
+
     <!-- Brand Preview -->
     <AppCard title="Brand Preview" subtitle="See how your brand colors will appear.">
       <div class="space-y-4">
@@ -105,7 +171,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { apiGet, apiPost } from '../../lib/api';
+import { apiGet, apiPost, apiPut } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import { RefreshCw, Save, Upload } from 'lucide-vue-next';
 import AppPageHeader from '../../components/ui/AppPageHeader.vue';
@@ -119,16 +185,76 @@ const colorPicker = ref(null);
 const logoFile = ref(null);
 const logoPreviewUrl = ref('');
 const saving = ref(false);
+const savingPreferences = ref(false);
 const status = ref('');
 const error = ref('');
+const preferences = ref({
+  language: 'en',
+  timezone: 'UTC',
+  sidebar_collapsed: false,
+  notifications_enabled: true,
+  email_notifications_enabled: true,
+  expiry_reminders_enabled: true,
+  reminder_days_before: 30,
+});
+const featureFlags = ref({});
+
+const featureFlagDefs = [
+  {
+    key: 'dashboard.command_palette',
+    label: 'Command Palette',
+    description: 'Global quick navigation and actions with Cmd/Ctrl+K.',
+  },
+  {
+    key: 'dashboard.live_activity_feed',
+    label: 'Live Activity Feed',
+    description: 'Show operational timeline cards in dashboard views.',
+  },
+  {
+    key: 'dashboard.advanced_exports',
+    label: 'Advanced Exports',
+    description: 'Enable extended CSV export entry points.',
+  },
+];
+
+function unwrap(res) {
+  if (!res || typeof res !== 'object') return res;
+  if (Object.prototype.hasOwnProperty.call(res, 'data')) return res.data;
+  return res;
+}
 
 async function reload() {
   status.value = '';
   error.value = '';
   try {
-    const res = await apiGet('/brand');
-    primaryColor.value = res?.brand?.primary_color || '';
-    logoPreviewUrl.value = res?.brand?.logo_url || '';
+    const [brandRes, settingsRes, flagsRes] = await Promise.all([
+      apiGet('/brand'),
+      apiGet('/v1/agency/settings'),
+      apiGet('/feature-flags'),
+    ]);
+
+    const b = unwrap(brandRes);
+    const s = unwrap(settingsRes)?.settings || {};
+    const f = unwrap(flagsRes)?.flags || {};
+
+    primaryColor.value = b?.brand?.primary_color || b?.primary_color || '';
+    logoPreviewUrl.value = b?.brand?.logo_url || b?.logo_url || '';
+
+    preferences.value = {
+      language: s.language || 'en',
+      timezone: s.timezone || 'UTC',
+      sidebar_collapsed: !!s.sidebar_collapsed,
+      notifications_enabled: s.notifications_enabled !== false,
+      email_notifications_enabled: s.email_notifications_enabled !== false,
+      expiry_reminders_enabled: s.expiry_reminders_enabled !== false,
+      reminder_days_before: Number(s.reminder_days_before || 30),
+    };
+
+    const mappedFlags = {};
+    for (const def of featureFlagDefs) {
+      mappedFlags[def.key] = !!f?.[def.key]?.enabled;
+    }
+    featureFlags.value = mappedFlags;
   } catch (e) {
     error.value = e?.message || 'Failed to load settings.';
   }
@@ -169,6 +295,42 @@ async function save() {
   }
 }
 
+async function savePreferences() {
+  savingPreferences.value = true;
+  status.value = '';
+  error.value = '';
+  try {
+    await apiPut('/v1/agency/settings', {
+      language: preferences.value.language,
+      timezone: preferences.value.timezone,
+      sidebar_collapsed: !!preferences.value.sidebar_collapsed,
+      notifications_enabled: !!preferences.value.notifications_enabled,
+      email_notifications_enabled: !!preferences.value.email_notifications_enabled,
+      expiry_reminders_enabled: !!preferences.value.expiry_reminders_enabled,
+      reminder_days_before: Number(preferences.value.reminder_days_before || 30),
+    });
+    status.value = 'Workspace preferences updated.';
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || 'Failed to save workspace preferences.';
+  } finally {
+    savingPreferences.value = false;
+  }
+}
+
+async function toggleFeatureFlag(flagKey, enabled) {
+  featureFlags.value[flagKey] = !!enabled;
+  try {
+    await apiPut(`/feature-flags/${encodeURIComponent(flagKey)}`, {
+      enabled: !!enabled,
+      payload: { source: 'agency-settings' },
+    });
+    status.value = 'Feature module settings updated.';
+  } catch (e) {
+    featureFlags.value[flagKey] = !enabled;
+    error.value = e?.response?.data?.message || e?.message || 'Failed to update feature module.';
+  }
+}
+
 reload();
 </script>
 
@@ -192,5 +354,16 @@ reload();
   outline: none;
   border-color: color-mix(in srgb, var(--aq-primary) 50%, transparent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--aq-primary) 10%, transparent);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.72rem 0.8rem;
+  border: 1px solid var(--aq-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--aq-surface-2) 84%, transparent);
 }
 </style>
