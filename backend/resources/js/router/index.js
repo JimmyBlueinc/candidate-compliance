@@ -52,6 +52,9 @@ import IntegrationsView from '../views/dashboard/IntegrationsView.vue';
 import MessagesInboxView from '../views/dashboard/MessagesInboxView.vue';
 import NotificationCenterView from '../views/dashboard/NotificationCenterView.vue';
 import LandingView from '../views/public/LandingView.vue';
+import SolutionsView from '../views/public/SolutionsView.vue';
+import CustomersView from '../views/public/CustomersView.vue';
+import PricingView from '../views/public/PricingView.vue';
 import IntakeFeedView from '../views/dashboard/IntakeFeedView.vue';
 import OrganizationSignupView from '../views/public/OrganizationSignupView.vue';
 import OnboardingView from '../views/dashboard/OnboardingView.vue';
@@ -146,22 +149,40 @@ const router = createRouter({
             meta: { guestOnly: true },
         },
         {
+            path: '/solutions',
+            name: 'public.solutions',
+            component: SolutionsView,
+            meta: { publicPage: true },
+        },
+        {
+            path: '/customers',
+            name: 'public.customers',
+            component: CustomersView,
+            meta: { publicPage: true },
+        },
+        {
+            path: '/pricing',
+            name: 'public.pricing',
+            component: PricingView,
+            meta: { publicPage: true },
+        },
+        {
             path: '/jobs',
             name: 'public.jobs',
             component: PublicJobBoardView,
-            meta: { guestOnly: true },
+            meta: { publicPage: true },
         },
         {
             path: '/jobs/:id',
             name: 'public.jobs.detail',
             component: PublicJobDetailView,
-            meta: { guestOnly: true },
+            meta: { publicPage: true },
         },
         {
             path: '/jobs/:id/apply',
             name: 'public.jobs.apply',
             component: PublicJobApplyView,
-            meta: { guestOnly: true },
+            meta: { publicPage: true },
         },
         {
             path: '/:orgSlug',
