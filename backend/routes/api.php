@@ -323,7 +323,9 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
 
         Route::prefix('v1/integrations')->middleware('role.org_owner')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\IntegrationController::class, 'index']);
+            Route::get('/{key}', [\App\Http\Controllers\Api\IntegrationController::class, 'show']);
             Route::put('/{key}', [\App\Http\Controllers\Api\IntegrationController::class, 'upsert']);
+            Route::post('/{key}/test', [\App\Http\Controllers\Api\IntegrationController::class, 'test']);
         });
 
         // Tenant onboarding (org_super_admin)

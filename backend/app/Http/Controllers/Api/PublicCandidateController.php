@@ -106,7 +106,8 @@ class PublicCandidateController extends Controller
 
         // Send welcome email with temp password
         $profileUrl = "https://{$organization->subdomain}.agenchq.com/portal/profile";
-        $loginUrl = "https://{$organization->subdomain}.agenchq.com/portal";
+        // Route new candidates through email/password login so temporary password flow can trigger forced change.
+        $loginUrl = "https://{$organization->subdomain}.agenchq.com/login";
         try {
             Mail::to($candidate->email)->send(new TalentNetworkWelcomeMail(
                 organizationName: $organization->name,

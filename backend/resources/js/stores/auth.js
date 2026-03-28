@@ -162,11 +162,15 @@ export const useAuthStore = defineStore('auth', {
                     credentials: 'omit',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        ...(tenantId ? { 'X-Tenant-Id': String(tenantId) } : {}),
+                        ...(window.location.hostname ? { 'X-Org-Host': window.location.hostname } : {}),
                     },
                     body: JSON.stringify({
                         email,
                         password,
                         remember_me: rememberMe,
+                        ...(tenantId ? { tenant_id: Number(tenantId) } : {}),
                     }),
                 });
 

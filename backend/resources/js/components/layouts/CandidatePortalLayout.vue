@@ -79,6 +79,8 @@
 
       <div class="aq-page">
         <div class="aq-container">
+          <ForcePasswordChangeModal />
+
           <Dialog v-model:visible="onboardingGateOpen" modal header="Action required" :style="{ width: 'min(560px, 95vw)' }">
             <div class="space-y-4">
               <div class="text-sm text-[color:var(--p-text-color)]">
@@ -133,6 +135,7 @@ import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
 import { useUiStore } from '../../stores/ui';
 import SystemBanner from '../SystemBanner.vue';
+import ForcePasswordChangeModal from '../auth/ForcePasswordChangeModal.vue';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 

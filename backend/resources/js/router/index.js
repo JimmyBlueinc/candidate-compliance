@@ -49,6 +49,7 @@ import BroadcastCenterView from '../views/dashboard/BroadcastCenterView.vue';
 import FacilitiesView from '../views/dashboard/FacilitiesView.vue';
 import FacilityDetailView from '../views/dashboard/FacilityDetailView.vue';
 import IntegrationsView from '../views/dashboard/IntegrationsView.vue';
+import IntegrationDetailView from '../views/dashboard/IntegrationDetailView.vue';
 import MessagesInboxView from '../views/dashboard/MessagesInboxView.vue';
 import NotificationCenterView from '../views/dashboard/NotificationCenterView.vue';
 import LandingView from '../views/public/LandingView.vue';
@@ -539,6 +540,12 @@ const router = createRouter({
                     path: 'integrations',
                     name: 'dashboard.integrations',
                     component: IntegrationsView,
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                },
+                {
+                    path: 'integrations/:key',
+                    name: 'dashboard.integrations.detail',
+                    component: IntegrationDetailView,
                     meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
                 },
 

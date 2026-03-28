@@ -1,25 +1,11 @@
 <template>
   <div class="auth-shell min-h-screen text-slate-900">
     <div class="grid min-h-screen grid-cols-1 lg:grid-cols-2">
-      <section class="auth-image-panel hidden lg:block">
-        <img
-          :src="heroImage"
-          alt="Healthcare clinicians working as a team"
-          class="absolute inset-0 h-full w-full object-cover"
-          loading="lazy"
-          @error="onHeroImageError"
-        />
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-950/70 via-slate-900/45 to-emerald-900/30" />
-        <div class="relative z-10 flex h-full flex-col justify-end p-12 text-white">
-          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100/90">Candidate Onboarding</p>
-          <h2 class="mt-4 max-w-xl text-4xl font-semibold leading-tight tracking-tight">
-            Start your healthcare career journey with confidence.
-          </h2>
-          <p class="mt-4 max-w-lg text-sm leading-relaxed text-slate-200/90">
-            Create one profile, access trusted clinical opportunities, and stay connected to your next placement.
-          </p>
-        </div>
-      </section>
+      <AuthRotatingShowcase
+        kicker="Career Opportunity Network"
+        heading="Join a trusted staffing ecosystem built for growth."
+        subtitle="Create your profile once, get discovered faster, and manage your career journey from one place."
+      />
 
       <section class="relative flex items-center justify-center px-6 py-10">
         <div class="auth-glow auth-glow-a" />
@@ -119,6 +105,7 @@ import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
 import { apiPost } from '../../lib/api';
 import { renderGoogleButton } from '../../lib/googleIdentity';
+import AuthRotatingShowcase from '../../components/auth/AuthRotatingShowcase.vue';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -132,7 +119,6 @@ const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
 const googleButtonEl = ref(null);
 const googleMessage = ref('');
-const heroImage = ref('https://images.unsplash.com/photo-1576671081837-49000212a370?auto=format&fit=crop&w=1800&q=80');
 
 const isSubmitting = computed(() => auth.status === 'loading');
 
@@ -152,10 +138,6 @@ const primaryButtonStyle = computed(() => ({
 const linkStyle = computed(() => ({
     color: primaryColor.value,
 }));
-
-function onHeroImageError() {
-  heroImage.value = '/images/public/tenant-careers-hero.svg';
-}
 
 const errorMessage = computed(() => {
     const err = auth.error;
@@ -240,10 +222,6 @@ onMounted(() => {
     radial-gradient(620px 420px at 8% 8%, rgba(79, 70, 229, 0.14), transparent 60%),
     radial-gradient(580px 380px at 90% 82%, rgba(16, 185, 129, 0.12), transparent 60%),
     #f8fafc;
-}
-
-.auth-image-panel {
-  position: relative;
 }
 
 .auth-card {

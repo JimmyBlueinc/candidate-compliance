@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-6">
     <AppPageHeader
-      title="Integrations Hub"
-      subtitle="Connect operational tools like Google Drive, Slack, and calendars."
+      title="Integrations"
+      subtitle="Configure and monitor organization-wide integrations for storage, communication, scheduling, and finance."
     >
       <template #actions>
         <AppButton variant="secondary" size="sm" :loading="loading" @click="reload">
@@ -21,12 +21,12 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <AppStatCard label="Connected" :value="connectedCount" :icon="PlugZap" color="emerald" />
-      <AppStatCard label="Ready to Connect" :value="availableCount" :icon="Sparkles" color="violet" />
-      <AppStatCard label="Cloud Storage" :value="storageEnabled ? 'Enabled' : 'Disabled'" :icon="Cloud" color="cyan" />
-      <AppStatCard label="Automation Apps" :value="automationEnabledCount" :icon="Workflow" color="amber" />
+      <AppStatCard label="Disconnected" :value="availableCount" :icon="Sparkles" color="violet" />
+      <AppStatCard label="Needs Attention" :value="errorCount" :icon="Cloud" color="cyan" />
+      <AppStatCard label="Automation Active" :value="automationEnabledCount" :icon="Workflow" color="amber" />
     </div>
 
-    <AppCard title="Available Integrations" subtitle="Each toggle is persisted through backend integration records.">
+    <AppCard title="Integration Catalog" subtitle="Each integration has a dedicated setup page with credentials, sync options, and health checks.">
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         <article
           v-for="item in integrationCards"
@@ -38,20 +38,47 @@
             <div>
               <div class="text-sm font-semibold text-[color:var(--aq-fg)]">{{ item.label }}</div>
               <div class="text-xs text-[color:var(--aq-muted)] mt-1 leading-relaxed">{{ item.description }}</div>
+              <div class="mt-2 flex items-center gap-2 text-[11px] text-[color:var(--aq-muted)]">
+                <span class="rounded-full bg-[color:var(--aq-surface-2)] px-2 py-0.5 uppercase tracking-[0.12em]">{{ item.category }}</span>
+                <span class="rounded-full bg-[color:var(--aq-surface-2)] px-2 py-0.5 uppercase tracking-[0.12em]">{{ item.auth_method }}</span>
+              </div>
             </div>
             <span class="text-[10px] font-semibold px-2 py-1 rounded-full"
-              :class="item.enabled ? 'bg-emerald-500/15 text-emerald-300' : 'bg-[color:var(--aq-surface-2)] text-[color:var(--aq-muted)]'">
-              {{ item.enabled ? 'Enabled' : 'Disabled' }}
+              :class="item.status === 'connected' ? 'bg-emerald-500/15 text-emerald-300' : item.status === 'error' ? 'bg-rose-500/15 text-rose-300' : 'bg-[color:var(--aq-surface-2)] text-[color:var(--aq-muted)]'">
+              {{ item.status }}
             </span>
           </div>
 
-          <div class="mt-4 flex items-center justify-between">
+          <div class="mt-4 text-xs text-[color:var(--aq-muted)]">
+            <div v-if="item.last_synced_at">Last sync: {{ formatDate(item.last_synced_at) }}</div>
+            <div v-else>No sync recorded yet</div>
+            <div v-if="item.last_error" class="mt-1 text-rose-300">{{ item.last_error }}</div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between gap-2">
             <label class="text-xs font-semibold text-[color:var(--aq-muted)]">Enable</label>
             <input
               type="checkbox"
               :checked="item.enabled"
               @change="toggleIntegration(item.key, $event.target.checked)"
             />
+          </div>
+          <div class="mt-3 flex gap-2">
+            <RouterLink
+              :to="{ name: 'dashboard.integrations.detail', params: { key: item.key } }"
+              class="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--aq-border)] px-3 py-2 text-xs font-semibold text-[color:var(--aq-fg)] hover:bg-[color:var(--aq-surface-2)] transition"
+            >
+              Manage
+            </RouterLink>
+            <a
+              v-if="item.docs_url"
+              :href="item.docs_url"
+              target="_blank"
+              rel="noreferrer"
+              class="inline-flex items-center justify-center rounded-lg border border-[color:var(--aq-border)] px-3 py-2 text-xs font-semibold text-[color:var(--aq-muted)] hover:text-[color:var(--aq-fg)] transition"
+            >
+              Docs
+            </a>
           </div>
         </article>
       </div>
@@ -83,36 +110,16 @@ const integrations = ref([]);
 const modulePreferences = ref({});
 const supportsIntegrationApi = ref(true);
 
-const integrationDefs = [
-  { key: 'google_drive', label: 'Google Drive', description: 'Store and sync compliance documents.' },
-  { key: 'google_calendar', label: 'Google Calendar', description: 'Sync shifts and interviews.' },
-  { key: 'slack', label: 'Slack', description: 'Send live operations alerts to channels.' },
-  { key: 'dropbox', label: 'Dropbox', description: 'Share credential packets with teams.' },
-  { key: 'quickbooks', label: 'QuickBooks', description: 'Streamline invoice and payment workflows.' },
-  { key: 'zapier', label: 'Zapier', description: 'Automate repetitive operations tasks.' },
-];
-
 const integrationCards = computed(() => {
-  const byKey = Object.fromEntries((integrations.value || []).map((row) => [row.key, row]));
-  return integrationDefs.map((item) => {
-    const row = byKey[item.key] || {};
-    return {
-      ...item,
-      enabled: row.enabled === true,
-      status: row.status || 'disconnected',
-      settings: row.settings || {},
-      connected_at: row.connected_at || null,
-      last_error: row.last_error || null,
-    };
-  });
+  return (integrations.value || []).map((row) => ({
+    ...row,
+    enabled: row.enabled === true,
+  }));
 });
 
 const connectedCount = computed(() => integrationCards.value.filter((x) => x.enabled).length);
 const availableCount = computed(() => integrationCards.value.length - connectedCount.value);
-const storageEnabled = computed(() => {
-  const map = Object.fromEntries(integrationCards.value.map((x) => [x.key, x.enabled]));
-  return map.google_drive === true || map.dropbox === true;
-});
+const errorCount = computed(() => integrationCards.value.filter((x) => x.status === 'error').length);
 const automationEnabledCount = computed(() => {
   const keys = ['zapier', 'slack', 'quickbooks', 'google_calendar'];
   const map = Object.fromEntries(integrationCards.value.map((x) => [x.key, x.enabled]));
@@ -150,10 +157,23 @@ async function reload() {
         const settingsRes = await apiGet('/v1/agency/settings');
         modulePreferences.value = unwrap(settingsRes)?.settings?.module_preferences || {};
         const prefMap = modulePreferences.value?.integrations || {};
-        integrations.value = integrationDefs.map((d) => ({
-          key: d.key,
+        const fallbackDefs = [
+          { key: 'google_drive', label: 'Google Drive', description: 'Cloud document storage', category: 'storage', auth_method: 'oauth2' },
+          { key: 'google_calendar', label: 'Google Calendar', description: 'Calendar scheduling sync', category: 'scheduling', auth_method: 'oauth2' },
+          { key: 'slack', label: 'Slack', description: 'Team communication and alerts', category: 'communication', auth_method: 'oauth2_or_webhook' },
+          { key: 'dropbox', label: 'Dropbox', description: 'File transfer and archive', category: 'storage', auth_method: 'oauth2' },
+          { key: 'quickbooks', label: 'QuickBooks', description: 'Accounting and invoicing', category: 'finance', auth_method: 'oauth2' },
+          { key: 'zapier', label: 'Zapier', description: 'Workflow automation', category: 'automation', auth_method: 'api_key_or_webhook' },
+        ];
+        integrations.value = fallbackDefs.map((d) => ({
+          ...d,
           enabled: prefMap[d.key] === true,
           status: prefMap[d.key] === true ? 'connected' : 'disconnected',
+          settings: {},
+          connected_at: null,
+          last_synced_at: null,
+          last_error: null,
+          docs_url: null,
         }));
         error.value = '';
       } catch (fallbackError) {
@@ -196,13 +216,21 @@ async function toggleIntegration(key, enabled) {
       });
       modulePreferences.value = nextModulePreferences;
     }
-    status.value = `${integrationDefs.find((d) => d.key === key)?.label || 'Integration'} updated.`;
+    const label = integrationCards.value.find((d) => d.key === key)?.label || 'Integration';
+    status.value = `${label} updated.`;
   } catch (e) {
     error.value = e?.response?.data?.message || e?.message || 'Failed to update integration.';
     await reload();
   } finally {
     saving.value = false;
   }
+}
+
+function formatDate(value) {
+  if (!value) return 'N/A';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return 'N/A';
+  return d.toLocaleString();
 }
 
 reload();

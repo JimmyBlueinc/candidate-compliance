@@ -3,7 +3,7 @@
     <section class="career-hero reveal-up">
       <img
         :src="heroImage"
-        alt="Healthcare professional smiling in clinical environment"
+        alt="Professional candidate reviewing career opportunities"
         class="hero-image"
         loading="lazy"
         @error="onHeroImageError"
@@ -14,18 +14,18 @@
           <img v-if="avatarUrl" :src="avatarUrl" alt="Profile avatar" class="h-11 w-11 rounded-full border-2 border-white/70 object-cover shadow-md" />
           <div v-else class="h-11 w-11 rounded-full border-2 border-white/70 bg-white/30 backdrop-blur-sm" />
           <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/95">Welcome back</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/95">Career Hub</p>
             <h1 class="text-2xl font-semibold text-white md:text-3xl">
               {{ greetingName }}
             </h1>
           </div>
         </div>
         <p class="mt-4 max-w-2xl text-sm leading-relaxed text-slate-100/95 md:text-base">
-          Find your next opportunity with confidence. We are matching your profile with facilities that fit your specialty and schedule.
+          Find your next opportunity with confidence. We match your profile with trusted hiring teams that fit your strengths and preferred schedule.
         </p>
         <div class="mt-6 flex flex-wrap gap-3">
           <button type="button" class="hero-btn hero-btn-primary" @click="scrollToSection('recommended-jobs')">View recommended jobs</button>
-          <button type="button" class="hero-btn hero-btn-secondary" @click="scrollToSection('compliance-status')">Check compliance status</button>
+          <button type="button" class="hero-btn hero-btn-secondary" @click="scrollToSection('compliance-status')">View readiness status</button>
         </div>
       </div>
     </section>
@@ -37,7 +37,7 @@
       </div>
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <article v-for="job in recommendedJobs" :key="job.id" class="hub-card job-card">
-          <div class="job-meta">{{ job.specialty || 'Healthcare Role' }}</div>
+          <div class="job-meta">{{ job.specialty || 'Professional Role' }}</div>
           <h3 class="job-title">{{ job.title || 'Open Position' }}</h3>
           <p class="job-subtitle">
             {{ job.facility_name || job.location || 'Facility details available in job posting' }}
@@ -64,7 +64,7 @@
       <article class="hub-card">
         <p class="kicker">Credentials verified</p>
         <p class="kpi">{{ approvedCredentialsCount }}/{{ credentialsCount || 1 }}</p>
-        <p class="helper mt-3">Missing items may delay offers and onboarding.</p>
+        <p class="helper mt-3">Missing items may delay interviews and onboarding.</p>
       </article>
 
       <article class="hub-card">
@@ -98,7 +98,7 @@
           <h2>Career momentum</h2>
         </div>
         <p class="helper">
-          Stay active by applying to at least 3 roles this week. Candidates with complete profiles and active applications receive faster placement support.
+          Stay active by applying to at least 3 roles this week. Candidates with complete profiles and active applications get faster recruiter follow-up.
         </p>
         <div class="mt-5 grid grid-cols-2 gap-3">
           <div class="mini-stat">
@@ -130,7 +130,7 @@ const jobs = ref([]);
 const unreadMessages = ref(0);
 const credentialsCount = ref(0);
 const approvedCredentialsCount = ref(0);
-const heroImage = ref('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=1800&q=80');
+const heroImage = ref('https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1800&q=80');
 
 const avatarUrl = computed(() => auth.user?.avatar_url || auth.user?.avatar_path || '');
 const greetingName = computed(() => {

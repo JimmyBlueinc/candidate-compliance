@@ -155,6 +155,8 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required'],
             'remember_me' => ['sometimes', 'boolean'],
+            'tenant_id' => ['sometimes', 'nullable', 'integer'],
+            'org_subdomain' => ['sometimes', 'nullable', 'string', 'max:120'],
         ]);
 
         $email = strtolower(trim((string) $request->email));
@@ -170,7 +172,7 @@ class AuthController extends Controller
             $matches = User::query()->where('email', $email)->limit(2)->get();
             if ($matches->count() > 1) {
                 throw ValidationException::withMessages([
-                    'email' => ['Multiple accounts use this email. Please log in from your organization subdomain.'],
+                    'email' => ['Multiple accounts use this email. Please log in from your organization subdomain or provide your organization ID.'],
                 ]);
             }
             $user = $matches->first();
@@ -674,6 +676,11 @@ class AuthController extends Controller
 
     private function resolveOrganizationIdFromRequest(Request $request): ?int
     {
+        $bodyTenant = (int) ($request->input('tenant_id') ?: 0);
+        if ($bodyTenant > 0) {
+            return $bodyTenant;
+        }
+
         $orgId = Org::id($request);
         if ($orgId) {
             return (int) $orgId;
@@ -709,6 +716,17 @@ class AuthController extends Controller
             $subdomain = str_replace('.agenchq.com', '', $host);
             $org = Organization::query()
                 ->where('subdomain', $subdomain)
+                ->where('is_active', true)
+                ->first();
+            if ($org) {
+                return (int) $org->id;
+            }
+        }
+
+        $subdomainInput = strtolower(trim((string) $request->input('org_subdomain')));
+        if ($subdomainInput !== '') {
+            $org = Organization::query()
+                ->where('subdomain', $subdomainInput)
                 ->where('is_active', true)
                 ->first();
             if ($org) {

@@ -21,7 +21,7 @@
             <div class="lg:col-span-6">
               <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-indigo-700">
                 <span class="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                Careers at {{ brand.name || 'Blueinc' }}
+                Opportunities at {{ brand.name || 'Blueinc' }}
               </span>
 
               <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight text-slate-950 md:text-5xl">
@@ -60,8 +60,8 @@
             <div class="lg:col-span-6">
               <div class="overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 shadow-xl">
                 <img
-                  src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=1600&q=80"
-                  alt="Nurses and clinicians collaborating at a modern healthcare facility"
+                  src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80"
+                  alt="Professional team collaborating in a modern workplace"
                   class="h-[330px] w-full object-cover opacity-85"
                   loading="lazy"
                   @error="(e) => onImageError(e, '/images/public/tenant-careers-hero.svg')"
@@ -76,7 +76,7 @@
                     <p class="mt-1 text-lg font-semibold text-emerald-300">48h</p>
                   </div>
                   <div class="rounded-lg bg-slate-800/90 p-2 text-slate-100">
-                    <p class="uppercase tracking-[0.12em] text-slate-400">Partner Facilities</p>
+                    <p class="uppercase tracking-[0.12em] text-slate-400">Hiring Teams</p>
                     <p class="mt-1 text-lg font-semibold text-violet-300">30+</p>
                   </div>
                 </div>
@@ -129,7 +129,7 @@
         <div class="flex items-end justify-between">
           <div>
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">Featured Opportunities</p>
-            <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Find roles that fit your schedule and specialty.</h2>
+            <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Find roles that fit your strengths and goals.</h2>
           </div>
           <button type="button" class="hidden text-sm font-semibold text-indigo-600 hover:text-indigo-700 md:inline" @click="goToJobs">
             View full job board
@@ -181,7 +181,7 @@
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">Why Join {{ brand.name || 'Blueinc' }}</p>
               <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900">{{ publicHomeContent.why_join_heading }}</h2>
               <p class="mt-3 text-sm leading-relaxed text-slate-600">
-                We partner with leading facilities, invest in your professional development, and keep your job experience transparent from application to placement.
+                We partner with trusted organizations, support your professional growth, and keep your experience transparent from application to offer.
               </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2 lg:col-span-7">
@@ -208,7 +208,7 @@
           <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-6 text-white shadow-sm lg:col-span-8 md:p-8">
             <img
               src="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=1600&q=80"
-              alt="Nurse preparing care plan at workstation"
+              alt="Candidate reviewing new role opportunities"
               class="absolute inset-0 h-full w-full object-cover opacity-35"
               loading="lazy"
               @error="(e) => onImageError(e, '/images/public/tenant-careers-hero.svg')"
@@ -382,15 +382,15 @@ const isAdmin = computed(() => {
 });
 
 const defaultPublicHomeContent = {
-  hero_heading: 'Build your next chapter with our team.',
-  hero_subheading: 'Discover meaningful healthcare staffing opportunities and apply in minutes.',
+  hero_heading: 'Build your next chapter with a team that values your work.',
+  hero_subheading: 'Discover meaningful staffing opportunities and apply in minutes.',
   hero_primary_cta_label: 'Browse Open Jobs',
   hero_secondary_cta_label: 'Join Talent Pool',
   why_join_heading: 'A team built for growth, support, and meaningful impact.',
   talent_pool_heading: 'Get matched with the right opportunities faster.',
   talent_pool_subheading: 'Share your profile once and get notified when the right role opens.',
   final_cta_heading: 'Ready to apply or join our talent network?',
-  final_cta_subheading: 'Start with open roles now or submit your profile for future opportunities.',
+  final_cta_subheading: 'Browse current openings now or submit your profile for upcoming opportunities.',
 };
 
 const publicHomeContent = computed(() => ({
@@ -448,28 +448,28 @@ const featuredJobs = computed(() => filteredJobs.value.slice(0, 6));
 
 const whyJoinItems = [
   {
-    title: 'Premium Facility Network',
-    description: 'Work with respected hospitals and care organizations that value excellent clinical talent.',
-    image: 'https://images.unsplash.com/photo-1519494080410-f9aa8f52f12e?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Healthcare staff collaborating in a clinical environment',
+    title: 'Trusted Hiring Network',
+    description: 'Work with respected organizations that value reliable, high-performing professionals.',
+    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
+    alt: 'Professional team collaborating in an office',
   },
   {
     title: 'Transparent Hiring Experience',
     description: 'Clear role expectations, faster communication, and support at every stage of your application.',
-    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1200&q=80',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80',
     alt: 'Recruiting team discussing candidate opportunities',
   },
   {
     title: 'Flexible Career Paths',
-    description: 'Explore contract, long-term, and specialty placements tailored to your career goals.',
-    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Nurse reviewing patient and shift plans',
+    description: 'Explore contract, long-term, and growth-focused placements tailored to your goals.',
+    image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=80',
+    alt: 'Professional planning and scheduling work',
   },
   {
     title: 'Growth and Community',
-    description: 'Join a network where clinicians learn, grow, and make measurable impact together.',
-    image: 'https://images.unsplash.com/photo-1576765607924-b4f1d1f4f5d7?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Healthcare professionals celebrating team success',
+    description: 'Join a network where talent grows, shares wins, and builds long-term careers.',
+    image: 'https://images.unsplash.com/photo-1552581234-26160f608093?auto=format&fit=crop&w=1200&q=80',
+    alt: 'Team celebrating professional success',
   },
 ];
 
