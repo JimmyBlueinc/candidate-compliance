@@ -308,7 +308,6 @@ async function handleRegister() {
 
   // Ensure brand is loaded before registration
   if (!brand.loaded) {
-    console.log('[REGISTER] Brand not loaded, loading...');
     await brand.load();
   }
 
@@ -319,7 +318,6 @@ async function handleRegister() {
   registering.value = true;
   try {
     const orgSlug = route.params.slug || brand.slug;
-    console.log('[REGISTER] orgSlug:', orgSlug, 'brand.slug:', brand.slug, 'brand.loaded:', brand.loaded);
     
     if (!orgSlug) {
       throw new Error('Organization not identified. Please refresh the page.');

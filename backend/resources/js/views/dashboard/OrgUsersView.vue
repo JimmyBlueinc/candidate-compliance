@@ -1,237 +1,233 @@
 <template>
-  <div class="space-y-4">
-    <Card>
-      <template #content>
-        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-          <div>
-            <h2 class="font-display text-xl">Organization Users</h2>
-            <p class="text-sm text-[color:var(--p-text-muted-color)]">
-              Create and manage your organization team.
-            </p>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 w-full lg:w-auto">
-            <div class="rounded-2xl border border-[color:var(--p-surface-border)] px-4 py-3">
-              <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Total</div>
-              <div class="text-xl font-black mt-1">{{ teamSummary.total }}</div>
-            </div>
-            <div class="rounded-2xl border border-[color:var(--p-surface-border)] px-4 py-3">
-              <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Staff</div>
-              <div class="text-xl font-black mt-1">{{ teamSummary.staff }}</div>
-            </div>
-            <div class="rounded-2xl border border-[color:var(--p-surface-border)] px-4 py-3">
-              <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Org Admins</div>
-              <div class="text-xl font-black mt-1">{{ teamSummary.orgSuperAdmins }}</div>
-            </div>
-            <div class="rounded-2xl border border-[color:var(--p-surface-border)] px-4 py-3">
-              <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Candidates</div>
-              <div class="text-xl font-black mt-1">{{ teamSummary.candidates }}</div>
-            </div>
-            <div class="rounded-2xl border border-[color:var(--p-surface-border)] px-4 py-3">
-              <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Active</div>
-              <div class="text-xl font-black mt-1">{{ teamSummary.active }}</div>
-            </div>
-            <div class="rounded-2xl border border-[color:var(--p-surface-border)] px-4 py-3">
-              <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Suspended</div>
-              <div class="text-xl font-black mt-1">{{ teamSummary.suspended }}</div>
-            </div>
-          </div>
-        </div>
+  <div class="space-y-6">
+    <!-- Page Header -->
+    <AppPageHeader title="Team Members" subtitle="Create and manage your organization team.">
+      <template #actions>
+        <AppButton variant="secondary" size="sm" @click="load">
+          <RefreshCw class="w-4 h-4" />
+          Refresh
+        </AppButton>
       </template>
-    </Card>
+    </AppPageHeader>
 
-    <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
-
-    <Card v-if="canManage">
-      <template #content>
-        <div class="flex items-start justify-between gap-6">
-          <div>
-            <h3 class="font-display text-lg">Admins</h3>
-            <p class="text-sm text-[color:var(--p-text-muted-color)]">Provision new admins for your org.</p>
-          </div>
-        </div>
-
-        <form class="mt-4 space-y-3" @submit.prevent="createUser">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="space-y-2">
-              <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Name</label>
-              <InputText v-model="name" class="w-full" required size="small" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Email</label>
-              <InputText v-model="email" type="email" class="w-full" required size="small" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Role</label>
-              <Dropdown v-model="role" :options="creatableRoles" optionLabel="label" optionValue="value" class="w-full" size="small" />
-            </div>
-          </div>
-
-          <div>
-            <Button :loading="creating" type="submit" label="Create" size="small" />
-          </div>
-        </form>
-      </template>
-    </Card>
-
-    <Card>
-      <template #content>
-        <div class="flex items-center justify-between gap-4 mb-4">
-          <h3 class="font-display text-xl">Team</h3>
-          <div class="flex items-center gap-2">
-            <Button v-if="canManage && users.length > 0" label="Edit Admin" size="small" severity="secondary" outlined @click="openEdit()" />
-            <Button label="Refresh" size="small" severity="secondary" outlined @click="load" />
-          </div>
-        </div>
-
-        <DataTable :value="users" :loading="loading" dataKey="id" stripedRows responsiveLayout="scroll" size="small">
-          <Column field="name" header="Name">
-            <template #body="{ data }">
-              <span class="font-medium">{{ data.name }}</span>
-            </template>
-          </Column>
-          <Column field="email" header="Email" />
-          <Column field="role" header="Role">
-            <template #body="{ data }">
-              <span class="capitalize">{{ data.role?.replace('_', ' ') }}</span>
-            </template>
-          </Column>
-          <Column header="Access">
-            <template #body="{ data }">
-              <Tag :severity="accessSeverity(data.access_status)" :value="data.access_status || 'active'" />
-            </template>
-          </Column>
-          <Column header="Actions" style="width: 1%; white-space: nowrap">
-            <template #body="{ data }">
-              <div class="flex items-center gap-1 justify-end flex-nowrap whitespace-nowrap">
-                <Button
-                  v-if="canManage && data.role !== 'platform_admin' && data.id !== auth.user?.id"
-                  icon="pi pi-pencil"
-                  size="small"
-                  severity="primary"
-                  rounded
-                  text
-                  aria-label="Edit"
-                  title="Edit"
-                  @click="openEdit(data.id)"
-                />
-                <Button
-                  v-if="canManage && data.role !== 'platform_admin' && data.id !== auth.user?.id"
-                  icon="pi pi-trash"
-                  size="small"
-                  severity="danger"
-                  rounded
-                  text
-                  aria-label="Delete"
-                  title="Delete"
-                  @click="confirmDelete(data)"
-                />
-              </div>
-            </template>
-          </Column>
-
-          <template #empty>
-            <div class="py-6 text-[color:var(--p-text-muted-color)]">No users</div>
-          </template>
-        </DataTable>
-      </template>
-    </Card>
-
-    <div v-if="!canManage" class="text-xs text-[color:var(--p-text-muted-color)]">
-      Only <span class="font-semibold">org_super_admin</span> can create new users.
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <AppStatCard label="Total" :value="teamSummary.total" :icon="Users" />
+      <AppStatCard label="Staff" :value="teamSummary.staff" :icon="User" />
+      <AppStatCard label="Admins" :value="teamSummary.orgSuperAdmins" :icon="Shield" />
+      <AppStatCard label="Candidates" :value="teamSummary.candidates" :icon="UserCheck" />
+      <AppStatCard label="Active" :value="teamSummary.active" :icon="CheckCircle" />
+      <AppStatCard label="Suspended" :value="teamSummary.suspended" :icon="XCircle" />
     </div>
 
-    <Dialog v-model:visible="isEditOpen" modal header="Edit Team Member" :style="{ width: 'min(900px, 95vw)' }">
+    <!-- Error Message -->
+    <div v-if="error" class="px-4 py-3 rounded-[var(--radius-lg)] bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
+      {{ error }}
+    </div>
+
+    <!-- Create User Form -->
+    <AppCard v-if="canManage" title="Add Team Member" subtitle="Provision new team members for your organization.">
+      <form class="space-y-4" @submit.prevent="createUser">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Name</label>
+            <input v-model="name" type="text" class="app-input" required placeholder="Full name" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Email</label>
+            <input v-model="email" type="email" class="app-input" required placeholder="email@example.com" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Role</label>
+            <select v-model="role" class="app-input">
+              <option v-for="r in creatableRoles" :key="r.value" :value="r.value">{{ r.label }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="pt-2">
+          <AppButton type="submit" :loading="creating">
+            <Plus class="w-4 h-4" />
+            Create Team Member
+          </AppButton>
+        </div>
+      </form>
+    </AppCard>
+
+    <!-- Team Table -->
+    <AppCard title="Team" subtitle="All members in your organization.">
+      <template #actions>
+        <AppButton v-if="canManage && users.length > 0" variant="secondary" size="sm" @click="openEdit()">
+          <Edit3 class="w-4 h-4" />
+          Edit Member
+        </AppButton>
+      </template>
+
+      <div v-if="loading" class="py-8">
+        <div class="space-y-3">
+          <AppSkeleton v-for="i in 5" :key="i" variant="text" />
+        </div>
+      </div>
+
+      <AppEmpty
+        v-else-if="users.length === 0"
+        title="No team members"
+        description="Add your first team member using the form above."
+        :icon="Users"
+      />
+
+      <div v-else class="overflow-x-auto -mx-6">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-[color:var(--aq-border)]">
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Name</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Role</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Access</th>
+              <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[color:var(--aq-border)]">
+            <tr v-for="user in users" :key="user.id" class="hover:bg-[color:var(--aq-surface-2)]/50 transition-colors">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-[color:var(--aq-primary)]/20 flex items-center justify-center text-xs font-semibold text-[color:var(--aq-primary)]">
+                    {{ (user.name || 'U').charAt(0).toUpperCase() }}
+                  </div>
+                  <span class="font-medium text-[color:var(--aq-fg)]">{{ user.name }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-sm text-[color:var(--aq-muted)]">{{ user.email }}</td>
+              <td class="px-6 py-4">
+                <AppBadge variant="default" size="sm">{{ formatRole(user.role) }}</AppBadge>
+              </td>
+              <td class="px-6 py-4">
+                <AppBadge :variant="accessVariant(user.access_status)" size="sm">
+                  {{ user.access_status || 'active' }}
+                </AppBadge>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div v-if="canManage && user.role !== 'platform_admin' && user.id !== auth.user?.id" class="flex items-center gap-2 justify-end">
+                  <button
+                    type="button"
+                    class="p-2 rounded-[var(--radius-md)] text-[color:var(--aq-muted)] hover:text-[color:var(--aq-fg)] hover:bg-[color:var(--aq-surface-2)] transition-colors"
+                    title="Edit"
+                    @click="openEdit(user.id)"
+                  >
+                    <Edit3 class="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    class="p-2 rounded-[var(--radius-md)] text-[color:var(--aq-muted)] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                    title="Delete"
+                    @click="confirmDelete(user)"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </AppCard>
+
+    <!-- Permission Notice -->
+    <div v-if="!canManage" class="px-4 py-3 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)] text-sm text-[color:var(--aq-muted)]">
+      Only <span class="font-semibold text-[color:var(--aq-fg)]">Administrators</span> can create and manage team members.
+    </div>
+
+    <!-- Edit Modal -->
+    <AppModal v-model="isEditOpen" title="Edit Team Member" size="lg">
       <form class="space-y-4" @submit.prevent="submitEdit">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Search User</label>
-            <InputText v-model="editSearch" class="w-full" placeholder="Search by name or email" size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Search User</label>
+            <input v-model="editSearch" type="text" class="app-input" placeholder="Search by name or email" />
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Select User</label>
-            <Dropdown v-model="editUserId" :options="filteredUsers" optionLabel="name" optionValue="id" class="w-full" filter size="small">
-              <template #value="slotProps">
-                <span v-if="slotProps.value">
-                  {{ users.find((a) => String(a.id) === String(slotProps.value))?.name || 'Select' }}
-                </span>
-                <span v-else>Select</span>
-              </template>
-              <template #option="slotProps">
-                <div class="flex flex-col">
-                  <span class="font-medium">{{ slotProps.option.name }}</span>
-                  <span class="text-xs text-[color:var(--p-text-muted-color)]">{{ slotProps.option.email }}</span>
-                </div>
-              </template>
-            </Dropdown>
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Select User</label>
+            <select v-model="editUserId" class="app-input">
+              <option value="">Select user</option>
+              <option v-for="u in filteredUsers" :key="u.id" :value="u.id">{{ u.name }} ({{ u.email }})</option>
+            </select>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Name</label>
-            <InputText v-model="editName" class="w-full" required size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Name</label>
+            <input v-model="editName" type="text" class="app-input" required />
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Email</label>
-            <InputText v-model="editEmail" type="email" class="w-full" required size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Email</label>
+            <input v-model="editEmail" type="email" class="app-input" required />
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Role</label>
-            <Dropdown v-model="editRole" :options="creatableRoles" optionLabel="label" optionValue="value" class="w-full" size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Role</label>
+            <select v-model="editRole" class="app-input">
+              <option v-for="r in creatableRoles" :key="r.value" :value="r.value">{{ r.label }}</option>
+            </select>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">New Password (optional)</label>
-            <Password v-model="editPassword" :feedback="false" toggleMask class="w-full" inputClass="w-full" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">New Password (optional)</label>
+            <input v-model="editPassword" type="password" class="app-input" placeholder="Leave blank to keep current" />
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Confirm</label>
-            <Password v-model="editPasswordConfirm" :feedback="false" toggleMask class="w-full" inputClass="w-full" :disabled="!editPassword" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Confirm Password</label>
+            <input v-model="editPasswordConfirm" type="password" class="app-input" :disabled="!editPassword" placeholder="Confirm new password" />
           </div>
         </div>
 
-        <div v-if="currentEditUser" class="text-xs text-[color:var(--p-text-muted-color)]">
-          Editing: <span class="font-semibold">{{ currentEditUser.name }}</span>
-        </div>
-
-        <div class="flex gap-2 justify-end pt-2">
-          <Button type="button" label="Cancel" severity="secondary" outlined size="small" @click="isEditOpen = false" />
-          <Button type="submit" label="Save" :loading="savingEdit" size="small" />
+        <div v-if="currentEditUser" class="px-4 py-3 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)] text-sm">
+          Editing: <span class="font-semibold text-[color:var(--aq-fg)]">{{ currentEditUser.name }}</span>
         </div>
       </form>
-    </Dialog>
+      <template #footer>
+        <div class="flex items-center gap-3 justify-end">
+          <AppButton variant="ghost" @click="isEditOpen = false">Cancel</AppButton>
+          <AppButton :loading="savingEdit" @click="submitEdit">Save Changes</AppButton>
+        </div>
+      </template>
+    </AppModal>
 
-    <Dialog v-model:visible="credentialsDialogOpen" modal header="Admin Login Details" :style="{ width: 'min(700px, 95vw)' }">
-      <div class="space-y-3">
-        <div class="rounded-2xl border border-[color:var(--p-surface-border)] p-3">
-          <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Email</div>
-          <div class="mt-1 font-semibold break-all">{{ createdCredentials?.email }}</div>
+    <!-- Credentials Modal -->
+    <AppModal v-model="credentialsDialogOpen" title="Login Details" subtitle="Save these credentials securely.">
+      <div class="space-y-4">
+        <div class="p-4 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)]">
+          <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-1">Email</div>
+          <div class="font-mono text-[color:var(--aq-fg)] break-all">{{ createdCredentials?.email }}</div>
         </div>
-        <div class="rounded-2xl border border-[color:var(--p-surface-border)] p-3">
-          <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Temporary Password</div>
-          <div class="mt-1 font-mono break-all">{{ createdCredentials?.tempPassword }}</div>
-        </div>
-
-        <div v-if="createdCredentials?.emailSent === true" class="text-xs text-emerald-600">
-          Email sent.
-        </div>
-        <div v-else-if="createdCredentials?.emailSent === false" class="text-xs text-amber-600">
-          Email not sent. Use test login details above.
+        <div class="p-4 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)]">
+          <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-1">Temporary Password</div>
+          <div class="font-mono text-[color:var(--aq-fg)] break-all">{{ createdCredentials?.tempPassword }}</div>
         </div>
 
-        <div class="text-xs text-[color:var(--p-text-muted-color)]">
+        <div v-if="createdCredentials?.emailSent === true" class="flex items-center gap-2 text-sm text-emerald-400">
+          <CheckCircle class="w-4 h-4" />
+          Email sent to user.
+        </div>
+        <div v-else-if="createdCredentials?.emailSent === false" class="flex items-center gap-2 text-sm text-amber-400">
+          <AlertCircle class="w-4 h-4" />
+          Email not sent. Use the credentials above.
+        </div>
+
+        <p class="text-xs text-[color:var(--aq-muted)]">
           These credentials are only shown once. Copy them now.
-        </div>
-
-        <div class="flex gap-2 justify-end">
-          <Button type="button" label="Copy" size="small" @click="copyCredentials" />
-          <Button type="button" label="Done" severity="secondary" outlined size="small" @click="credentialsDialogOpen = false" />
-        </div>
+        </p>
       </div>
-    </Dialog>
+      <template #footer>
+        <div class="flex items-center gap-3 justify-end">
+          <AppButton variant="secondary" @click="copyCredentials">
+            <Copy class="w-4 h-4" />
+            Copy
+          </AppButton>
+          <AppButton variant="ghost" @click="createdCredentials = null">Done</AppButton>
+        </div>
+      </template>
+    </AppModal>
   </div>
 </template>
 
@@ -240,16 +236,16 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { apiDelete, apiGet, apiPost, apiPut } from '../../lib/api';
 import { useAuthStore } from '../../stores/auth';
 import { ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_SCHEDULER, ROLE_COMPLIANCE, ROLE_FINANCE, ROLE_LOGISTICS, STAFF_ROLES } from '../../lib/roles';
-import Card from 'primevue/card';
-import Column from 'primevue/column';
-import DataTable from 'primevue/datatable';
-import Dialog from 'primevue/dialog';
-import Dropdown from 'primevue/dropdown';
-import InputText from 'primevue/inputtext';
-import Message from 'primevue/message';
-import Button from 'primevue/button';
-import Password from 'primevue/password';
-import Tag from 'primevue/tag';
+import { Users, User, Shield, UserCheck, CheckCircle, XCircle, Plus, RefreshCw, Edit3, Trash2, Copy, AlertCircle } from 'lucide-vue-next';
+import AppPageHeader from '../../components/ui/AppPageHeader.vue';
+import AppCard from '../../components/ui/AppCard.vue';
+import AppStatCard from '../../components/ui/AppStatCard.vue';
+import AppButton from '../../components/ui/AppButton.vue';
+import AppBadge from '../../components/ui/AppBadge.vue';
+import AppModal from '../../components/ui/AppModal.vue';
+import AppEmpty from '../../components/ui/AppEmpty.vue';
+import AppSkeleton from '../../components/ui/AppSkeleton.vue';
+
 const auth = useAuthStore();
 
 const users = ref([]);
@@ -276,196 +272,234 @@ const savingEdit = ref(false);
 const canManage = computed(() => auth.user?.role === 'org_super_admin');
 
 const creatableRoles = computed(() => {
-    return [
-        { label: 'Recruiter (Admin)', value: ROLE_ADMIN },
-        { label: 'Recruiter', value: ROLE_RECRUITER },
-        { label: 'Scheduler', value: ROLE_SCHEDULER },
-        { label: 'Compliance', value: ROLE_COMPLIANCE },
-        { label: 'Finance', value: ROLE_FINANCE },
-        { label: 'Logistics', value: ROLE_LOGISTICS },
-    ];
+  return [
+    { label: 'Recruiter (Admin)', value: ROLE_ADMIN },
+    { label: 'Recruiter', value: ROLE_RECRUITER },
+    { label: 'Scheduler', value: ROLE_SCHEDULER },
+    { label: 'Compliance', value: ROLE_COMPLIANCE },
+    { label: 'Finance', value: ROLE_FINANCE },
+    { label: 'Logistics', value: ROLE_LOGISTICS },
+  ];
 });
 
 const teamSummary = computed(() => {
-    const byRole = users.value.reduce((acc, u) => {
-        acc[u.role] = (acc[u.role] || 0) + 1;
-        return acc;
-    }, {});
+  const byRole = users.value.reduce((acc, u) => {
+    acc[u.role] = (acc[u.role] || 0) + 1;
+    return acc;
+  }, {});
 
-    const byAccess = users.value.reduce((acc, u) => {
-        const s = String(u?.access_status || 'active');
-        acc[s] = (acc[s] || 0) + 1;
-        return acc;
-    }, {});
+  const byAccess = users.value.reduce((acc, u) => {
+    const s = String(u?.access_status || 'active');
+    acc[s] = (acc[s] || 0) + 1;
+    return acc;
+  }, {});
 
-    const staffCount = STAFF_ROLES.reduce((sum, r) => sum + (byRole[r] || 0), 0);
+  const staffCount = STAFF_ROLES.reduce((sum, r) => sum + (byRole[r] || 0), 0);
 
-    return {
-        total: users.value.length,
-        orgSuperAdmins: byRole[ROLE_ORG_SUPER_ADMIN] || 0,
-        staff: staffCount,
-        candidates: byRole['candidate'] || 0,
-        active: byAccess.active || 0,
-        suspended: byAccess.suspended || 0,
-    };
+  return {
+    total: users.value.length,
+    orgSuperAdmins: byRole[ROLE_ORG_SUPER_ADMIN] || 0,
+    staff: staffCount,
+    candidates: byRole['candidate'] || 0,
+    active: byAccess.active || 0,
+    suspended: byAccess.suspended || 0,
+  };
 });
 
 const filteredUsers = computed(() => {
-    const q = editSearch.value.trim().toLowerCase();
-    if (!q) return users.value;
-    return users.value.filter((a) => {
-        const n = String(a?.name || '').toLowerCase();
-        const e = String(a?.email || '').toLowerCase();
-        return n.includes(q) || e.includes(q);
-    });
+  const q = editSearch.value.trim().toLowerCase();
+  if (!q) return users.value;
+  return users.value.filter((a) => {
+    const n = String(a?.name || '').toLowerCase();
+    const e = String(a?.email || '').toLowerCase();
+    return n.includes(q) || e.includes(q);
+  });
 });
 
 const currentEditUser = computed(() => users.value.find((a) => String(a.id) === String(editUserId.value)) || null);
 
 const credentialsDialogOpen = computed({
-    get: () => Boolean(createdCredentials.value),
-    set: (v) => {
-        if (!v) createdCredentials.value = null;
-    },
+  get: () => Boolean(createdCredentials.value),
+  set: (v) => {
+    if (!v) createdCredentials.value = null;
+  },
 });
 
-function accessSeverity(status) {
-    const value = String(status || 'active');
-    if (value === 'active') return 'success';
-    if (value === 'suspended') return 'warning';
-    return 'danger';
+function formatRole(r) {
+  if (!r) return '—';
+  const roleMap = {
+    'org_super_admin': 'Administrator',
+    'admin': 'Admin',
+    'recruiter': 'Recruiter',
+    'scheduler': 'Scheduler',
+    'compliance': 'Compliance',
+    'finance': 'Finance',
+    'logistics': 'Logistics',
+    'candidate': 'Candidate',
+    'facility': 'Facility',
+  };
+  return roleMap[r] || r.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function accessVariant(status) {
+  const value = String(status || 'active');
+  if (value === 'active') return 'success';
+  if (value === 'suspended') return 'warning';
+  return 'danger';
 }
 
 async function load() {
-    try {
-        loading.value = true;
-        error.value = '';
-        const res = await apiGet('/admin/users');
-        const payload = res?.data || res;
-        users.value = Array.isArray(payload) ? payload : [];
-    } catch (e) {
-        users.value = [];
-        error.value = e?.response?.data?.message || e?.message || 'Failed to load users';
-    } finally {
-        loading.value = false;
-    }
+  try {
+    loading.value = true;
+    error.value = '';
+    const res = await apiGet('/admin/users');
+    const payload = res?.data || res;
+    users.value = Array.isArray(payload) ? payload : [];
+  } catch (e) {
+    users.value = [];
+    error.value = e?.response?.data?.message || e?.message || 'Failed to load users';
+  } finally {
+    loading.value = false;
+  }
 }
 
 async function confirmDelete(target) {
-    if (!canManage.value) return;
-    if (!target?.id) return;
-    if (!window.confirm(`Delete ${target.name || 'this user'}?`)) return;
+  if (!canManage.value) return;
+  if (!target?.id) return;
+  if (!window.confirm(`Delete ${target.name || 'this user'}?`)) return;
 
-    try {
-        error.value = '';
-        await apiDelete(`/admin/users/${encodeURIComponent(String(target.id))}`);
-        await load();
-    } catch (e) {
-        error.value = e?.response?.data?.message || e?.message || 'Failed to delete user';
-    }
+  try {
+    error.value = '';
+    await apiDelete(`/admin/users/${encodeURIComponent(String(target.id))}`);
+    await load();
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || 'Failed to delete user';
+  }
 }
 
 async function createUser() {
-    if (!canManage.value) return;
+  if (!canManage.value) return;
 
-    try {
-        creating.value = true;
-        error.value = '';
+  try {
+    creating.value = true;
+    error.value = '';
 
-        const res = await apiPost('/admin/users', {
-            name: name.value,
-            email: email.value,
-            role: role.value,
-        });
+    const res = await apiPost('/admin/users', {
+      name: name.value,
+      email: email.value,
+      role: role.value,
+    });
 
-        const payload = res?.data || res;
-        if (payload?.credentials?.email && payload?.credentials?.temp_password) {
-            createdCredentials.value = {
-                name: payload?.user?.name || name.value,
-                email: payload.credentials.email,
-                tempPassword: payload.credentials.temp_password,
-                emailSent: payload?.email_sent,
-            };
-        }
-
-        name.value = '';
-        email.value = '';
-        await load();
-    } catch (e) {
-        error.value = e?.response?.data?.message || e?.message || 'Failed to create user';
-    } finally {
-        creating.value = false;
+    const payload = res?.data || res;
+    if (payload?.credentials?.email && payload?.credentials?.temp_password) {
+      createdCredentials.value = {
+        name: payload?.user?.name || name.value,
+        email: payload.credentials.email,
+        tempPassword: payload.credentials.temp_password,
+        emailSent: payload?.email_sent,
+      };
     }
+
+    name.value = '';
+    email.value = '';
+    await load();
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || 'Failed to create user';
+  } finally {
+    creating.value = false;
+  }
 }
 
 function openEdit(targetId) {
-    if (!canManage.value) return;
+  if (!canManage.value) return;
 
-    const list = users.value;
-    const idToEdit = targetId ? String(targetId) : (list.length ? String(list[0].id) : '');
+  const list = users.value;
+  const idToEdit = targetId ? String(targetId) : (list.length ? String(list[0].id) : '');
 
-    editUserId.value = idToEdit;
-    const selected = list.find((a) => String(a.id) === idToEdit);
-    editName.value = selected?.name || '';
-    editEmail.value = selected?.email || '';
-    editRole.value = selected?.role || '';
-    editPassword.value = '';
-    editPasswordConfirm.value = '';
-    editSearch.value = '';
-    isEditOpen.value = true;
+  editUserId.value = idToEdit;
+  const selected = list.find((a) => String(a.id) === idToEdit);
+  editName.value = selected?.name || '';
+  editEmail.value = selected?.email || '';
+  editRole.value = selected?.role || '';
+  editPassword.value = '';
+  editPasswordConfirm.value = '';
+  editSearch.value = '';
+  isEditOpen.value = true;
 }
 
 async function submitEdit() {
-    if (!canManage.value) return;
-    if (!editUserId.value) return;
+  if (!canManage.value) return;
+  if (!editUserId.value) return;
 
-    try {
-        savingEdit.value = true;
-        error.value = '';
+  try {
+    savingEdit.value = true;
+    error.value = '';
 
-        const payload = {
-            name: editName.value,
-            email: editEmail.value,
-            role: editRole.value,
-        };
+    const payload = {
+      name: editName.value,
+      email: editEmail.value,
+      role: editRole.value,
+    };
 
-        if (editPassword.value) {
-            payload.password = editPassword.value;
-            payload.password_confirmation = editPasswordConfirm.value;
-        }
-
-        await apiPut(`/admin/users/${encodeURIComponent(String(editUserId.value))}`, payload);
-
-        isEditOpen.value = false;
-        await load();
-    } catch (e) {
-        error.value = e?.response?.data?.message || e?.message || 'Failed to update user';
-    } finally {
-        savingEdit.value = false;
+    if (editPassword.value) {
+      payload.password = editPassword.value;
+      payload.password_confirmation = editPasswordConfirm.value;
     }
+
+    await apiPut(`/admin/users/${encodeURIComponent(String(editUserId.value))}`, payload);
+
+    isEditOpen.value = false;
+    await load();
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || 'Failed to update user';
+  } finally {
+    savingEdit.value = false;
+  }
 }
 
 async function copyCredentials() {
-    if (!createdCredentials.value) return;
-
-    await navigator.clipboard.writeText(`Email: ${createdCredentials.value.email}\nPassword: ${createdCredentials.value.tempPassword}`);
+  if (!createdCredentials.value) return;
+  await navigator.clipboard.writeText(`Email: ${createdCredentials.value.email}\nPassword: ${createdCredentials.value.tempPassword}`);
 }
 
 watch(
-    () => ({ isEditOpen: isEditOpen.value, editUserId: editUserId.value, users: users.value }),
-    ({ isEditOpen: open }) => {
-        if (!open) return;
-        if (!editUserId.value) return;
-        const selected = users.value.find((a) => String(a.id) === String(editUserId.value));
-        if (!selected) return;
-        editName.value = selected.name;
-        editEmail.value = selected.email;
-        editRole.value = selected.role;
-        editPassword.value = '';
-        editPasswordConfirm.value = '';
-    },
-    { deep: true }
+  () => ({ isEditOpen: isEditOpen.value, editUserId: editUserId.value, users: users.value }),
+  ({ isEditOpen: open }) => {
+    if (!open) return;
+    if (!editUserId.value) return;
+    const selected = users.value.find((a) => String(a.id) === String(editUserId.value));
+    if (!selected) return;
+    editName.value = selected.name;
+    editEmail.value = selected.email;
+    editRole.value = selected.role;
+    editPassword.value = '';
+    editPasswordConfirm.value = '';
+  },
+  { deep: true }
 );
 
 onMounted(load);
 </script>
+
+<style scoped>
+.app-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--aq-border);
+  background: var(--aq-surface-2);
+  color: var(--aq-fg);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.app-input::placeholder {
+  color: var(--aq-muted);
+}
+
+.app-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--aq-primary) 50%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--aq-primary) 10%, transparent);
+}
+</style>

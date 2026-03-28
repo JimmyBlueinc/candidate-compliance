@@ -1,238 +1,288 @@
 <template>
-  <div class="space-y-8">
-    <UiPageHeader title="Facilities" subtitle="Create facilities and provision facility users.">
+  <div class="space-y-6">
+    <!-- Page Header -->
+    <AppPageHeader title="Facilities" subtitle="Manage facilities and provision facility users.">
       <template #actions>
-        <Button label="Reload" icon="pi pi-refresh" severity="secondary" outlined size="small" @click="load" />
+        <AppButton variant="secondary" size="sm" @click="load">
+          <RefreshCw class="w-4 h-4" />
+          Refresh
+        </AppButton>
       </template>
-    </UiPageHeader>
+    </AppPageHeader>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <UiStatCard title="Total Facilities" :value="facilities.length">
-        <template #icon><Building2 class="w-3.5 h-3.5" /></template>
-      </UiStatCard>
-      <UiStatCard title="Total Users" :value="totalFacilityUsers">
-        <template #icon><Users class="w-3.5 h-3.5" /></template>
-      </UiStatCard>
-      <UiStatCard title="Active Facilities" :value="facilities.length">
-        <template #icon><Building2 class="w-3.5 h-3.5" /></template>
-      </UiStatCard>
-      <UiStatCard title="Growth" value="+12%" :trend="12">
-        <template #icon><Activity class="w-3.5 h-3.5" /></template>
-      </UiStatCard>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <AppStatCard label="Total Facilities" :value="facilities.length" :icon="Building2" />
+      <AppStatCard label="Total Users" :value="totalFacilityUsers" :icon="Users" />
+      <AppStatCard label="Active Facilities" :value="activeFacilitiesCount" :icon="Building2" />
+      <AppStatCard label="Growth" value="+12%" :trend="12" :icon="TrendingUp" />
     </div>
 
-    <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
+    <!-- Error Message -->
+    <div v-if="error" class="px-4 py-3 rounded-[var(--radius-lg)] bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
+      {{ error }}
+    </div>
 
-    <UiCard title="New Facility">
-      <p class="text-sm text-[color:var(--aq-muted)] mb-6">Add a facility to your organization.</p>
-
-      <form class="space-y-3" @submit.prevent="createFacility">
+    <!-- New Facility Form -->
+    <AppCard title="New Facility" subtitle="Add a facility to your organization.">
+      <form class="space-y-6" @submit.prevent="createFacility">
+        <!-- Basic Info -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Name</label>
-            <InputText v-model="facilityName" class="w-full" required size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Name</label>
+            <input v-model="facilityName" type="text" class="app-input" required placeholder="Facility name" />
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Address</label>
-            <InputText v-model="facilityAddress" class="w-full" size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Address</label>
+            <input v-model="facilityAddress" type="text" class="app-input" placeholder="Street address" />
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">City</label>
-            <InputText v-model="facilityCity" class="w-full" size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">City</label>
+            <input v-model="facilityCity" type="text" class="app-input" placeholder="City" />
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">State</label>
-            <InputText v-model="facilityState" class="w-full" size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">State</label>
+            <input v-model="facilityState" type="text" class="app-input" placeholder="State" />
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Country</label>
-            <InputText v-model="facilityCountry" class="w-full" size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Country</label>
+            <input v-model="facilityCountry" type="text" class="app-input" placeholder="Country" />
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Postal Code</label>
-            <InputText v-model="facilityPostalCode" class="w-full" size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Postal Code</label>
+            <input v-model="facilityPostalCode" type="text" class="app-input" placeholder="Postal code" />
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Contact Email</label>
-            <InputText v-model="facilityContactEmail" class="w-full" size="small" type="email" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Contact Phone</label>
-            <InputText v-model="facilityContactPhone" class="w-full" size="small" />
-          </div>
-          <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Contact Person Name</label>
-            <InputText v-model="facilityContactPersonName" class="w-full" size="small" />
-          </div>
-          <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Timezone</label>
-            <Dropdown v-model="facilityTimezone" :options="timezoneOptions" optionLabel="label" optionValue="value" class="w-full" filter size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Timezone</label>
+            <select v-model="facilityTimezone" class="app-input">
+              <option value="">Select timezone</option>
+              <option v-for="tz in timezoneOptions" :key="tz.value" :value="tz.value">{{ tz.label }}</option>
+            </select>
           </div>
         </div>
 
+        <!-- Contact Info -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Facility Type</label>
-            <Dropdown v-model="facilityType" :options="facilityTypeOptions" optionLabel="label" optionValue="value" class="w-full" size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contact Person</label>
+            <input v-model="facilityContactPersonName" type="text" class="app-input" placeholder="Contact name" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contact Email</label>
+            <input v-model="facilityContactEmail" type="email" class="app-input" placeholder="email@example.com" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contact Phone</label>
+            <input v-model="facilityContactPhone" type="tel" class="app-input" placeholder="+1 (555) 000-0000" />
+          </div>
+        </div>
+
+        <!-- Facility Type -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Facility Type</label>
+            <select v-model="facilityType" class="app-input">
+              <option value="">Select type</option>
+              <option v-for="ft in facilityTypeOptions" :key="ft.value" :value="ft.value">{{ ft.label }}</option>
+            </select>
           </div>
           <div v-if="facilityType === 'Other'" class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Other Facility Type</label>
-            <InputText v-model="facilityTypeOther" class="w-full" size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Specify Type</label>
+            <input v-model="facilityTypeOther" type="text" class="app-input" placeholder="Enter facility type" />
           </div>
         </div>
 
-        <div>
-          <Button :loading="creatingFacility" type="submit" label="Create Facility" size="small" />
+        <div class="pt-2">
+          <AppButton type="submit" :loading="creatingFacility">
+            <Plus class="w-4 h-4" />
+            Create Facility
+          </AppButton>
         </div>
       </form>
-    </UiCard>
+    </AppCard>
 
-    <UiCard title="Facility List">
-      <template #header>
-        <div class="flex items-center gap-2">
-          <Button v-if="facilities.length > 0" label="Create Facility User" size="small" @click="openCreateFacilityUser" />
-          <Button label="Refresh" size="small" severity="secondary" outlined @click="load" />
-        </div>
+    <!-- Facilities Table -->
+    <AppCard title="Facilities" subtitle="All registered facilities in your organization.">
+      <template #actions>
+        <AppButton v-if="facilities.length > 0" size="sm" @click="openCreateFacilityUser">
+          <UserPlus class="w-4 h-4" />
+          Create Facility User
+        </AppButton>
       </template>
 
-      <DataTable :value="facilities" :loading="loading" dataKey="id" stripedRows responsiveLayout="scroll" size="small">
-        <Column field="name" header="Facility">
-          <template #body="{ data }">
-            <button type="button" class="flex flex-col text-left" @click="openFacilityDetails(data)">
-              <span class="font-semibold text-primary hover:underline">{{ data.name }}</span>
-              <span class="text-xs text-[color:var(--aq-muted)]">{{ [data.address, data.city, data.state, data.postal_code, data.country].filter(Boolean).join(', ') || '—' }}</span>
-            </button>
-          </template>
-        </Column>
-        <Column header="Type">
-          <template #body="{ data }">
-            <span class="text-sm">{{ (data.facility_type === 'Other' ? (data.facility_type_other || 'Other') : (data.facility_type || '—')) }}</span>
-          </template>
-        </Column>
-        <Column header="Timezone">
-          <template #body="{ data }">
-            <span class="text-sm">{{ data.timezone || '—' }}</span>
-          </template>
-        </Column>
-        <Column header="Contact">
-          <template #body="{ data }">
-            <div class="flex flex-col">
-              <span class="text-sm font-medium">{{ data.contact_person_name || '—' }}</span>
-              <span class="text-xs text-[color:var(--aq-muted)]">{{ data.contact_email || '—' }}</span>
-              <span class="text-[10px] text-[color:var(--aq-muted)] font-mono">{{ data.contact_phone || '—' }}</span>
-            </div>
-          </template>
-        </Column>
-        <Column field="users_count" header="Users" style="width: 1%; white-space: nowrap" />
+      <div v-if="loading" class="py-8">
+        <div class="space-y-3">
+          <AppSkeleton v-for="i in 5" :key="i" variant="text" />
+        </div>
+      </div>
 
-        <template #empty>
-          <div class="py-12 text-center text-[color:var(--aq-muted)]">No facilities yet</div>
-        </template>
-      </DataTable>
-    </UiCard>
+      <AppEmpty
+        v-else-if="facilities.length === 0"
+        title="No facilities yet"
+        description="Create your first facility using the form above."
+        :icon="Building2"
+      />
 
-    <Dialog v-model:visible="createUserOpen" modal header="Create Facility User" :style="{ width: 'min(900px, 95vw)' }">
+      <div v-else class="overflow-x-auto -mx-6">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-[color:var(--aq-border)]">
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Facility</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Type</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Timezone</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contact</th>
+              <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Users</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[color:var(--aq-border)]">
+            <tr
+              v-for="facility in facilities"
+              :key="facility.id"
+              class="hover:bg-[color:var(--aq-surface-2)] transition-colors cursor-pointer"
+              @click="openFacilityDetails(facility)"
+            >
+              <td class="px-6 py-4">
+                <div class="font-semibold text-[color:var(--aq-fg)]">{{ facility.name }}</div>
+                <div class="text-xs text-[color:var(--aq-muted)] mt-0.5">
+                  {{ [facility.address, facility.city, facility.state, facility.postal_code, facility.country].filter(Boolean).join(', ') || 'No address' }}
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <AppBadge variant="default" size="sm">
+                  {{ facility.facility_type === 'Other' ? (facility.facility_type_other || 'Other') : (facility.facility_type || '—') }}
+                </AppBadge>
+              </td>
+              <td class="px-6 py-4 text-sm text-[color:var(--aq-muted)]">
+                {{ facility.timezone || '—' }}
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm font-medium text-[color:var(--aq-fg)]">{{ facility.contact_person_name || '—' }}</div>
+                <div class="text-xs text-[color:var(--aq-muted)]">{{ facility.contact_email || '—' }}</div>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[color:var(--aq-primary)]/10 text-sm font-semibold text-[color:var(--aq-primary)]">
+                  {{ facility.users_count || 0 }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </AppCard>
+
+    <!-- Create Facility User Modal -->
+    <AppModal v-model="createUserOpen" title="Create Facility User" subtitle="Add a new user to a facility.">
       <form class="space-y-4" @submit.prevent="submitFacilityUser">
+        <div class="space-y-2">
+          <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Facility</label>
+          <select v-model="selectedFacilityId" class="app-input">
+            <option value="">Select facility</option>
+            <option v-for="f in facilityOptions" :key="f.value" :value="f.value">{{ f.label }}</option>
+          </select>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Facility</label>
-            <Dropdown v-model="selectedFacilityId" :options="facilityOptions" optionLabel="label" optionValue="value" class="w-full" filter size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Name</label>
+            <input v-model="newUserName" type="text" class="app-input" required placeholder="Full name" />
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Name</label>
-            <InputText v-model="newUserName" class="w-full" required size="small" />
+            <label class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Email</label>
+            <input v-model="newUserEmail" type="email" class="app-input" required placeholder="email@example.com" />
           </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Email</label>
-            <InputText v-model="newUserEmail" type="email" class="w-full" required size="small" />
-          </div>
-          <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Role</label>
-            <Dropdown v-model="newUserRole" :options="[{ label: 'Facility', value: 'facility' }]" optionLabel="label" optionValue="value" class="w-full" size="small" />
-          </div>
-        </div>
-
-        <div class="flex gap-2 justify-end pt-2">
-          <Button type="button" label="Cancel" severity="secondary" outlined size="small" @click="createUserOpen = false" />
-          <Button type="submit" label="Create" :loading="creatingUser" size="small" />
         </div>
       </form>
-    </Dialog>
+      <template #footer>
+        <div class="flex items-center gap-3 justify-end">
+          <AppButton variant="ghost" @click="createUserOpen = false">Cancel</AppButton>
+          <AppButton :loading="creatingUser" @click="submitFacilityUser">Create User</AppButton>
+        </div>
+      </template>
+    </AppModal>
 
-    <Dialog v-model:visible="credentialsDialogOpen" modal header="Facility Login Details" :style="{ width: 'min(700px, 95vw)' }">
-      <div class="space-y-3">
-        <div class="rounded-2xl border border-[color:var(--p-surface-border)] p-3">
-          <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Email</div>
-          <div class="mt-1 font-semibold break-all">{{ createdCredentials?.email }}</div>
-        </div>
-        <div class="rounded-2xl border border-[color:var(--p-surface-border)] p-3">
-          <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Temporary Password</div>
-          <div class="mt-1 font-mono break-all">{{ createdCredentials?.tempPassword }}</div>
-        </div>
-
-        <div v-if="createdCredentials?.emailSent === true" class="text-xs text-emerald-600">
-          Email sent.
-        </div>
-        <div v-else-if="createdCredentials?.emailSent === false" class="text-xs text-amber-600">
-          Email not sent. Use test login details above.
-        </div>
-
-        <div class="text-xs text-[color:var(--p-text-muted-color)]">
-          These credentials are only shown once. Copy them now.
-        </div>
-
-        <div class="flex gap-2 justify-end">
-          <Button type="button" label="Copy" size="small" @click="copyCredentials" />
-          <Button type="button" label="Done" severity="secondary" outlined size="small" @click="credentialsDialogOpen = false" />
-        </div>
-      </div>
-    </Dialog>
-
-    <Dialog v-model:visible="facilityDetailsOpen" modal header="Facility Details" :style="{ width: 'min(900px, 95vw)' }">
+    <!-- Credentials Modal -->
+    <AppModal v-model="credentialsDialogOpen" title="Facility Login Details" subtitle="Save these credentials securely.">
       <div class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="rounded-2xl border border-[color:var(--p-surface-border)] p-3">
-            <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Name</div>
-            <div class="mt-1 font-semibold">{{ selectedFacility?.name || '—' }}</div>
-          </div>
-          <div class="rounded-2xl border border-[color:var(--p-surface-border)] p-3">
-            <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Type</div>
-            <div class="mt-1 font-semibold">{{ (selectedFacility?.facility_type === 'Other' ? (selectedFacility?.facility_type_other || 'Other') : (selectedFacility?.facility_type || '—')) }}</div>
-          </div>
-          <div class="rounded-2xl border border-[color:var(--p-surface-border)] p-3">
-            <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Address</div>
-            <div class="mt-1 font-semibold">{{ [selectedFacility?.address, selectedFacility?.city, selectedFacility?.state, selectedFacility?.postal_code, selectedFacility?.country].filter(Boolean).join(', ') || '—' }}</div>
-          </div>
-          <div class="rounded-2xl border border-[color:var(--p-surface-border)] p-3">
-            <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Timezone</div>
-            <div class="mt-1 font-semibold">{{ selectedFacility?.timezone || '—' }}</div>
-          </div>
-          <div class="rounded-2xl border border-[color:var(--p-surface-border)] p-3">
-            <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Contact Person</div>
-            <div class="mt-1 font-semibold">{{ selectedFacility?.contact_person_name || '—' }}</div>
-          </div>
-          <div class="rounded-2xl border border-[color:var(--p-surface-border)] p-3">
-            <div class="text-[10px] uppercase tracking-[0.25em] text-[color:var(--p-text-muted-color)] font-black">Contact</div>
-            <div class="mt-1 font-semibold break-all">{{ selectedFacility?.contact_email || '—' }}</div>
-            <div class="text-xs text-[color:var(--p-text-muted-color)]">{{ selectedFacility?.contact_phone || '—' }}</div>
-          </div>
+        <div class="p-4 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)]">
+          <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-1">Email</div>
+          <div class="font-mono text-[color:var(--aq-fg)] break-all">{{ createdCredentials?.email }}</div>
+        </div>
+        <div class="p-4 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)]">
+          <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-1">Temporary Password</div>
+          <div class="font-mono text-[color:var(--aq-fg)] break-all">{{ createdCredentials?.tempPassword }}</div>
         </div>
 
-        <div class="flex gap-2 justify-end">
-          <Button type="button" label="Create Facility User" size="small" @click="openCreateFacilityUserFromDetails" />
-          <Button type="button" label="Close" severity="secondary" outlined size="small" @click="facilityDetailsOpen = false" />
+        <div v-if="createdCredentials?.emailSent === true" class="flex items-center gap-2 text-sm text-emerald-400">
+          <CheckCircle class="w-4 h-4" />
+          Email sent to user.
+        </div>
+        <div v-else-if="createdCredentials?.emailSent === false" class="flex items-center gap-2 text-sm text-amber-400">
+          <AlertCircle class="w-4 h-4" />
+          Email not sent. Use the credentials above.
+        </div>
+
+        <p class="text-xs text-[color:var(--aq-muted)]">
+          These credentials are only shown once. Copy them now.
+        </p>
+      </div>
+      <template #footer>
+        <div class="flex items-center gap-3 justify-end">
+          <AppButton variant="secondary" @click="copyCredentials">
+            <Copy class="w-4 h-4" />
+            Copy
+          </AppButton>
+          <AppButton variant="ghost" @click="credentialsDialogOpen = false">Done</AppButton>
+        </div>
+      </template>
+    </AppModal>
+
+    <!-- Facility Details Modal -->
+    <AppModal v-model="facilityDetailsOpen" title="Facility Details" size="lg">
+      <div v-if="selectedFacility" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)]">
+            <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-1">Name</div>
+            <div class="font-semibold text-[color:var(--aq-fg)]">{{ selectedFacility.name || '—' }}</div>
+          </div>
+          <div class="p-4 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)]">
+            <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-1">Type</div>
+            <div class="font-semibold text-[color:var(--aq-fg)]">
+              {{ selectedFacility.facility_type === 'Other' ? (selectedFacility.facility_type_other || 'Other') : (selectedFacility.facility_type || '—') }}
+            </div>
+          </div>
+          <div class="p-4 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)]">
+            <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-1">Address</div>
+            <div class="font-semibold text-[color:var(--aq-fg)]">
+              {{ [selectedFacility.address, selectedFacility.city, selectedFacility.state, selectedFacility.postal_code, selectedFacility.country].filter(Boolean).join(', ') || '—' }}
+            </div>
+          </div>
+          <div class="p-4 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)]">
+            <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-1">Timezone</div>
+            <div class="font-semibold text-[color:var(--aq-fg)]">{{ selectedFacility.timezone || '—' }}</div>
+          </div>
+          <div class="p-4 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)]">
+            <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-1">Contact Person</div>
+            <div class="font-semibold text-[color:var(--aq-fg)]">{{ selectedFacility.contact_person_name || '—' }}</div>
+          </div>
+          <div class="p-4 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)]">
+            <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-1">Contact</div>
+            <div class="font-semibold text-[color:var(--aq-fg)]">{{ selectedFacility.contact_email || '—' }}</div>
+            <div class="text-xs text-[color:var(--aq-muted)] mt-1">{{ selectedFacility.contact_phone || '—' }}</div>
+          </div>
         </div>
       </div>
-    </Dialog>
+      <template #footer>
+        <div class="flex items-center gap-3 justify-end">
+          <AppButton @click="openCreateFacilityUserFromDetails">
+            <UserPlus class="w-4 h-4" />
+            Create Facility User
+          </AppButton>
+          <AppButton variant="ghost" @click="facilityDetailsOpen = false">Close</AppButton>
+        </div>
+      </template>
+    </AppModal>
   </div>
 </template>
 
@@ -240,17 +290,15 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiGet, apiPost } from '../../lib/api';
-import UiCard from '../../components/ui/UiCard.vue';
-import UiStatCard from '../../components/ui/UiStatCard.vue';
-import UiPageHeader from '../../components/ui/UiPageHeader.vue';
-import { Building2, Users, Activity } from 'lucide-vue-next';
-import Column from 'primevue/column';
-import DataTable from 'primevue/datatable';
-import Dialog from 'primevue/dialog';
-import Dropdown from 'primevue/dropdown';
-import InputText from 'primevue/inputtext';
-import Message from 'primevue/message';
-import Button from 'primevue/button';
+import { Building2, Users, TrendingUp, Plus, UserPlus, RefreshCw, CheckCircle, AlertCircle, Copy } from 'lucide-vue-next';
+import AppCard from '../../components/ui/AppCard.vue';
+import AppStatCard from '../../components/ui/AppStatCard.vue';
+import AppPageHeader from '../../components/ui/AppPageHeader.vue';
+import AppButton from '../../components/ui/AppButton.vue';
+import AppBadge from '../../components/ui/AppBadge.vue';
+import AppModal from '../../components/ui/AppModal.vue';
+import AppEmpty from '../../components/ui/AppEmpty.vue';
+import AppSkeleton from '../../components/ui/AppSkeleton.vue';
 
 const router = useRouter();
 
@@ -317,6 +365,10 @@ const totalFacilityUsers = computed(() => {
   return facilities.value.reduce((acc, f) => acc + Number(f.users_count || 0), 0);
 });
 
+const activeFacilitiesCount = computed(() => {
+  return facilities.value.length;
+});
+
 async function load() {
   loading.value = true;
   error.value = '';
@@ -357,6 +409,7 @@ async function createFacility() {
 
     const created = res?.data?.facility || res?.facility || null;
 
+    // Reset form
     facilityName.value = '';
     facilityAddress.value = '';
     facilityCity.value = '';
@@ -388,11 +441,8 @@ async function createFacility() {
 }
 
 function openFacilityDetails(facility) {
-  // Navigate to facility detail workspace
-  router.push({ 
-    name: 'dashboard.facilities.detail', 
-    params: { id: facility.id } 
-  });
+  selectedFacility.value = facility;
+  facilityDetailsOpen.value = true;
 }
 
 function openCreateFacilityUserFromDetails() {
@@ -461,3 +511,26 @@ async function copyCredentials() {
 
 onMounted(load);
 </script>
+
+<style scoped>
+.app-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--aq-border);
+  background: var(--aq-surface-2);
+  color: var(--aq-fg);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.app-input::placeholder {
+  color: var(--aq-muted);
+}
+
+.app-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--aq-primary) 50%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--aq-primary) 10%, transparent);
+}
+</style>

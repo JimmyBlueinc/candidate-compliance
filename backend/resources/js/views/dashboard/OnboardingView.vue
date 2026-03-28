@@ -345,14 +345,11 @@ function onLogoSelected() {
 }
 
 async function loadStatus() {
-  console.log('[ONBOARDING] loadStatus START');
   errorMessage.value = null;
 
   let res;
   try {
-    console.log('[ONBOARDING] calling /api/v1/onboarding/status');
     res = await getHttp().get('/api/v1/onboarding/status');
-    console.log('[ONBOARDING] status response:', res?.data);
   } catch (e) {
     const status = e?.response?.status;
     if (status === 401 || status === 403) {
@@ -436,8 +433,6 @@ async function saveBranding() {
       fd.append('logo', file);
     }
 
-    console.log('[ONBOARDING BRANDING] FormData entries:', [...fd.entries()].map(([k, v]) => [k, v instanceof File ? v.name : v]));
-
     const res = await getHttp().post('/api/v1/onboarding/branding', fd);
 
     // API response is wrapped: { data: { tenant_id, name, logo_url, ... }, message: "..." }
@@ -470,7 +465,6 @@ async function completeOnboarding() {
     // Redirect to the organization subdomain if available
     const subdomainUrl = data?.redirect_url;
     if (subdomainUrl) {
-      console.log('[ONBOARDING] Complete - redirecting to subdomain:', subdomainUrl);
       window.location.href = subdomainUrl + '/dashboard';
     } else {
       // Fallback: stay on current host
@@ -489,9 +483,7 @@ async function logout() {
 }
 
 onMounted(async () => {
-  console.log('[ONBOARDING] onMounted START');
   await loadStatus();
-  console.log('[ONBOARDING] loadStatus COMPLETE, step:', step.value);
 
   if (!subdomain.value) {
     availability.value = null;

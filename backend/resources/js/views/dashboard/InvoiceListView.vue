@@ -1,93 +1,82 @@
 <template>
   <div class="space-y-6">
-    <div class="glass-dark rounded-[32px] p-8 border border-white/5">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <h2 class="font-display text-2xl text-white">Invoices</h2>
-          <p class="text-sm text-[color:var(--p-text-muted-color)] mt-1">Invoice tracking by week and facility.</p>
-        </div>
-        <button
-          type="button"
-          class="px-3 py-1.5 rounded-full text-xs font-bold border transition-colors"
-          :style="{ backgroundColor: primarySoftBg, borderColor: primarySoftBorder, color: primaryColor }"
-          @click="load"
-        >
+    <!-- Page Header -->
+    <AppPageHeader title="Invoices" subtitle="Invoice tracking by week and facility.">
+      <template #actions>
+        <AppButton variant="secondary" size="sm" @click="load">
+          <RefreshCw class="w-4 h-4" />
           Refresh
-        </button>
-      </div>
+        </AppButton>
+      </template>
+    </AppPageHeader>
 
-      <div v-if="error" class="mt-6 text-sm text-red-400">{{ error }}</div>
-
-      <div class="mt-6">
-        <DataTable
-          :value="rows"
-          :loading="loading"
-          dataKey="id"
-          stripedRows
-          responsiveLayout="scroll"
-          size="small"
-        >
-          <Column header="Invoice #">
-            <template #body="{ data }">
-              <RouterLink 
-                :to="{ name: 'dashboard.invoice_detail', params: { id: data.id } }"
-                class="font-medium text-primary hover:underline"
-              >
-                {{ invoiceNumber(data) }}
-              </RouterLink>
-            </template>
-          </Column>
-
-          <Column header="Facility">
-            <template #body="{ data }">
-              <span class="text-slate-200">{{ data.facility_name || '—' }}</span>
-            </template>
-          </Column>
-
-          <Column header="Week">
-            <template #body="{ data }">
-              <span class="text-slate-200">{{ weekLabel(data) }}</span>
-            </template>
-          </Column>
-
-          <Column header="Total">
-            <template #body="{ data }">
-              <span class="text-slate-200">{{ money(data.total_amount) }}</span>
-            </template>
-          </Column>
-
-          <Column header="Paid">
-            <template #body="{ data }">
-              <span class="text-slate-200">{{ money(amountPaid(data)) }}</span>
-            </template>
-          </Column>
-
-          <Column header="Balance">
-            <template #body="{ data }">
-              <span class="font-semibold" :style="{ color: balanceColor(balanceDue(data)) }">{{ money(balanceDue(data)) }}</span>
-            </template>
-          </Column>
-
-          <Column header="Status">
-            <template #body="{ data }">
-              <Tag :value="String(data.status || 'unknown')" :severity="statusSeverity(data.status)" />
-            </template>
-          </Column>
-
-          <Column header="">
-            <template #body="{ data }">
-              <Button
-                label="Record Payment"
-                size="small"
-                severity="secondary"
-                outlined
-                @click="openRecordPayment(data)"
-              />
-            </template>
-          </Column>
-        </DataTable>
-      </div>
+    <!-- Error Message -->
+    <div v-if="error" class="px-4 py-3 rounded-[var(--radius-lg)] bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
+      {{ error }}
     </div>
+
+    <!-- Invoices Table -->
+    <AppCard title="Invoice List" subtitle="All invoices organized by billing period.">
+      <div v-if="loading" class="py-8">
+        <div class="space-y-3">
+          <AppSkeleton v-for="i in 5" :key="i" variant="text" />
+        </div>
+      </div>
+
+      <AppEmpty
+        v-else-if="rows.length === 0"
+        title="No invoices"
+        description="Invoices will appear here once generated."
+        :icon="FileText"
+      />
+
+      <div v-else class="overflow-x-auto -mx-6">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-[color:var(--aq-border)]">
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Invoice #</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Facility</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Week</th>
+              <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Total</th>
+              <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Paid</th>
+              <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Balance</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Status</th>
+              <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[color:var(--aq-border)]">
+            <tr v-for="row in rows" :key="row.id" class="hover:bg-[color:var(--aq-surface-2)]/50 transition-colors">
+              <td class="px-6 py-4">
+                <RouterLink
+                  :to="{ name: 'dashboard.invoice_detail', params: { id: row.id } }"
+                  class="font-semibold text-[color:var(--aq-primary)] hover:underline"
+                >
+                  {{ invoiceNumber(row) }}
+                </RouterLink>
+              </td>
+              <td class="px-6 py-4 text-sm text-[color:var(--aq-muted)]">{{ row.facility_name || '—' }}</td>
+              <td class="px-6 py-4 text-sm text-[color:var(--aq-muted)]">{{ weekLabel(row) }}</td>
+              <td class="px-6 py-4 text-right text-sm text-[color:var(--aq-muted)]">{{ money(row.total_amount) }}</td>
+              <td class="px-6 py-4 text-right text-sm text-[color:var(--aq-muted)]">{{ money(amountPaid(row)) }}</td>
+              <td class="px-6 py-4 text-right font-semibold" :style="{ color: balanceColor(balanceDue(row)) }">
+                {{ money(balanceDue(row)) }}
+              </td>
+              <td class="px-6 py-4">
+                <AppBadge :variant="statusVariant(row.status)" size="sm">
+                  {{ row.status || 'unknown' }}
+                </AppBadge>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <AppButton variant="ghost" size="sm" @click="openRecordPayment(row)">
+                  <CreditCard class="w-4 h-4" />
+                  Payment
+                </AppButton>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </AppCard>
 
     <RecordPaymentModal
       :isOpen="isPaymentModalOpen"
@@ -102,17 +91,18 @@
 import { computed, onMounted, ref } from 'vue';
 import { apiGet, normalizeApiList } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
+import { RefreshCw, FileText, CreditCard } from 'lucide-vue-next';
+import AppPageHeader from '../../components/ui/AppPageHeader.vue';
+import AppCard from '../../components/ui/AppCard.vue';
+import AppButton from '../../components/ui/AppButton.vue';
+import AppBadge from '../../components/ui/AppBadge.vue';
+import AppEmpty from '../../components/ui/AppEmpty.vue';
+import AppSkeleton from '../../components/ui/AppSkeleton.vue';
 import RecordPaymentModal from '../../components/dashboard/RecordPaymentModal.vue';
-import Button from 'primevue/button';
-import Column from 'primevue/column';
-import DataTable from 'primevue/datatable';
-import Tag from 'primevue/tag';
 
 const brand = useBrandStore();
 
-const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
-const primarySoftBg = computed(() => `color-mix(in srgb, ${primaryColor.value} 14%, transparent)`);
-const primarySoftBorder = computed(() => `color-mix(in srgb, ${primaryColor.value} 28%, transparent)`);
+const primaryColor = computed(() => brand.primaryColor || 'var(--aq-primary)');
 
 const rows = ref([]);
 const loading = ref(false);
@@ -169,17 +159,17 @@ function balanceDue(row) {
 
 function balanceColor(v) {
   const n = Number(v || 0);
-  if (n <= 0) return 'rgb(34, 197, 94)';
-  return 'rgb(239, 68, 68)';
+  if (n <= 0) return 'rgb(52, 211, 153)';
+  return 'rgb(251, 113, 133)';
 }
 
-function statusSeverity(status) {
+function statusVariant(status) {
   const s = String(status || '').toLowerCase();
   if (s === 'paid') return 'success';
   if (s === 'issued') return 'info';
   if (s === 'draft') return 'warning';
   if (s === 'cancelled' || s === 'canceled') return 'danger';
-  return 'secondary';
+  return 'default';
 }
 
 async function load() {

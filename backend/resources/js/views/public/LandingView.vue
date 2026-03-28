@@ -356,8 +356,6 @@ function onScroll() {
 
 // Handle Login click - redirect authenticated org users to tenant dashboard
 function handleLoginClick() {
-    console.log('[LANDING] Login clicked, auth.isAuthenticated:', auth.isAuthenticated);
-    
     if (auth.isAuthenticated) {
         // Initialize brand from storage if needed
         if (!brand.loaded) {
@@ -365,12 +363,10 @@ function handleLoginClick() {
         }
         
         const isOrgUser = !['candidate', 'facility', 'platform_admin'].includes(auth.user?.role);
-        console.log('[LANDING] brand.subdomain:', brand.subdomain, 'isOrgUser:', isOrgUser);
         
         if (brand.subdomain && isOrgUser) {
             // Redirect to tenant dashboard
             const tenantUrl = `https://${brand.subdomain}.agenchq.com/dashboard`;
-            console.log('[LANDING] Redirecting authenticated org user to tenant dashboard:', tenantUrl);
             window.location.href = tenantUrl;
             return;
         }

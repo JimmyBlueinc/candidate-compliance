@@ -1,32 +1,41 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-[var(--app-bg)] text-[var(--app-fg)]">
+  <div class="app-shell flex h-screen overflow-hidden bg-[color:var(--aq-bg)] text-[color:var(--aq-fg)]">
     <PremiumSidebar />
 
-    <main class="flex-1 overflow-y-auto relative flex flex-col">
+    <main class="app-main flex-1 overflow-y-auto relative flex flex-col min-w-0">
+      <!-- System Banner & Modals -->
       <SystemBanner />
       <ForcePasswordChangeModal />
 
-      <div class="aq-container">
-        <DashboardHeader :title="pageTitle" />
+      <!-- Page Header -->
+      <header class="app-header shrink-0 px-6 pt-6 pb-4">
+        <div class="max-w-[1400px] mx-auto">
+          <DashboardHeader :title="pageTitle" />
 
-        <div
-        v-if="showProfileNudge"
-        class="mt-3 px-3 py-2 rounded-lg border border-amber-200/50 bg-amber-50/50 dark:border-amber-500/20 dark:bg-amber-500/10 flex items-center gap-2"
-      >
-        <span class="material-symbols-outlined text-amber-600 text-sm">info</span>
-        <span class="text-xs text-amber-700 dark:text-amber-300">Complete your profile to help your team contact you faster.</span>
-        <button
-          type="button"
-          class="ml-auto text-[10px] font-semibold text-amber-700 dark:text-amber-300 hover:underline"
-          @click="goToProfile"
-        >
-          Complete
-        </button>
-      </div>
-      </div>
+          <!-- Profile Completion Nudge -->
+          <div
+            v-if="showProfileNudge"
+            class="mt-4 px-4 py-3 rounded-[var(--radius-lg)] border flex items-center gap-3"
+            :class="[
+              'bg-amber-500/10 border-amber-500/20'
+            ]"
+          >
+            <AlertCircle class="w-4 h-4 text-amber-400 shrink-0" />
+            <span class="text-sm text-amber-300">Complete your profile to help your team contact you faster.</span>
+            <button
+              type="button"
+              class="ml-auto text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors"
+              @click="goToProfile"
+            >
+              Complete Now
+            </button>
+          </div>
+        </div>
+      </header>
 
-      <div class="flex-1 aq-page">
-        <div class="aq-container">
+      <!-- Main Content -->
+      <div class="app-content flex-1 min-h-0 px-6 pb-6">
+        <div class="max-w-[1400px] mx-auto h-full">
           <RouterView />
         </div>
       </div>
@@ -36,15 +45,15 @@
 
 <script setup>
 import { computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useBrandStore } from '../../stores/brand';
+import { useAuthStore } from '../../stores/auth';
+import { useUiStore } from '../../stores/ui';
+import { AlertCircle } from 'lucide-vue-next';
 import DashboardHeader from '../dashboard/DashboardHeader.vue';
 import SystemBanner from '../SystemBanner.vue';
 import PremiumSidebar from '../ui/PremiumSidebar.vue';
 import ForcePasswordChangeModal from '../auth/ForcePasswordChangeModal.vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '../../stores/auth';
-import { useUiStore } from '../../stores/ui';
 
 const route = useRoute();
 const router = useRouter();
@@ -53,78 +62,83 @@ const auth = useAuthStore();
 const ui = useUiStore();
 
 const missingProfileFields = computed(() => {
-    const u = auth.user;
-    if (!u) return [];
+  const u = auth.user;
+  if (!u) return [];
 
-    const missing = [];
-    if (!String(u.phone || '').trim()) missing.push('phone');
-    if (!String(u.address || '').trim()) missing.push('address');
-    if (!String(u.job_title || '').trim()) missing.push('job_title');
-    if (!String(u.department || '').trim()) missing.push('department');
-    return missing;
+  const missing = [];
+  if (!String(u.phone || '').trim()) missing.push('phone');
+  if (!String(u.address || '').trim()) missing.push('address');
+  if (!String(u.job_title || '').trim()) missing.push('job_title');
+  if (!String(u.department || '').trim()) missing.push('department');
+  return missing;
 });
 
 const showProfileNudge = computed(() => {
-    const u = auth.user;
-    if (!u) return false;
-    if ((u.role || '') === 'candidate') return false;
-    if (String(route.name || '') === 'dashboard.profile') return false;
-    return missingProfileFields.value.length > 0;
+  const u = auth.user;
+  if (!u) return false;
+  if ((u.role || '') === 'candidate') return false;
+  if (String(route.name || '') === 'dashboard.profile') return false;
+  return missingProfileFields.value.length > 0;
 });
 
 function goToProfile() {
-    router.push({ name: 'dashboard.profile' });
+  router.push({ name: 'dashboard.profile' });
 }
 
 const pageTitle = computed(() => {
-    const name = String(route.name || '');
+  const name = String(route.name || '');
 
-    const titles = {
-        'dashboard.compliance': 'Compliance Hub',
-        'dashboard.credentials': 'Credentials',
-        'dashboard.personnel': 'Personnel Database',
-        'dashboard.pipeline': 'Credentialing Pipeline',
-        'dashboard.placements': 'Placements',
-        'dashboard.shifts': 'Shifts',
-        'dashboard.timesheets': 'Timesheets',
-        'dashboard.platform_organizations': 'Organizations',
-        'dashboard.org_users': 'Organization Users',
-        'dashboard.facilities': 'Facilities',
-        'dashboard.messages': 'Messages',
-        'dashboard.notifications': 'Notification Center',
-        'dashboard.admin_users': 'Platform Users',
-        'dashboard.finance': 'Financial Overview',
-        'dashboard.platform_health': 'Platform Health',
-        'dashboard.broadcast': 'Global Broadcast',
-        'dashboard.candidates': 'Candidates',
-        'dashboard.candidate_search': 'Candidate Search',
-        'dashboard.intake_feed': 'Intake Feed',
-        'dashboard.candidate_profile': 'Candidate Profile',
-        'dashboard.job_orders': 'Job Orders',
-        'dashboard.agency_settings': 'Agency Settings',
-        'dashboard.background_checks': 'Background Checks',
-        'dashboard.health_records': 'Health Records',
-        'dashboard.work_authorizations': 'Work Authorizations',
-        'dashboard.activity_logs': 'Activity Logs',
-        'dashboard.email_settings': 'Email Settings',
-        'dashboard.config': 'Configuration',
-        'dashboard.access': 'Access Controls',
-        'dashboard.templates': 'Document Templates',
-        'dashboard.filters': 'Saved Filters',
-        'dashboard.profile': 'Profile',
-        'dashboard.change_password': 'Change Password',
-        'facility.dashboard': 'Facility Dashboard',
-        'facility.workers': 'Workers',
-        'facility.shifts': 'Shifts',
-        'facility.timesheets': 'Timesheet Approvals',
-        'facility.invoices': 'Invoices',
-        'facility.invoice_detail': 'Invoice Details',
-    };
+  const titles = {
+    'dashboard.compliance': 'Compliance Hub',
+    'dashboard.credentials': 'Credentials',
+    'dashboard.personnel': 'Personnel Database',
+    'dashboard.pipeline': 'Credentialing Pipeline',
+    'dashboard.placements': 'Placements',
+    'dashboard.shifts': 'Shifts',
+    'dashboard.timesheets': 'Timesheets',
+    'dashboard.platform_organizations': 'Organizations',
+    'dashboard.org_users': 'Team Members',
+    'dashboard.facilities': 'Facilities',
+    'dashboard.messages': 'Messages',
+    'dashboard.notifications': 'Notifications',
+    'dashboard.admin_users': 'Platform Users',
+    'dashboard.finance': 'Financial Overview',
+    'dashboard.platform_health': 'System Health',
+    'dashboard.broadcast': 'Broadcast',
+    'dashboard.candidates': 'Candidates',
+    'dashboard.candidate_search': 'Candidate Search',
+    'dashboard.intake_feed': 'Intake Feed',
+    'dashboard.intake_external': 'External Sources',
+    'dashboard.candidate_profile': 'Candidate Profile',
+    'dashboard.job_orders': 'Job Orders',
+    'dashboard.job_sources': 'Job Sources',
+    'dashboard.agency_settings': 'Agency Settings',
+    'dashboard.background_checks': 'Background Checks',
+    'dashboard.health_records': 'Health Records',
+    'dashboard.work_authorizations': 'Work Authorizations',
+    'dashboard.activity_logs': 'Activity Logs',
+    'dashboard.email_settings': 'Email Settings',
+    'dashboard.config': 'Configuration',
+    'dashboard.access': 'Access Controls',
+    'dashboard.templates': 'Document Templates',
+    'dashboard.filters': 'Saved Filters',
+    'dashboard.profile': 'Profile',
+    'dashboard.change_password': 'Change Password',
+    'dashboard.invoices': 'Invoices',
+    'dashboard.invoice_detail': 'Invoice Details',
+    'dashboard.accounts_receivable': 'Accounts Receivable',
+    'facility.dashboard': 'Facility Dashboard',
+    'facility.workers': 'Workers',
+    'facility.shifts': 'Shifts',
+    'facility.timesheets': 'Timesheets',
+    'facility.invoices': 'Invoices',
+    'facility.invoice_detail': 'Invoice Details',
+  };
 
-    return titles[name] || 'Dashboard';
+  return titles[name] || 'Dashboard';
 });
 
 onMounted(async () => {
-    await brand.load();
+  await brand.load();
 });
 </script>

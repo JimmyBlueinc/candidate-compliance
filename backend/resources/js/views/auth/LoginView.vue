@@ -255,24 +255,18 @@ const errorMessage = computed(() => {
 });
 
 async function submit() {
-  console.log('[SUBMIT] START');
   try {
-    console.log('[SUBMIT] CALLING auth.login');
     await auth.login({
       email: email.value,
       password: password.value,
       rememberMe: rememberMe.value,
       tenantId: tenantId.value,
     });
-    console.log('[SUBMIT] auth.login RETURNED');
-    console.log('[SUBMIT] auth.user', auth.user);
-    console.log('[SUBMIT] auth.status', auth.status);
 
     // Load brand to get organization subdomain
     if (!brand.loaded && !brand.loading) {
       await brand.load();
     }
-    console.log('[SUBMIT] brand.subdomain:', brand.subdomain);
 
     // Check if we need to redirect to tenant subdomain
     const currentHost = window.location.hostname;
@@ -282,18 +276,13 @@ async function submit() {
     if (isOnApex && hasTenantSubdomain) {
       // Redirect to tenant subdomain
       const tenantUrl = `https://${brand.subdomain}.agenchq.com/dashboard`;
-      console.log('[SUBMIT] Redirecting to tenant subdomain:', tenantUrl);
       window.location.href = tenantUrl;
       return;
     }
 
     if (auth.user?.needs_onboarding) {
-      console.log('[SUBMIT] NAVIGATING to onboarding');
-      console.log('[SUBMIT] router.currentRoute.value:', router.currentRoute.value.fullPath);
       try {
-        const result = await router.push({ name: 'onboarding' });
-        console.log('[SUBMIT] router.push RESULT:', result);
-        console.log('[SUBMIT] NAVIGATED to onboarding');
+        await router.push({ name: 'onboarding' });
       } catch (navErr) {
         console.error('[SUBMIT] NAVIGATION ERROR:', navErr);
       }
@@ -301,25 +290,17 @@ async function submit() {
     }
 
     if (auth.user?.role === 'candidate') {
-      console.log('[SUBMIT] NAVIGATING to portal.dashboard');
       await router.push({ name: 'portal.dashboard' });
-      console.log('[SUBMIT] NAVIGATED to portal.dashboard');
       return;
     }
 
-    console.log('[SUBMIT] NAVIGATING to /dashboard');
     await router.push('/dashboard');
-    console.log('[SUBMIT] NAVIGATED to /dashboard');
   } catch (err) {
-    console.log('[SUBMIT] CATCH ERROR', err);
     console.error(err);
-  } finally {
-    console.log('[SUBMIT] FINALLY');
   }
 }
 
 onMounted(async () => {
-  console.log('LOGIN_BUILD_VERSION=aws-login-fix-002');
   if (!brand.loaded && !brand.loading) {
     await brand.load();
   }

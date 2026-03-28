@@ -78,16 +78,9 @@ async function submit() {
         password: password.value,
         password_confirmation: passwordConfirm.value,
     };
-    
-    console.log('[PASSWORD] submitting payload keys:', Object.keys(payload));
-    console.log('[PASSWORD] is forced change:', isForcedChange);
-    console.log('[PASSWORD] has current_password:', Boolean(payload.current_password));
-    console.log('[PASSWORD] password length:', payload.password.length);
-    console.log('[PASSWORD] password_confirmation matches:', payload.password === payload.password_confirmation);
 
     try {
         const res = await apiPut('/user/password', payload);
-        console.log('[PASSWORD] response:', res);
 
         // Clear temp password after successful change
         if (isForcedChange) {
@@ -105,10 +98,6 @@ async function submit() {
 
         setTimeout(() => router.push({ name: 'dashboard.index' }), 600);
     } catch (e) {
-        console.log('[PASSWORD] error status:', e?.response?.status);
-        console.log('[PASSWORD] error data:', e?.response?.data);
-        console.log('[PASSWORD] error errors:', e?.response?.data?.errors);
-        
         const errors = e?.response?.data?.errors;
         if (errors) {
             const messages = Object.values(errors).flat().join(' ');

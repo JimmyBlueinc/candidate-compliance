@@ -97,13 +97,9 @@ async function handleSubmit() {
     password: newPassword.value,
     password_confirmation: confirmPassword.value,
   };
-  
-  console.log('[FORCE_PASSWORD_MODAL] submitting payload keys:', Object.keys(payload));
-  console.log('[FORCE_PASSWORD_MODAL] has current_password:', Boolean(payload.current_password));
 
   try {
     const res = await apiPut('/user/password', payload);
-    console.log('[FORCE_PASSWORD_MODAL] response:', res);
     
     // Clear temp password after success
     auth.clearTempPassword();
@@ -114,7 +110,6 @@ async function handleSubmit() {
     newPassword.value = '';
     confirmPassword.value = '';
   } catch (e) {
-    console.log('[FORCE_PASSWORD_MODAL] error:', e?.response?.data);
     const errors = e?.response?.data?.errors;
     if (errors) {
       const messages = Object.values(errors).flat().join(' ');
