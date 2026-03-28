@@ -27,6 +27,7 @@ class FacilityManagementController extends Controller
         $facilities = Facility::query()
             ->where('organization_id', $orgId)
             ->withCount('users')
+            ->withCount('contracts')
             ->orderBy('name')
             ->get()
             ->map(function (Facility $f) {
@@ -45,6 +46,7 @@ class FacilityManagementController extends Controller
                     'contact_email' => $f->contact_email,
                     'contact_phone' => $f->contact_phone,
                     'users_count' => (int) ($f->users_count ?? 0),
+                    'contracts_count' => (int) ($f->contracts_count ?? 0),
                     'created_at' => $f->created_at?->toIso8601String(),
                     'updated_at' => $f->updated_at?->toIso8601String(),
                 ];

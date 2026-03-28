@@ -2,6 +2,15 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { apiGet, apiPost, apiPut, apiDelete } from '../lib/api';
 
+function unwrapApiPayload(res) {
+    if (!res || typeof res !== 'object') return res;
+    const hasEnvelope =
+        Object.prototype.hasOwnProperty.call(res, 'data') &&
+        Object.prototype.hasOwnProperty.call(res, 'meta') &&
+        Object.prototype.hasOwnProperty.call(res, 'message');
+    return hasEnvelope ? res.data : res;
+}
+
 export const useFacilityStore = defineStore('facility', () => {
     // State
     const currentFacility = ref(null);
@@ -34,13 +43,14 @@ export const useFacilityStore = defineStore('facility', () => {
 
         try {
             const response = await apiGet(`/v1/facilities/${id}`);
-            currentFacility.value = response.data;
-            contracts.value = response.data.contracts || [];
-            billingSettings.value = response.data.billing_settings || null;
-            assignments.value = response.data.assignments || [];
+            const payload = unwrapApiPayload(response) ?? response;
+            currentFacility.value = payload;
+            contracts.value = payload?.contracts || [];
+            billingSettings.value = payload?.billing_settings || null;
+            assignments.value = payload?.assignments || [];
             
             console.log('[FACILITY STORE] Loaded facility:', id);
-            return response.data;
+            return payload;
         } catch (e) {
             error.value = e.message || 'Failed to load facility';
             console.error('[FACILITY STORE] Error:', e);
@@ -59,7 +69,8 @@ export const useFacilityStore = defineStore('facility', () => {
 
         try {
             const response = await apiGet(`/v1/facilities/${facilityId}/contracts`);
-            contracts.value = response.data.contracts || [];
+            const payload = unwrapApiPayload(response) ?? response;
+            contracts.value = payload?.contracts || [];
             return contracts.value;
         } catch (e) {
             error.value = e.message || 'Failed to load contracts';
@@ -84,11 +95,21 @@ export const useFacilityStore = defineStore('facility', () => {
                 },
             });
             
-            const newContract = response.data.contract;
-            contracts.value.unshift(newContract);
+            const payload = unwrapApiPayload(response) ?? response;
+            const newContract = payload?.contract;
+            if (newContract) {
+                contracts.value.unshift(newContract);
+            } else {
+                await fetchContracts(facilityId);
+            }
             
-            console.log('[FACILITY STORE] Contract uploaded:', newContract.id);
-            return newContract;
+            const resolved = newContract ?? contracts.value[0] ?? null;
+            if (resolved?.id) {
+                console.log('[FACILITY STORE] Contract uploaded:', resolved.id);
+            } else {
+                console.log('[FACILITY STORE] Contract uploaded (refetched list)');
+            }
+            return resolved;
         } catch (e) {
             error.value = e.message || 'Failed to upload contract';
             console.error('[FACILITY STORE] Error uploading contract:', e);
@@ -107,15 +128,16 @@ export const useFacilityStore = defineStore('facility', () => {
 
         try {
             const response = await apiPost(`/v1/facilities/${facilityId}/contracts/${contractId}/extract`);
+            const payload = unwrapApiPayload(response) ?? response;
             
             // Update contract in list
             const idx = contracts.value.findIndex(c => c.id === contractId);
             if (idx !== -1) {
-                contracts.value[idx] = response.data.contract;
+                contracts.value[idx] = payload?.contract;
             }
             
             console.log('[FACILITY STORE] Contract extracted:', contractId);
-            return response.data;
+            return payload;
         } catch (e) {
             error.value = e.message || 'Failed to extract contract';
             console.error('[FACILITY STORE] Error extracting contract:', e);
@@ -134,8 +156,9 @@ export const useFacilityStore = defineStore('facility', () => {
 
         try {
             const response = await apiGet(`/v1/facilities/${facilityId}/contracts/${contractId}/extracted-terms`);
-            contractTerms.value = response.data.terms;
-            return response.data;
+            const payload = unwrapApiPayload(response) ?? response;
+            contractTerms.value = payload?.terms;
+            return payload;
         } catch (e) {
             error.value = e.message || 'Failed to get extracted terms';
             console.error('[FACILITY STORE] Error getting terms:', e);
@@ -157,15 +180,16 @@ export const useFacilityStore = defineStore('facility', () => {
                 `/v1/facilities/${facilityId}/contracts/${contractId}/review`,
                 reviewData
             );
+            const payload = unwrapApiPayload(response) ?? response;
             
             // Update contract in list
             const idx = contracts.value.findIndex(c => c.id === contractId);
             if (idx !== -1) {
-                contracts.value[idx] = response.data.contract;
+                contracts.value[idx] = payload?.contract;
             }
             
             console.log('[FACILITY STORE] Contract reviewed:', contractId);
-            return response.data;
+            return payload;
         } catch (e) {
             error.value = e.message || 'Failed to review contract';
             console.error('[FACILITY STORE] Error reviewing contract:', e);
@@ -207,7 +231,8 @@ export const useFacilityStore = defineStore('facility', () => {
 
         try {
             const response = await apiGet(`/v1/facilities/${facilityId}/billing`);
-            billingSettings.value = response.data.billing_settings;
+            const payload = unwrapApiPayload(response) ?? response;
+            billingSettings.value = payload?.billing_settings;
             return billingSettings.value;
         } catch (e) {
             error.value = e.message || 'Failed to load billing settings';
@@ -227,7 +252,8 @@ export const useFacilityStore = defineStore('facility', () => {
 
         try {
             const response = await apiPut(`/v1/facilities/${facilityId}/billing`, data);
-            billingSettings.value = response.data.billing_settings;
+            const payload = unwrapApiPayload(response) ?? response;
+            billingSettings.value = payload?.billing_settings;
             
             console.log('[FACILITY STORE] Billing settings updated');
             return billingSettings.value;
@@ -251,7 +277,8 @@ export const useFacilityStore = defineStore('facility', () => {
             const response = await apiPost(
                 `/v1/facilities/${facilityId}/billing/apply-contract/${contractId}`
             );
-            billingSettings.value = response.data.billing_settings;
+            const payload = unwrapApiPayload(response) ?? response;
+            billingSettings.value = payload?.billing_settings;
             
             console.log('[FACILITY STORE] Contract applied to billing:', contractId);
             return billingSettings.value;
@@ -275,7 +302,8 @@ export const useFacilityStore = defineStore('facility', () => {
             const response = await apiGet(
                 `/v1/facilities/${facilityId}/billing/preview-contract/${contractId}`
             );
-            return response.data;
+            const payload = unwrapApiPayload(response) ?? response;
+            return payload;
         } catch (e) {
             error.value = e.message || 'Failed to preview contract';
             console.error('[FACILITY STORE] Error previewing contract:', e);

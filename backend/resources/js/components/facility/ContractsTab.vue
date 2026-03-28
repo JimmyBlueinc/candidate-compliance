@@ -6,6 +6,9 @@
                 <h3 class="text-lg font-semibold">Contracts</h3>
                 <Button label="Upload Contract" icon="pi pi-upload" @click="showUploadDialog = true" />
             </div>
+            <p class="text-sm text-gray-500 -mt-2">
+                MSAs and other agreements are stored on this facility&rsquo;s <strong>Contracts</strong> tab.
+            </p>
         </div>
 
         <!-- Contracts List -->
@@ -361,7 +364,10 @@ async function approveTerms() {
 }
 
 async function confirmDelete(contract) {
-    // TODO: Add confirmation dialog
+    const ok = window.confirm(
+        `Delete "${contract.file_name}"? This removes the contract record and its stored file.`
+    );
+    if (!ok) return;
     try {
         await facilityStore.deleteContract(props.facility.id, contract.id);
         toast.add({ severity: 'success', summary: 'Success', detail: 'Contract deleted' });

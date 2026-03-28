@@ -15,7 +15,7 @@
       <AppStatCard label="Total Facilities" :value="facilities.length" :icon="Building2" />
       <AppStatCard label="Total Users" :value="totalFacilityUsers" :icon="Users" />
       <AppStatCard label="Active Facilities" :value="activeFacilitiesCount" :icon="Building2" />
-      <AppStatCard label="Growth" value="+12%" :trend="12" :icon="TrendingUp" />
+      <AppStatCard label="Contracts (MSA/SOW)" :value="totalContracts" :icon="FileText" />
     </div>
 
     <!-- Error Message -->
@@ -135,6 +135,7 @@
               <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Timezone</th>
               <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contact</th>
               <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Users</th>
+              <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Contracts</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[color:var(--aq-border)]">
@@ -166,6 +167,15 @@
                 <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[color:var(--aq-primary)]/10 text-sm font-semibold text-[color:var(--aq-primary)]">
                   {{ facility.users_count || 0 }}
                 </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <AppButton
+                  variant="secondary"
+                  size="sm"
+                  @click.stop="openFacilityContracts(facility)"
+                >
+                  {{ facility.contracts_count || 0 }}
+                </AppButton>
               </td>
             </tr>
           </tbody>
@@ -290,7 +300,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiGet, apiPost } from '../../lib/api';
-import { Building2, Users, TrendingUp, Plus, UserPlus, RefreshCw, CheckCircle, AlertCircle, Copy } from 'lucide-vue-next';
+import { Building2, Users, FileText, Plus, UserPlus, RefreshCw, CheckCircle, AlertCircle, Copy } from 'lucide-vue-next';
 import AppCard from '../../components/ui/AppCard.vue';
 import AppStatCard from '../../components/ui/AppStatCard.vue';
 import AppPageHeader from '../../components/ui/AppPageHeader.vue';
@@ -369,12 +379,17 @@ const activeFacilitiesCount = computed(() => {
   return facilities.value.length;
 });
 
+const totalContracts = computed(() => {
+  return facilities.value.reduce((acc, f) => acc + Number(f.contracts_count || 0), 0);
+});
+
 async function load() {
   loading.value = true;
   error.value = '';
   try {
     const res = await apiGet('/v1/facilities');
-    facilities.value = Array.isArray(res?.data) ? res.data : [];
+    const payload = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+    facilities.value = payload;
 
     if (!selectedFacilityId.value && facilities.value.length > 0) {
       selectedFacilityId.value = String(facilities.value[0].id);
@@ -441,8 +456,18 @@ async function createFacility() {
 }
 
 function openFacilityDetails(facility) {
-  selectedFacility.value = facility;
-  facilityDetailsOpen.value = true;
+  router.push({
+    name: 'dashboard.facilities.detail',
+    params: { id: facility.id },
+  });
+}
+
+function openFacilityContracts(facility) {
+  router.push({
+    name: 'dashboard.facilities.detail',
+    params: { id: facility.id },
+    query: { tab: 'contracts' },
+  });
 }
 
 function openCreateFacilityUserFromDetails() {

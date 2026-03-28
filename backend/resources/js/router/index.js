@@ -106,14 +106,30 @@ const base = window.location.pathname.startsWith('/app') ? '/app' : undefined;
 const router = createRouter({
     history: createWebHistory(base),
     routes: [
-        // Redirect /home to root (deprecated route)
+        // Tenant public homepage routes (restored)
         {
             path: '/home',
-            redirect: '/',
+            name: 'tenant.home',
+            component: TenantHomeView,
+            meta: { tenantPublic: true },
         },
         {
-            path: '/home/:pathMatch(.*)*',
-            redirect: '/',
+            path: '/home/jobs',
+            name: 'tenant.jobs',
+            component: TenantJobsView,
+            meta: { tenantPublic: true },
+        },
+        {
+            path: '/home/jobs/:id',
+            name: 'tenant.job-detail',
+            component: PublicJobDetailView,
+            meta: { tenantPublic: true },
+        },
+        {
+            path: '/home/jobs/:id/apply',
+            name: 'tenant.job-apply',
+            component: PublicJobApplyView,
+            meta: { tenantPublic: true },
         },
         // Apex public routes
         {
