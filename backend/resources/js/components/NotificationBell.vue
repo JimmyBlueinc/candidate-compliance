@@ -64,7 +64,7 @@
 
 <script setup>
 import { ref, onMounted, computed, onUnmounted } from 'vue';
-import { apiGet, apiPost } from '../../lib/api';
+import { apiGet, apiPost } from '../lib/api';
 
 const isOpen = ref(false);
 const items = ref([]);
