@@ -136,7 +136,7 @@
                 <div class="text-[11px] font-black text-[color:var(--p-text-muted-color)] uppercase tracking-widest">Preview</div>
                 <div class="mt-3 rounded-[22px] border border-white/10 bg-white/5 p-4">
                   <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center">
+                    <div class="aq-on-dark w-12 h-12 rounded-2xl overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center">
                       <img v-if="logoPreviewUrl" :src="logoPreviewUrl" alt="Logo preview" class="w-full h-full object-contain" />
                       <img v-else-if="brand.logoUrl" :src="brand.logoUrl" alt="Logo" class="w-full h-full object-contain" />
                       <span v-else class="material-symbols-outlined text-white/70">shield_person</span>

@@ -62,7 +62,7 @@
                   loading="lazy"
                 />
 
-                <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-950 p-4 text-slate-100 shadow-xl">
+                <div class="aq-on-dark mt-4 rounded-2xl border border-slate-200 bg-slate-950 p-4 text-slate-100 shadow-xl">
                   <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Live Operations Pulse</p>
                   <div class="mt-3 grid grid-cols-3 gap-3 text-sm">
                     <div class="rounded-xl bg-slate-800/80 p-3">
@@ -211,7 +211,7 @@
       </section>
 
       <section class="mx-auto mt-20 max-w-7xl px-6">
-        <div class="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 px-8 py-14 text-white md:px-12">
+        <div class="aq-on-dark relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 px-8 py-14 text-white md:px-12">
           <img
             src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?auto=format&fit=crop&w=1600&q=80"
             alt="Clinical operations team planning with modern dashboards"

@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <div v-else-if="items.length === 0" class="py-20 text-center">
+    <div v-else-if="items.length === 0" class="aq-on-dark py-20 text-center">
       <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800/50 mb-4">
         <ShieldCheck class="w-8 h-8 text-slate-600" />
       </div>
@@ -130,7 +130,7 @@
             </template>
 
             <div class="flex-1 min-h-[400px] flex flex-col gap-4">
-              <div class="rounded-2xl border border-white/5 bg-black/40 overflow-hidden flex-1 relative group">
+              <div class="aq-on-dark rounded-2xl border border-white/5 bg-black/40 overflow-hidden flex-1 relative group">
                 <iframe
                   v-if="previewUrl"
                   :src="previewUrl"
@@ -152,7 +152,7 @@
                 leave-from-class="opacity-100 translate-y-0"
                 leave-to-class="opacity-0 translate-y-4"
               >
-                <div v-if="rejectingId === selected?.id" class="p-5 rounded-2xl bg-slate-900 border border-red-500/20 shadow-2xl mt-4">
+                <div v-if="rejectingId === selected?.id" class="aq-on-dark p-5 rounded-2xl bg-slate-900 border border-red-500/20 shadow-2xl mt-4">
                   <div class="flex items-center gap-2 mb-3">
                     <AlertCircle class="w-4 h-4 text-red-500" />
                     <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Rejection Details</span>
