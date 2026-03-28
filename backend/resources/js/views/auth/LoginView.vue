@@ -41,17 +41,16 @@
           <div class="space-y-3">
             <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl shadow-lg ring-1 ring-black/5 overflow-hidden" :style="logoWrapStyle">
               <img v-if="brand.logoUrl" :src="brand.logoUrl" alt="Logo" class="h-9 w-9 object-contain" />
-              <span v-else class="material-symbols-outlined text-white text-[28px]">shield_person</span>
+              <i v-else class="pi pi-shield text-white text-[22px]" aria-hidden="true" />
             </div>
             <h1 class="text-3xl font-display font-semibold tracking-tight text-slate-900 leading-tight">Welcome back</h1>
             <p class="text-slate-600 text-sm font-medium leading-relaxed">Sign in to continue.</p>
-            <p class="text-[10px] font-semibold text-slate-400">LOGIN_BUILD_VERSION=aws-login-fix-002</p>
           </div>
 
           <form class="bg-white p-8 rounded-[32px] space-y-5 shadow-sm border border-slate-200" @submit.prevent="submit">
 
             <div v-if="errorMessage" class="p-3 bg-red-500/10 border border-red-500/20 text-red-700 text-xs font-bold rounded-2xl flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">error</span>
+              <i class="pi pi-exclamation-circle text-sm" aria-hidden="true" />
               {{ errorMessage }}
             </div>
 
@@ -60,7 +59,7 @@
                 <label class="text-xs font-semibold text-slate-700 ml-1">Email address</label>
                 <div class="relative group">
                   <div class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">mail</span>
+                    <i class="pi pi-envelope text-[14px]" aria-hidden="true" />
                   </div>
                   <input
                     v-model="email"
@@ -79,7 +78,7 @@
                 <label class="text-xs font-semibold text-slate-700 ml-1">Password</label>
                 <div class="relative group">
                   <div class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">lock</span>
+                    <i class="pi pi-lock text-[14px]" aria-hidden="true" />
                   </div>
                   <input
                     v-model="password"
@@ -97,7 +96,7 @@
                     :aria-label="showPassword ? 'Hide password' : 'Show password'"
                     @click="showPassword = !showPassword"
                   >
-                    <span class="material-symbols-outlined text-[18px]">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+                    <i :class="showPassword ? 'pi pi-eye-slash text-[14px]' : 'pi pi-eye text-[14px]'" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -148,7 +147,7 @@
               </template>
               <template v-else>
                 <span>Sign In</span>
-                <span class="material-symbols-outlined text-[18px]">arrow_right_alt</span>
+                <i class="pi pi-arrow-right text-[14px]" aria-hidden="true" />
               </template>
             </button>
 

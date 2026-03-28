@@ -11,6 +11,20 @@ import { MotionPlugin } from '@vueuse/motion';
 import App from './App.vue';
 import router from './router';
 
+const rootEl = document.documentElement;
+const markIconsReady = () => rootEl.classList.add('icons-ready');
+
+if (document.fonts?.check?.('24px "Material Symbols Outlined"')) {
+    markIconsReady();
+} else if (document.fonts?.load) {
+    document.fonts
+        .load('24px "Material Symbols Outlined"')
+        .then(markIconsReady)
+        .catch(markIconsReady);
+} else {
+    markIconsReady();
+}
+
 const app = createApp(App);
 
 app.use(createPinia());
