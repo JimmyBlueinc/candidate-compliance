@@ -1,27 +1,11 @@
 <template>
   <div class="min-h-screen bg-white text-slate-900 antialiased">
-    <nav class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/60 bg-white/90 backdrop-blur">
-      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-5">
-        <RouterLink to="/" class="flex items-center gap-2">
-          <div class="h-9 w-9 rounded-xl flex items-center justify-center text-white font-bold" :style="{ backgroundColor: primarySolid }">A</div>
-          <span class="font-bold tracking-tight">{{ brand.name || 'AgencyHQ' }}</span>
-        </RouterLink>
-
-        <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-          <RouterLink to="/solutions" class="hover:text-slate-900">Solutions</RouterLink>
-          <RouterLink to="/customers" class="hover:text-slate-900">Customers</RouterLink>
-          <RouterLink to="/pricing" class="hover:text-slate-900">Pricing</RouterLink>
-          <RouterLink to="/jobs" class="hover:text-slate-900">Jobs</RouterLink>
-        </div>
-
-        <div class="hidden md:flex items-center gap-3">
-          <button type="button" class="px-4 py-2 text-sm font-medium text-slate-700" @click="handleLoginClick">Log in</button>
-          <RouterLink to="/signup" class="px-4 py-2 rounded-xl text-sm font-semibold text-white" :style="{ backgroundColor: primarySolid }">
-            Get Started
-          </RouterLink>
-        </div>
-      </div>
-    </nav>
+    <PublicSiteHeader
+      mode="apex"
+      :brand-name="brand.name || 'AgencyHQ'"
+      :primary-color="primarySolid"
+      @apex-login="handleLoginClick"
+    />
 
     <main class="pt-28 pb-20 px-6">
       <section class="max-w-7xl mx-auto">
@@ -96,6 +80,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useBrandStore } from '../../stores/brand';
 import { useAuthStore } from '../../stores/auth';
+import PublicSiteHeader from '../../components/public/PublicSiteHeader.vue';
 
 const router = useRouter();
 const brand = useBrandStore();

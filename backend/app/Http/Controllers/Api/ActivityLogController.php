@@ -21,8 +21,7 @@ class ActivityLogController extends Controller
         $orgId = Org::id($request);
         $effectiveOrgId = $user?->role === 'platform_admin' ? $orgId : $user?->organization_id;
 
-        $query = ActivityLog::with('user:id,name,email')
-            ->orderBy('created_at', 'desc');
+        $query = ActivityLog::with('user:id,name,email');
 
         if ($effectiveOrgId) {
             $query->where('organization_id', $effectiveOrgId);
@@ -78,7 +77,45 @@ class ActivityLogController extends Controller
             $perPage = 100;
         }
 
-        $paginator = $query->paginate($perPage);
+        // Incremental "live" mode for real-time activity streams.
+        $sinceId = (int) $request->integer('since_id', 0);
+        if ($sinceId > 0) {
+            $liveRows = (clone $query)
+                ->where('id', '>', $sinceId)
+                ->orderBy('id', 'asc')
+                ->limit($perPage)
+                ->get();
+
+            $liveActivities = $liveRows->map(function ($activity) {
+                return [
+                    'id' => $activity->id,
+                    'user' => $activity->user ? [
+                        'id' => $activity->user->id,
+                        'name' => $activity->user->name,
+                        'email' => $activity->user->email,
+                    ] : null,
+                    'action' => $activity->old_action ?: ($activity->event ?: 'updated'),
+                    'entity' => $activity->entity_type,
+                    'entity_name' => $activity->entity_name,
+                    'description' => $activity->description,
+                    'source' => $activity->source ?: 'system',
+                    'created_at' => $activity->created_at?->toIso8601String(),
+                ];
+            });
+
+            $latestId = (int) ($liveRows->max('id') ?: $sinceId);
+
+            return response()->api($liveActivities, 200, [
+                'since_id' => $sinceId,
+                'latest_id' => $latestId,
+                'count' => $liveActivities->count(),
+                'mode' => 'incremental',
+            ]);
+        }
+
+        $paginator = $query
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
 
         $activities = collect($paginator->items())->map(function ($activity) {
             return [

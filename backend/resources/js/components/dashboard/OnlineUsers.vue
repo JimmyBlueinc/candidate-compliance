@@ -91,9 +91,9 @@ async function loadOnlineUsers() {
   try {
     const res = await apiGet('/users/online');
     onlineUsers.value = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
-  } catch (e) {
+  } catch {
     // Silently fail - online status is optional
-    console.error('Failed to load online users:', e);
+    onlineUsers.value = [];
   } finally {
     loading.value = false;
   }

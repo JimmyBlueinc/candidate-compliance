@@ -14,6 +14,7 @@ class ActivityLog extends Model
         'user_id',
         'old_action',
         'entity_type',
+        'entity_name',
         'entity_id',
         'event',
         'source',

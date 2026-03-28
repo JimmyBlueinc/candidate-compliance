@@ -1,6 +1,7 @@
 <template>
   <div class="min-h-screen bg-white text-slate-900">
-    <div class="max-w-7xl mx-auto px-6 py-10">
+    <PublicSiteHeader mode="apex" :brand-name="brand.name || 'AgencyHQ'" :primary-color="primaryColor" @apex-login="goLogin" />
+    <div class="max-w-7xl mx-auto px-6 pt-28 pb-10">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-600">
@@ -117,6 +118,7 @@ import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiGet } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
+import PublicSiteHeader from '../../components/public/PublicSiteHeader.vue';
 
 const router = useRouter();
 const brand = useBrandStore();
@@ -176,6 +178,10 @@ async function reset() {
 async function goToDetail(job) {
   if (!job?.id) return;
   await router.push({ name: 'public.jobs.detail', params: { id: job.id } });
+}
+
+function goLogin() {
+  router.push({ name: 'login' });
 }
 
 brand.load();

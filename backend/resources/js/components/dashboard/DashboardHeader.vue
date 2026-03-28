@@ -1,5 +1,5 @@
 <template>
-  <header class="aq-page-header flex justify-between items-start">
+  <header class="aq-page-header flex justify-between items-start rounded-2xl border border-[color:var(--aq-border)] bg-[color:var(--aq-surface-card)]/95 px-4 py-3 shadow-sm">
     <div>
       <div class="flex items-center gap-2 mb-1">
         <div class="w-7 h-7 rounded-lg overflow-hidden border border-[color:var(--p-surface-border)] bg-[color:var(--p-surface-0)] flex items-center justify-center shrink-0">

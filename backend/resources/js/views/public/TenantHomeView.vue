@@ -1,47 +1,15 @@
 <template>
   <div class="min-h-screen bg-white text-slate-900 selection:bg-blue-600 selection:text-white antialiased">
-    <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
-      <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div
-            class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm"
-            :style="{ backgroundColor: primarySolid }"
-          >
-            <img v-if="brand.logoUrl" :src="brand.logoUrl" alt="Logo" class="h-5 w-5 object-contain" />
-            <span v-else class="text-white font-bold text-sm">{{ brand.name?.charAt(0) || 'A' }}</span>
-          </div>
-          <span class="font-display font-semibold text-slate-900">{{ brand.name || 'Organization' }}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
-            @click="goToJobs"
-          >
-            Jobs
-          </button>
-          <button
-            v-if="isAdmin"
-            type="button"
-            class="px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm hover:opacity-90 transition-opacity"
-            :style="{ backgroundColor: primarySolid }"
-            @click="goToDashboard"
-          >
-            Dashboard
-          </button>
-          <button
-            v-else-if="!auth.isAuthenticated"
-            type="button"
-            class="px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm hover:opacity-90 transition-opacity"
-            :style="{ backgroundColor: primarySolid }"
-            @click="goToLogin"
-          >
-            Sign In
-          </button>
-        </div>
-      </div>
-    </nav>
+    <PublicSiteHeader
+      mode="tenant"
+      :brand-name="brand.name || 'Organization'"
+      :primary-color="primarySolid"
+      :show-dashboard-button="isAdmin"
+      :show-sign-in-button="!auth.isAuthenticated"
+      @tenant-jobs="goToJobs"
+      @tenant-dashboard="goToDashboard"
+      @tenant-signin="goToLogin"
+    />
 
     <!-- Hero Section -->
     <section class="pt-24 pb-16 px-6 relative overflow-hidden">
@@ -269,6 +237,7 @@ import { useToast } from 'primevue/usetoast';
 import { apiPost } from '../../lib/api';
 import Dialog from 'primevue/dialog';
 import Toast from 'primevue/toast';
+import PublicSiteHeader from '../../components/public/PublicSiteHeader.vue';
 
 const router = useRouter();
 const route = useRoute();

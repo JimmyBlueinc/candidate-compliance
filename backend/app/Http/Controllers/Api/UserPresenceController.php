@@ -8,6 +8,7 @@ use App\Models\Message;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class UserPresenceController extends Controller
 {
@@ -29,23 +30,41 @@ class UserPresenceController extends Controller
             return response()->json(['data' => []]);
         }
 
-        // Get users who have been active in the last 5 minutes
-        // Using last_activity_at column if it exists, otherwise fallback to updated_at
+        // Get users who have been active in the last 5 minutes.
+        // Guard against schema drift (older DBs may miss last_activity_at).
         $fiveMinutesAgo = now()->subMinutes(5);
+        $hasLastActivity = Schema::hasColumn('users', 'last_activity_at');
 
-        $onlineUsers = User::query()
+        $query = User::query()
             ->where('organization_id', $orgId)
             ->where('id', '!=', $user->id) // Exclude current user
             ->whereIn('role', $staffRoles) // Only show staff members
-            ->where(function ($q) use ($fiveMinutesAgo) {
-                $q->where('last_activity_at', '>=', $fiveMinutesAgo)
-                  ->orWhere('updated_at', '>=', $fiveMinutesAgo);
-            })
-            ->select(['id', 'name', 'role', 'avatar'])
-            ->orderByDesc('last_activity_at')
+            ->where(function ($q) use ($fiveMinutesAgo, $hasLastActivity) {
+                if ($hasLastActivity) {
+                    $q->where('last_activity_at', '>=', $fiveMinutesAgo)
+                        ->orWhere('updated_at', '>=', $fiveMinutesAgo);
+                } else {
+                    $q->where('updated_at', '>=', $fiveMinutesAgo);
+                }
+            });
+
+        if ($hasLastActivity) {
+            $query->orderByDesc('last_activity_at');
+        }
+
+        $onlineUsers = $query
             ->orderByDesc('updated_at')
             ->limit(20)
-            ->get();
+            ->get(['id', 'name', 'role', 'avatar_path', 'updated_at', 'last_activity_at'])
+            ->map(function (User $u) {
+                return [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'role' => $u->role,
+                    'avatar' => $u->avatar_url,
+                ];
+            })
+            ->values();
 
         return response()->json(['data' => $onlineUsers]);
     }
@@ -56,9 +75,11 @@ class UserPresenceController extends Controller
     public function heartbeat(Request $request): JsonResponse
     {
         $user = $request->user();
-        
-        // Update last activity timestamp
-        $user->last_activity_at = now();
+
+        // Update last activity timestamp only when column exists.
+        if (Schema::hasColumn('users', 'last_activity_at')) {
+            $user->last_activity_at = now();
+        }
         $user->saveQuietly(); // Save without triggering events
 
         return response()->json(['status' => 'ok']);

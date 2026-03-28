@@ -110,6 +110,7 @@ import { onMounted, ref, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { apiGet, normalizeApiList } from '../../lib/api';
 import { useAuthStore } from '../../stores/auth';
+import { usePolling } from '../../composables/usePolling';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
@@ -134,6 +135,7 @@ const entity = ref('');
 
 const admins = ref([]);
 const selectedAdminId = ref('');
+const latestId = ref(0);
 
 const actionOptions = [
     { label: 'All Actions', value: '' },
@@ -193,12 +195,50 @@ async function fetchLogs() {
         const res = await apiGet(`/activity-logs?${queryString.value}`);
         rows.value = normalizeApiList(res);
         meta.value = res?.meta || null;
+        latestId.value = rows.value.reduce((max, row) => Math.max(max, Number(row?.id || 0)), 0);
     } catch (e) {
         rows.value = [];
         meta.value = null;
         error.value = e?.response?.data?.message || e?.message || 'Failed to load activity logs';
     } finally {
         loading.value = false;
+    }
+}
+
+function dedupeById(list = []) {
+    const seen = new Set();
+    return list.filter((row) => {
+        const id = Number(row?.id || 0);
+        if (!id || seen.has(id)) return false;
+        seen.add(id);
+        return true;
+    });
+}
+
+async function fetchLiveUpdates() {
+    if (loading.value) return;
+    if (page.value !== 1) return; // keep paginated navigation stable on other pages
+    if (!latestId.value) return;
+    try {
+        const res = await apiGet(`/activity-logs?${queryString.value}&since_id=${encodeURIComponent(String(latestId.value))}`);
+        const incoming = normalizeApiList(res);
+        if (!Array.isArray(incoming) || incoming.length === 0) return;
+
+        const merged = dedupeById([...incoming.slice().reverse(), ...rows.value]);
+        const maxRows = Number(meta.value?.per_page || 20);
+        rows.value = merged.slice(0, maxRows);
+
+        const incomingMax = incoming.reduce((max, row) => Math.max(max, Number(row?.id || 0)), latestId.value);
+        latestId.value = Math.max(latestId.value, incomingMax);
+
+        if (meta.value && typeof meta.value.total === 'number') {
+            meta.value = {
+                ...meta.value,
+                total: meta.value.total + incoming.length,
+            };
+        }
+    } catch {
+        // non-blocking; manual view remains available
     }
 }
 
@@ -225,6 +265,7 @@ watch(
 watch(page, fetchLogs);
 watch(selectedAdminId, () => {
     page.value = 1;
+    latestId.value = 0;
     fetchLogs();
 });
 
@@ -232,4 +273,6 @@ onMounted(async () => {
     await loadAdminsIfApplicable();
     await fetchLogs();
 });
+
+usePolling(fetchLiveUpdates, 5000, { immediate: false });
 </script>

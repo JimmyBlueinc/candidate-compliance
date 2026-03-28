@@ -80,6 +80,8 @@ const saving = ref(false);
 const status = ref('');
 const error = ref('');
 const integrations = ref([]);
+const modulePreferences = ref({});
+const supportsIntegrationApi = ref(true);
 
 const integrationDefs = [
   { key: 'google_drive', label: 'Google Drive', description: 'Store and sync compliance documents.' },
@@ -138,8 +140,31 @@ async function reload() {
   try {
     const response = await apiGet('/v1/integrations');
     integrations.value = unwrap(response)?.integrations || [];
+    supportsIntegrationApi.value = true;
   } catch (e) {
-    error.value = e?.response?.data?.message || e?.message || 'Failed to load integration preferences.';
+    const code = Number(e?.response?.status || 0);
+    if (code === 404) {
+      // Fallback for environments where integrations API is not yet deployed.
+      supportsIntegrationApi.value = false;
+      try {
+        const settingsRes = await apiGet('/v1/agency/settings');
+        modulePreferences.value = unwrap(settingsRes)?.settings?.module_preferences || {};
+        const prefMap = modulePreferences.value?.integrations || {};
+        integrations.value = integrationDefs.map((d) => ({
+          key: d.key,
+          enabled: prefMap[d.key] === true,
+          status: prefMap[d.key] === true ? 'connected' : 'disconnected',
+        }));
+        error.value = '';
+      } catch (fallbackError) {
+        error.value =
+          fallbackError?.response?.data?.message ||
+          fallbackError?.message ||
+          'Failed to load integration preferences.';
+      }
+    } else {
+      error.value = e?.response?.data?.message || e?.message || 'Failed to load integration preferences.';
+    }
   } finally {
     loading.value = false;
   }
@@ -153,10 +178,24 @@ async function toggleIntegration(key, enabled) {
   status.value = '';
   error.value = '';
   try {
-    await apiPut(`/v1/integrations/${encodeURIComponent(key)}`, {
-      enabled: !!enabled,
-      status: enabled ? 'connected' : 'disconnected',
-    });
+    if (supportsIntegrationApi.value) {
+      await apiPut(`/v1/integrations/${encodeURIComponent(key)}`, {
+        enabled: !!enabled,
+        status: enabled ? 'connected' : 'disconnected',
+      });
+    } else {
+      const nextModulePreferences = {
+        ...(modulePreferences.value || {}),
+        integrations: {
+          ...(modulePreferences.value?.integrations || {}),
+          [key]: !!enabled,
+        },
+      };
+      await apiPut('/v1/agency/settings', {
+        module_preferences: nextModulePreferences,
+      });
+      modulePreferences.value = nextModulePreferences;
+    }
     status.value = `${integrationDefs.find((d) => d.key === key)?.label || 'Integration'} updated.`;
   } catch (e) {
     error.value = e?.response?.data?.message || e?.message || 'Failed to update integration.';

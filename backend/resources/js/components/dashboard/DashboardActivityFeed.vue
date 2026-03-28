@@ -50,19 +50,47 @@ import { usePolling } from '../../composables/usePolling';
 const items = ref([]);
 const loading = ref(false);
 const actionFilter = ref('');
+const latestId = ref(0);
 
-async function loadFeed() {
-  loading.value = true;
+function extractMaxId(list = []) {
+  return list.reduce((max, row) => Math.max(max, Number(row?.id || 0)), 0);
+}
+
+function dedupeById(list = []) {
+  const seen = new Set();
+  return list.filter((row) => {
+    const id = Number(row?.id || 0);
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+async function loadFeed(incremental = false) {
+  if (!incremental) loading.value = true;
   try {
     const params = new URLSearchParams({ per_page: '12' });
     if (actionFilter.value) params.set('action', actionFilter.value);
+    if (incremental && latestId.value > 0) {
+      params.set('since_id', String(latestId.value));
+    }
     const res = await apiGet(`/activity-logs?${params.toString()}`);
     const payload = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+
+    if (incremental) {
+      if (payload.length === 0) return;
+      const next = dedupeById([...payload.slice().reverse(), ...items.value]).slice(0, 10);
+      items.value = next;
+      latestId.value = Math.max(latestId.value, extractMaxId(payload));
+      return;
+    }
+
     items.value = payload.slice(0, 10);
+    latestId.value = extractMaxId(items.value);
   } catch {
-    items.value = [];
+    if (!incremental) items.value = [];
   } finally {
-    loading.value = false;
+    if (!incremental) loading.value = false;
   }
 }
 
@@ -77,8 +105,12 @@ function formatTime(dateStr) {
   return d.toLocaleDateString();
 }
 
-watch(actionFilter, loadFeed);
-usePolling(loadFeed, 20000, { immediate: true });
+watch(actionFilter, () => {
+  latestId.value = 0;
+  loadFeed(false);
+});
+usePolling(() => loadFeed(true), 5000, { immediate: false });
+loadFeed(false);
 </script>
 
 <style scoped>
