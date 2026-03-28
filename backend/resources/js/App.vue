@@ -11,12 +11,14 @@ import { watch } from 'vue';
 import { useAuthStore } from './stores/auth';
 import { useBrandStore } from './stores/brand';
 import { useUiStore } from './stores/ui';
+import { useFeatureFlagStore } from './stores/featureFlags';
 
 const auth = useAuthStore();
 auth.initFromStorage();
 
 const brand = useBrandStore();
 const ui = useUiStore();
+const featureFlags = useFeatureFlagStore();
 
 // Initialize brand from storage first for instant display
 brand.initFromStorage();
@@ -44,6 +46,7 @@ ui.initTheme();
 
 if (auth.isAuthenticated) {
   ui.syncFromServer();
+  featureFlags.load();
 }
 </script>
 

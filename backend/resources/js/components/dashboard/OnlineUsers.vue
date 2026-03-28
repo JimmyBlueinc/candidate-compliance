@@ -75,10 +75,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { Users, MessageSquare, RefreshCw } from 'lucide-vue-next';
 import { apiGet } from '../../lib/api';
+import { usePolling } from '../../composables/usePolling';
 
 const router = useRouter();
 const isOpen = ref(false);
@@ -122,14 +123,9 @@ function formatRole(role) {
   return roleMap[role] || role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-let pollTimer = null;
 onMounted(() => {
   loadOnlineUsers();
-  // Poll every 30 seconds for online status
-  pollTimer = setInterval(loadOnlineUsers, 30000);
 });
 
-onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer);
-});
+usePolling(loadOnlineUsers, 30000, { immediate: false });
 </script>

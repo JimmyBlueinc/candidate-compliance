@@ -42,6 +42,7 @@
               @keydown.enter.prevent="applySearch"
             />
             <Dropdown v-model="action" :options="actionOptions" optionLabel="label" optionValue="value" class="w-full sm:w-56" />
+            <Dropdown v-model="entity" :options="entityOptions" optionLabel="label" optionValue="value" class="w-full sm:w-56" />
             <Button type="button" label="Apply" @click="applySearch" />
           </div>
         </div>
@@ -129,6 +130,7 @@ const meta = ref(null);
 const page = ref(1);
 const search = ref('');
 const action = ref('');
+const entity = ref('');
 
 const admins = ref([]);
 const selectedAdminId = ref('');
@@ -142,12 +144,23 @@ const actionOptions = [
     { label: 'Sign out', value: 'logout' },
 ];
 
+const entityOptions = [
+    { label: 'All Entities', value: '' },
+    { label: 'Facility', value: 'facility' },
+    { label: 'Contract', value: 'contract' },
+    { label: 'Billing', value: 'billing' },
+    { label: 'Invoice', value: 'invoice' },
+    { label: 'Placement', value: 'placement' },
+    { label: 'User', value: 'user' },
+];
+
 const queryString = computed(() => {
     const params = new URLSearchParams();
     params.set('per_page', '20');
     params.set('page', String(page.value));
     if (search.value.trim()) params.set('search', search.value.trim());
     if (action.value.trim()) params.set('action', action.value.trim());
+    if (entity.value.trim()) params.set('entity', entity.value.trim());
     if (selectedAdminId.value) params.set('user_id', selectedAdminId.value);
     return params.toString();
 });

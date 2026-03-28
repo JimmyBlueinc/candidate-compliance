@@ -76,25 +76,13 @@ class UserPresenceController extends Controller
 
         $user = $request->user();
 
-        // Count messages where user is recipient and hasn't read them
-        // For simplicity, we'll count messages sent in the last 24 hours
+        // Use message-level read_at tracking for unread count.
         $count = Message::query()
             ->where('tenant_id', $orgId)
             ->where('recipient_id', $user->id)
             ->where('created_at', '>=', now()->subDay())
-            ->whereDoesntHave('readReceipts', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })
+            ->whereNull('read_at')
             ->count();
-
-        // Fallback: just count recent messages if no read receipts table
-        if (!\Schema::hasTable('message_read_receipts')) {
-            $count = Message::query()
-                ->where('tenant_id', $orgId)
-                ->where('recipient_id', $user->id)
-                ->where('created_at', '>=', now()->subDay())
-                ->count();
-        }
 
         return response()->json(['count' => $count]);
     }

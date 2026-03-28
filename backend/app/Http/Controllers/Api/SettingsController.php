@@ -37,13 +37,14 @@ class SettingsController extends Controller
         $validator = Validator::make($request->all(), [
             'language' => 'sometimes|string|in:en,es,fr',
             'timezone' => 'sometimes|string|max:50',
-            'theme' => 'sometimes|string|in:light,dark,auto',
+            'theme' => 'sometimes|string|in:light',
             'sidebar_collapsed' => 'sometimes|boolean',
             'notifications_enabled' => 'sometimes|boolean',
             'email_notifications_enabled' => 'sometimes|boolean',
             'expiry_reminders_enabled' => 'sometimes|boolean',
             'reminder_days_before' => 'sometimes|integer|min:1|max:365',
             'notification_preferences' => 'sometimes|array',
+            'dashboard_widgets' => 'sometimes|array',
         ]);
 
         if ($validator->fails()) {

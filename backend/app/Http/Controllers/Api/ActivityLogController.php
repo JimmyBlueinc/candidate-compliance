@@ -16,6 +16,7 @@ class ActivityLogController extends Controller
         $user = $request->user();
         $filter = $request->input('filter', 'all');
         $action = $request->input('action');
+        $entity = $request->input('entity');
         $search = $request->input('search', '');
         $orgId = Org::id($request);
         $effectiveOrgId = $user?->role === 'platform_admin' ? $orgId : $user?->organization_id;
@@ -29,16 +30,25 @@ class ActivityLogController extends Controller
 
         // Filter by action
         if ($action) {
-            $query->where('action', $action);
+            $query->where(function ($q) use ($action) {
+                $q->where('old_action', $action)->orWhere('event', $action);
+            });
         } elseif ($filter !== 'all') {
-            $query->where('action', $filter);
+            $query->where(function ($q) use ($filter) {
+                $q->where('old_action', $filter)->orWhere('event', $filter);
+            });
+        }
+
+        if ($entity) {
+            $query->where('entity_type', $entity);
         }
 
         // Search
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('entity_name', 'like', '%' . $search . '%')
-                  ->orWhere('description', 'like', '%' . $search . '%');
+                  ->orWhere('description', 'like', '%' . $search . '%')
+                  ->orWhere('entity_type', 'like', '%' . $search . '%');
             });
         }
 
@@ -78,10 +88,11 @@ class ActivityLogController extends Controller
                     'name' => $activity->user->name,
                     'email' => $activity->user->email,
                 ] : null,
-                'action' => $activity->action,
-                'entity' => $activity->entity,
+                'action' => $activity->old_action ?: ($activity->event ?: 'updated'),
+                'entity' => $activity->entity_type,
                 'entity_name' => $activity->entity_name,
                 'description' => $activity->description,
+                'source' => $activity->source ?: 'system',
                 'created_at' => $activity->created_at?->toIso8601String(),
             ];
         });

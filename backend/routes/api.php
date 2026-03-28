@@ -328,6 +328,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
         // Facilities management (org_super_admin)
         Route::prefix('facilities')->middleware('role.org_owner')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\FacilityManagementController::class, 'index']);
+            Route::get('/export', [\App\Http\Controllers\Api\FacilityManagementController::class, 'export']);
             Route::post('/', [\App\Http\Controllers\Api\FacilityManagementController::class, 'store']);
             
             // Facility detail workspace (must come before {facility}/users to avoid route conflict)
@@ -340,6 +341,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             // Contracts (facility-scoped)
             Route::prefix('{facilityId}/contracts')->where(['facilityId' => '[0-9]+'])->group(function () {
                 Route::get('/', [\App\Http\Controllers\Api\ContractController::class, 'index']);
+                Route::get('/export', [\App\Http\Controllers\Api\ContractController::class, 'export']);
                 Route::post('/', [\App\Http\Controllers\Api\ContractController::class, 'store']);
                 Route::get('/{id}', [\App\Http\Controllers\Api\ContractController::class, 'show']);
                 Route::delete('/{id}', [\App\Http\Controllers\Api\ContractController::class, 'destroy']);
@@ -386,6 +388,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
     
     // User Settings routes
     Route::get('/settings', [\App\Http\Controllers\Api\SettingsController::class, 'index']);
+    Route::get('/feature-flags', [\App\Http\Controllers\Api\FeatureFlagController::class, 'index']);
 });
 
 Route::get('/credentials/documents/{path}', [\App\Http\Controllers\Api\CredentialDocumentController::class, 'show'])
@@ -395,6 +398,7 @@ Route::get('/credentials/documents/{path}', [\App\Http\Controllers\Api\Credentia
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { 
     Route::put('/settings', [\App\Http\Controllers\Api\SettingsController::class, 'update']);
     Route::post('/settings/reset', [\App\Http\Controllers\Api\SettingsController::class, 'reset']);
+    Route::put('/feature-flags/{key}', [\App\Http\Controllers\Api\FeatureFlagController::class, 'upsert'])->middleware('role.org_owner');
 
     // Messaging routes
     Route::get('/messages', [\App\Http\Controllers\Api\MessageController::class, 'index']);

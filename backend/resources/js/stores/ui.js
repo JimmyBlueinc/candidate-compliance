@@ -4,16 +4,12 @@ import { useAuthStore } from './auth';
 
 const THEME_STORAGE_KEY = 'ui.theme';
 const SIDEBAR_COLLAPSED_KEY = 'ui.sidebarCollapsed';
+const DASHBOARD_WIDGETS_KEY = 'ui.dashboardWidgets';
 
-function applyThemeClass(theme) {
+function applyThemeClass() {
     const root = document.documentElement;
     root.classList.remove('theme-light', 'theme-dark');
-    root.classList.add(theme === 'light' ? 'theme-light' : 'theme-dark');
-}
-
-function getSystemTheme() {
-    if (typeof window === 'undefined') return 'light';
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    root.classList.add('theme-light');
 }
 
 export const useUiStore = defineStore('ui', {
@@ -21,16 +17,37 @@ export const useUiStore = defineStore('ui', {
         theme: 'light',
         sidebarCollapsed: false,
         serverSynced: false,
+        dashboardWidgets: {
+            facilityProfitability: true,
+            complianceTrend: true,
+            riskExposure: true,
+            activityFeed: true,
+            notifications: true,
+        },
     }),
 
     actions: {
         initTheme() {
-            const stored = localStorage.getItem(THEME_STORAGE_KEY);
-            this.theme = stored === 'light' || stored === 'dark' ? stored : 'light';
-            applyThemeClass(this.theme);
+            // Single colorful mode only
+            this.theme = 'light';
+            localStorage.setItem(THEME_STORAGE_KEY, 'light');
+            applyThemeClass();
 
             const sidebarStored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
             this.sidebarCollapsed = sidebarStored === 'true';
+
+            try {
+                const widgetsRaw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
+                if (widgetsRaw) {
+                    const parsed = JSON.parse(widgetsRaw);
+                    this.dashboardWidgets = {
+                        ...this.dashboardWidgets,
+                        ...(parsed || {}),
+                    };
+                }
+            } catch {
+                // ignore bad local storage payloads
+            }
         },
 
         async syncFromServer() {
@@ -42,15 +59,22 @@ export const useUiStore = defineStore('ui', {
                 const settings = res?.settings || null;
                 if (!settings) return;
 
-                if (settings.theme === 'light' || settings.theme === 'dark') {
-                    this.theme = settings.theme;
-                    localStorage.setItem(THEME_STORAGE_KEY, this.theme);
-                    applyThemeClass(this.theme);
-                }
+                // Consolidated single mode. Ignore remote dark mode if present.
+                this.theme = 'light';
+                localStorage.setItem(THEME_STORAGE_KEY, 'light');
+                applyThemeClass();
 
                 if (typeof settings.sidebar_collapsed === 'boolean') {
                     this.sidebarCollapsed = settings.sidebar_collapsed;
                     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, this.sidebarCollapsed ? 'true' : 'false');
+                }
+
+                if (settings?.dashboard_widgets && typeof settings.dashboard_widgets === 'object') {
+                    this.dashboardWidgets = {
+                        ...this.dashboardWidgets,
+                        ...settings.dashboard_widgets,
+                    };
+                    localStorage.setItem(DASHBOARD_WIDGETS_KEY, JSON.stringify(this.dashboardWidgets));
                 }
 
                 this.serverSynced = true;
@@ -70,16 +94,16 @@ export const useUiStore = defineStore('ui', {
             }
         },
 
-        setTheme(theme) {
-            this.theme = theme === 'light' ? 'light' : 'dark';
+        setTheme() {
+            this.theme = 'light';
             localStorage.setItem(THEME_STORAGE_KEY, this.theme);
-            applyThemeClass(this.theme);
-
-            this.persistToServer({ theme: this.theme });
+            applyThemeClass();
+            this.persistToServer({ theme: 'light' });
         },
 
         toggleTheme() {
-            this.setTheme(this.theme === 'light' ? 'dark' : 'light');
+            // dark mode removed intentionally
+            this.setTheme('light');
         },
 
         setSidebarCollapsed(next) {
@@ -91,6 +115,16 @@ export const useUiStore = defineStore('ui', {
 
         toggleSidebar() {
             this.setSidebarCollapsed(!this.sidebarCollapsed);
+        },
+
+        setDashboardWidgetVisibility(widgetKey, visible) {
+            if (!Object.prototype.hasOwnProperty.call(this.dashboardWidgets, widgetKey)) return;
+            this.dashboardWidgets = {
+                ...this.dashboardWidgets,
+                [widgetKey]: !!visible,
+            };
+            localStorage.setItem(DASHBOARD_WIDGETS_KEY, JSON.stringify(this.dashboardWidgets));
+            this.persistToServer({ dashboard_widgets: this.dashboardWidgets });
         },
     },
 });

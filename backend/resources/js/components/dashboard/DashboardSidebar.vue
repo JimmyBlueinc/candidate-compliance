@@ -167,7 +167,7 @@ const groups = computed(() => {
             show: isOrgSuperAdmin.value,
             items: [
                 { id: 'dashboard', label: 'Dashboard', icon: 'grid_view', routeName: 'dashboard.finance' },
-                { id: 'public_home', label: 'Public Home', icon: 'home', routeName: 'tenant.home' },
+                { id: 'org_home', label: 'Organization Home', icon: 'home', tenantHome: true },
                 { id: 'msa_dashboard', label: 'MSA Dashboard', icon: 'description', routeName: 'dashboard.facilities' },
                 { id: 'invoices', label: 'Invoices', icon: 'request_quote', routeName: 'dashboard.invoices' },
                 { id: 'accounts_receivable', label: 'Accounts Receivable', icon: 'account_balance_wallet', routeName: 'dashboard.accounts_receivable' },
@@ -274,6 +274,16 @@ function isActiveRoute(item) {
 }
 
 function navigateTo(item) {
+    if (item.tenantHome) {
+        const subdomain = String(brand.subdomain || '').trim();
+        if (subdomain) {
+            window.location.href = `https://${subdomain}.agenchq.com/home`;
+            return;
+        }
+        router.push({ name: 'tenant.home' });
+        return;
+    }
+
     if (item.params || item.query) {
         router.push({ name: item.routeName, params: item.params, query: item.query });
     } else {

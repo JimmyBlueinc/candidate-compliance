@@ -107,11 +107,38 @@
     <!-- Facilities Table -->
     <AppCard title="Facilities" subtitle="All registered facilities in your organization.">
       <template #actions>
+        <AppButton v-if="facilities.length > 0" variant="secondary" size="sm" @click="exportFacilities">
+          <i class="pi pi-download text-xs" />
+          Export CSV
+        </AppButton>
         <AppButton v-if="facilities.length > 0" size="sm" @click="openCreateFacilityUser">
           <UserPlus class="w-4 h-4" />
           Create Facility User
         </AppButton>
       </template>
+
+      <div v-if="facilities.length > 0" class="mb-4 flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+        <div class="flex-1 max-w-md">
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="app-input"
+            placeholder="Search facilities, city, contact..."
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <select v-model="sortBy" class="app-input min-w-[170px]">
+            <option value="name">Sort: Name</option>
+            <option value="users_count">Sort: Users</option>
+            <option value="contracts_count">Sort: Contracts</option>
+            <option value="city">Sort: City</option>
+          </select>
+          <select v-model="sortDir" class="app-input min-w-[120px]">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+      </div>
 
       <div v-if="loading" class="py-8">
         <div class="space-y-3">
@@ -140,7 +167,7 @@
           </thead>
           <tbody class="divide-y divide-[color:var(--aq-border)]">
             <tr
-              v-for="facility in facilities"
+              v-for="facility in pagedFacilities"
               :key="facility.id"
               class="hover:bg-[color:var(--aq-surface-2)] transition-colors cursor-pointer"
               @click="openFacilityDetails(facility)"
@@ -162,6 +189,11 @@
               <td class="px-6 py-4">
                 <div class="text-sm font-medium text-[color:var(--aq-fg)]">{{ facility.contact_person_name || '—' }}</div>
                 <div class="text-xs text-[color:var(--aq-muted)]">{{ facility.contact_email || '—' }}</div>
+                <div class="mt-1">
+                  <AppBadge :variant="Number(facility.contracts_count || 0) > 0 ? 'success' : 'default'" size="sm">
+                    {{ Number(facility.contracts_count || 0) > 0 ? 'MSA Ready' : 'No Contracts' }}
+                  </AppBadge>
+                </div>
               </td>
               <td class="px-6 py-4 text-right">
                 <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[color:var(--aq-primary)]/10 text-sm font-semibold text-[color:var(--aq-primary)]">
@@ -180,6 +212,17 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div v-if="filteredFacilities.length > pageSize" class="mt-4 flex items-center justify-between text-xs text-[color:var(--aq-muted)]">
+        <span>
+          Showing {{ pageStart + 1 }}-{{ Math.min(pageStart + pageSize, filteredFacilities.length) }} of {{ filteredFacilities.length }}
+        </span>
+        <div class="flex items-center gap-2">
+          <AppButton variant="secondary" size="sm" :disabled="currentPage === 1" @click="currentPage -= 1">Prev</AppButton>
+          <span>Page {{ currentPage }} / {{ totalPages }}</span>
+          <AppButton variant="secondary" size="sm" :disabled="currentPage >= totalPages" @click="currentPage += 1">Next</AppButton>
+        </div>
       </div>
     </AppCard>
 
@@ -297,7 +340,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiGet, apiPost } from '../../lib/api';
 import { Building2, Users, FileText, Plus, UserPlus, RefreshCw, CheckCircle, AlertCircle, Copy } from 'lucide-vue-next';
@@ -315,6 +358,11 @@ const router = useRouter();
 const facilities = ref([]);
 const loading = ref(true);
 const error = ref('');
+const searchQuery = ref('');
+const sortBy = ref('name');
+const sortDir = ref('asc');
+const currentPage = ref(1);
+const pageSize = 10;
 
 const facilityName = ref('');
 const facilityAddress = ref('');
@@ -371,6 +419,37 @@ const facilityOptions = computed(() => {
   return facilities.value.map((f) => ({ label: f.name, value: String(f.id) }));
 });
 
+const filteredFacilities = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase();
+  if (!q) return facilities.value;
+  return facilities.value.filter((f) =>
+    `${f.name || ''} ${f.city || ''} ${f.state || ''} ${f.contact_person_name || ''} ${f.contact_email || ''}`
+      .toLowerCase()
+      .includes(q)
+  );
+});
+
+const sortedFacilities = computed(() => {
+  const key = sortBy.value;
+  const dir = sortDir.value === 'desc' ? -1 : 1;
+  return [...filteredFacilities.value].sort((a, b) => {
+    const av = a?.[key] ?? '';
+    const bv = b?.[key] ?? '';
+    if (typeof av === 'number' || typeof bv === 'number') {
+      return (Number(av) - Number(bv)) * dir;
+    }
+    return String(av).localeCompare(String(bv)) * dir;
+  });
+});
+
+const totalPages = computed(() => Math.max(1, Math.ceil(sortedFacilities.value.length / pageSize)));
+const pageStart = computed(() => (currentPage.value - 1) * pageSize);
+const pagedFacilities = computed(() => sortedFacilities.value.slice(pageStart.value, pageStart.value + pageSize));
+
+watch([searchQuery, sortBy, sortDir], () => {
+  currentPage.value = 1;
+});
+
 const totalFacilityUsers = computed(() => {
   return facilities.value.reduce((acc, f) => acc + Number(f.users_count || 0), 0);
 });
@@ -394,6 +473,7 @@ async function load() {
     if (!selectedFacilityId.value && facilities.value.length > 0) {
       selectedFacilityId.value = String(facilities.value[0].id);
     }
+    if (currentPage.value > totalPages.value) currentPage.value = totalPages.value;
   } catch (e) {
     error.value = e?.response?.data?.message || e?.message || 'Failed to load facilities.';
     facilities.value = [];
@@ -460,6 +540,10 @@ function openFacilityDetails(facility) {
     name: 'dashboard.facilities.detail',
     params: { id: facility.id },
   });
+}
+
+function exportFacilities() {
+  window.open('/api/v1/facilities/export', '_blank');
 }
 
 function openFacilityContracts(facility) {

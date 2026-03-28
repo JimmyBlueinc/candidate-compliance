@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ContractController extends Controller
 {
@@ -43,6 +44,52 @@ class ContractController extends Controller
         return response()->api([
             'contracts' => $contracts->map(fn ($c) => $this->formatContract($c)),
         ]);
+    }
+
+    public function export(Request $request, int $facilityId): StreamedResponse|JsonResponse
+    {
+        $orgId = Org::id($request);
+        if (!$orgId) {
+            return response()->json(['message' => 'Organization context missing.'], 400);
+        }
+
+        $facility = Facility::findOrFail($facilityId);
+        if ((int) $facility->organization_id !== (int) $orgId) {
+            return response()->json(['message' => 'Facility not found.'], 404);
+        }
+
+        $contracts = Contract::query()
+            ->where('facility_id', $facilityId)
+            ->where('organization_id', $orgId)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $filename = 'facility_' . $facilityId . '_contracts_' . now()->format('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($contracts) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'id',
+                'document_type',
+                'file_name',
+                'status',
+                'effective_start_date',
+                'effective_end_date',
+                'created_at',
+            ]);
+            foreach ($contracts as $c) {
+                fputcsv($handle, [
+                    $c->id,
+                    $c->document_type,
+                    $c->file_name,
+                    $c->status,
+                    $c->effective_start_date?->format('Y-m-d'),
+                    $c->effective_end_date?->format('Y-m-d'),
+                    $c->created_at?->toIso8601String(),
+                ]);
+            }
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 
     /**

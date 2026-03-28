@@ -3,6 +3,30 @@
     <!-- Page Header -->
     <AppPageHeader title="Dashboard" subtitle="Today's overview across finance, compliance, and operations">
       <template #actions>
+        <div class="relative">
+          <AppButton variant="secondary" size="sm" @click="widgetMenuOpen = !widgetMenuOpen">
+            <i class="pi pi-sliders-h text-xs" />
+            Customize
+          </AppButton>
+          <div
+            v-if="widgetMenuOpen"
+            class="absolute right-0 mt-2 w-64 rounded-[var(--radius-lg)] border border-[color:var(--aq-border)] bg-[color:var(--aq-surface-card)] p-3 z-30 shadow-xl"
+          >
+            <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)] mb-2">Dashboard Widgets</div>
+            <label v-for="w in widgetToggles" :key="w.key" class="flex items-center justify-between py-1.5 text-sm">
+              <span class="text-[color:var(--aq-fg)]">{{ w.label }}</span>
+              <input
+                type="checkbox"
+                :checked="widgetEnabled(w.key)"
+                @change="toggleWidget(w.key, $event.target.checked)"
+              />
+            </label>
+          </div>
+        </div>
+        <AppButton variant="secondary" size="sm" @click="exportFacilities">
+          <i class="pi pi-download text-xs" />
+          Export Facilities
+        </AppButton>
         <AppButton variant="secondary" size="sm" :loading="loading || analyticsLoading" @click="refresh">
           <RefreshCw class="w-4 h-4" />
           Refresh
@@ -21,7 +45,7 @@
     <!-- Main Content Grid -->
     <div class="grid grid-cols-12 gap-6">
       <!-- Facility Profitability Table -->
-      <div class="col-span-12 lg:col-span-7">
+      <div v-if="widgetEnabled('facilityProfitability')" class="col-span-12 lg:col-span-7">
         <AppCard title="Facility Profitability" subtitle="Where you make (and lose) money">
           <template #actions>
             <AppBadge variant="default" size="sm">Active placements</AppBadge>
@@ -75,7 +99,7 @@
       <!-- Right Column -->
       <div class="col-span-12 lg:col-span-5 space-y-6">
         <!-- Compliance Trend -->
-        <AppCard title="Compliance Trend" subtitle="Status distribution snapshot">
+        <AppCard v-if="widgetEnabled('complianceTrend')" title="Compliance Trend" subtitle="Status distribution snapshot">
           <template #actions>
             <div class="flex items-center gap-1 p-1 rounded-[var(--radius-lg)] bg-[color:var(--aq-surface-2)]">
               <button
@@ -138,7 +162,7 @@
         </AppCard>
 
         <!-- Risk Exposure -->
-        <AppCard title="Risk Exposure" subtitle="Quantified compliance risk across departments">
+        <AppCard v-if="widgetEnabled('riskExposure')" title="Risk Exposure" subtitle="Quantified compliance risk across departments">
           <div class="space-y-5">
             <div v-for="metric in riskMetrics" :key="metric.label">
               <div class="flex justify-between items-center mb-2">
@@ -161,6 +185,23 @@
             </AppButton>
           </div>
         </AppCard>
+
+        <AppCard v-if="widgetEnabled('activityFeed')" title="Operational Activity" subtitle="Live system actions and change stream">
+          <DashboardActivityFeed />
+        </AppCard>
+
+        <AppCard v-if="widgetEnabled('notifications')" title="Alert Snapshot" subtitle="Unread and actionable notifications">
+          <div class="space-y-3">
+            <div class="p-4 rounded-[var(--radius-lg)] border border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)]/50">
+              <div class="text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">Unread Notifications</div>
+              <div class="text-3xl font-bold mt-2 text-[color:var(--aq-fg)]">{{ unreadNotifications }}</div>
+            </div>
+            <AppButton variant="secondary" class="w-full" @click="goNotifications">
+              <i class="pi pi-bell text-xs" />
+              Open Notification Center
+            </AppButton>
+          </div>
+        </AppCard>
       </div>
     </div>
   </div>
@@ -168,8 +209,10 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { apiGet } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
+import { useUiStore } from '../../stores/ui';
 import { CircleDollarSign, Wallet, TrendingUp, Sparkles, RefreshCw, Building2, BarChart3, FileText } from 'lucide-vue-next';
 import AppPageHeader from '../../components/ui/AppPageHeader.vue';
 import AppCard from '../../components/ui/AppCard.vue';
@@ -178,13 +221,18 @@ import AppBadge from '../../components/ui/AppBadge.vue';
 import AppButton from '../../components/ui/AppButton.vue';
 import AppEmpty from '../../components/ui/AppEmpty.vue';
 import AppSkeleton from '../../components/ui/AppSkeleton.vue';
+import DashboardActivityFeed from '../../components/dashboard/DashboardActivityFeed.vue';
 
 const brand = useBrandStore();
+const ui = useUiStore();
+const router = useRouter();
 
 const primaryColor = computed(() => brand.primaryColor || 'var(--aq-primary)');
 
 const loading = ref(false);
 const error = ref('');
+const widgetMenuOpen = ref(false);
+const unreadNotifications = ref(0);
 
 const mode = ref('by_status');
 const analytics = ref(null);
@@ -218,6 +266,22 @@ const projectedProfit = computed(() => {
   const laborCost = Number(totals.value?.labor_cost || 0);
   return projectedRevenue - laborCost;
 });
+
+const widgetToggles = [
+  { key: 'facilityProfitability', label: 'Facility Profitability' },
+  { key: 'complianceTrend', label: 'Compliance Trend' },
+  { key: 'riskExposure', label: 'Risk Exposure' },
+  { key: 'activityFeed', label: 'Activity Feed' },
+  { key: 'notifications', label: 'Notifications' },
+];
+
+function widgetEnabled(key) {
+  return ui.dashboardWidgets?.[key] !== false;
+}
+
+function toggleWidget(key, visible) {
+  ui.setDashboardWidgetVisibility(key, visible);
+}
 
 function money(v) {
   const n = Number(v || 0);
@@ -299,6 +363,25 @@ async function refresh() {
   }
 
   await loadAnalytics();
+  await loadNotificationCount();
+}
+
+async function loadNotificationCount() {
+  try {
+    const res = await apiGet('/notifications');
+    const list = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+    unreadNotifications.value = list.filter((n) => !n.read_at).length;
+  } catch {
+    unreadNotifications.value = 0;
+  }
+}
+
+function goNotifications() {
+  router.push({ name: 'dashboard.notifications' });
+}
+
+function exportFacilities() {
+  window.open('/api/v1/facilities/export', '_blank');
 }
 
 refresh();

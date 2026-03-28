@@ -15,6 +15,16 @@
       <h1 class="font-display text-xl text-[color:var(--p-text-color)]">{{ title }}</h1>
     </div>
     <div class="flex items-center gap-3">
+      <button
+        type="button"
+        class="hidden md:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-[color:var(--p-surface-border)] bg-[color:var(--p-surface-0)] text-[11px] font-semibold text-[color:var(--p-text-muted-color)] hover:text-[color:var(--p-text-color)] hover:bg-[color:var(--p-surface-hover)] transition-colors"
+        @click="emit('open-command')"
+      >
+        <i class="pi pi-search text-[10px]" />
+        Command
+        <span class="px-1.5 py-0.5 rounded border border-[color:var(--p-surface-border)] text-[9px]">⌘K</span>
+      </button>
+
       <!-- Online Users (non-candidates only) -->
       <OnlineUsers v-if="!isCandidate" />
       
@@ -56,6 +66,7 @@ const ui = useUiStore();
 const auth = useAuthStore();
 const brand = useBrandStore();
 const router = useRouter();
+const emit = defineEmits(['open-command']);
 
 const isCandidate = computed(() => auth.user?.role === 'candidate');
 

@@ -18,6 +18,7 @@ class UserSetting extends Model
         'expiry_reminders_enabled',
         'reminder_days_before',
         'notification_preferences',
+        'dashboard_widgets',
     ];
 
     protected $casts = [
@@ -27,6 +28,7 @@ class UserSetting extends Model
         'sidebar_collapsed' => 'boolean',
         'reminder_days_before' => 'integer',
         'notification_preferences' => 'array',
+        'dashboard_widgets' => 'array',
     ];
 
     /**
@@ -52,6 +54,13 @@ class UserSetting extends Model
             'expiry_reminders_enabled' => true,
             'reminder_days_before' => 30,
             'notification_preferences' => [],
+            'dashboard_widgets' => [
+                'facilityProfitability' => true,
+                'complianceTrend' => true,
+                'riskExposure' => true,
+                'activityFeed' => true,
+                'notifications' => true,
+            ],
         ];
     }
 }

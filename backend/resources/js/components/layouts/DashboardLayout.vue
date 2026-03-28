@@ -10,7 +10,7 @@
       <!-- Page Header -->
       <header class="app-header shrink-0 px-6 pt-6 pb-4">
         <div class="max-w-[1400px] mx-auto">
-          <DashboardHeader :title="pageTitle" />
+          <DashboardHeader :title="pageTitle" @open-command="openCommandPalette" />
 
           <!-- Profile Completion Nudge -->
           <div
@@ -40,17 +40,22 @@
         </div>
       </div>
     </main>
+
+    <CommandPalette ref="commandPaletteRef" />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { apiPost } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import { useAuthStore } from '../../stores/auth';
 import { useUiStore } from '../../stores/ui';
+import { usePolling } from '../../composables/usePolling';
 import { AlertCircle } from 'lucide-vue-next';
 import DashboardHeader from '../dashboard/DashboardHeader.vue';
+import CommandPalette from '../dashboard/CommandPalette.vue';
 import SystemBanner from '../SystemBanner.vue';
 import PremiumSidebar from '../ui/PremiumSidebar.vue';
 import ForcePasswordChangeModal from '../auth/ForcePasswordChangeModal.vue';
@@ -60,6 +65,7 @@ const router = useRouter();
 const brand = useBrandStore();
 const auth = useAuthStore();
 const ui = useUiStore();
+const commandPaletteRef = ref(null);
 
 const missingProfileFields = computed(() => {
   const u = auth.user;
@@ -83,6 +89,17 @@ const showProfileNudge = computed(() => {
 
 function goToProfile() {
   router.push({ name: 'dashboard.profile' });
+}
+
+function openCommandPalette() {
+  commandPaletteRef.value?.openPalette?.();
+}
+
+async function sendHeartbeat() {
+  const role = String(auth.user?.role || '');
+  const staffRoles = ['org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'];
+  if (!auth.isAuthenticated || !staffRoles.includes(role)) return;
+  await apiPost('/users/heartbeat');
 }
 
 const pageTitle = computed(() => {
@@ -141,4 +158,6 @@ const pageTitle = computed(() => {
 onMounted(async () => {
   await brand.load();
 });
+
+usePolling(sendHeartbeat, 45000, { immediate: true });
 </script>

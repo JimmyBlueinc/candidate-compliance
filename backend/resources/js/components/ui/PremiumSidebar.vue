@@ -98,26 +98,6 @@
 
     <!-- Footer -->
     <div class="shrink-0 border-t border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)]/50 backdrop-blur-sm">
-      <!-- Theme Toggle -->
-      <div class="px-3 py-3">
-        <button
-          type="button"
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-[var(--radius-lg)] transition-colors"
-          :class="[
-            'hover:bg-[color:var(--aq-surface-card)]',
-            ui.sidebarCollapsed && 'justify-center'
-          ]"
-          @click="ui.toggleTheme()"
-          :title="ui.theme === 'light' ? 'Dark mode' : 'Light mode'"
-        >
-          <Moon v-if="ui.theme === 'light'" class="w-4 h-4 text-[color:var(--aq-muted)]" />
-          <Sun v-else class="w-4 h-4 text-[color:var(--aq-muted)]" />
-          <span v-if="!ui.sidebarCollapsed" class="text-xs font-medium text-[color:var(--aq-muted)]">
-            {{ ui.theme === 'light' ? 'Dark Mode' : 'Light Mode' }}
-          </span>
-        </button>
-      </div>
-
       <!-- User Profile -->
       <div class="px-3 pb-3">
         <button
@@ -205,8 +185,6 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Moon,
-  Sun,
   Gauge,
   Activity,
   Megaphone,

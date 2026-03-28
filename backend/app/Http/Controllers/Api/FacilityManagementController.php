@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -17,6 +18,57 @@ use Illuminate\Validation\Rule;
 
 class FacilityManagementController extends Controller
 {
+    public function export(Request $request): StreamedResponse|JsonResponse
+    {
+        $orgId = Org::id($request);
+        if (!$orgId) {
+            return response()->json(['message' => 'Organization context missing.'], 400);
+        }
+
+        $facilities = Facility::query()
+            ->where('organization_id', $orgId)
+            ->withCount('users')
+            ->withCount('contracts')
+            ->orderBy('name')
+            ->get();
+
+        $filename = 'facilities_' . now()->format('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($facilities) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'id',
+                'name',
+                'facility_type',
+                'city',
+                'state',
+                'country',
+                'users_count',
+                'contracts_count',
+                'contact_person_name',
+                'contact_email',
+                'created_at',
+            ]);
+
+            foreach ($facilities as $f) {
+                fputcsv($handle, [
+                    $f->id,
+                    $f->name,
+                    $f->facility_type,
+                    $f->city,
+                    $f->state,
+                    $f->country,
+                    (int) ($f->users_count ?? 0),
+                    (int) ($f->contracts_count ?? 0),
+                    $f->contact_person_name,
+                    $f->contact_email,
+                    $f->created_at?->toIso8601String(),
+                ]);
+            }
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $orgId = Org::id($request);

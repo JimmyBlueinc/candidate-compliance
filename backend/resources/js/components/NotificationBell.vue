@@ -63,8 +63,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onUnmounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { apiGet, apiPost } from '../lib/api';
+import { usePolling } from '../composables/usePolling';
 
 const isOpen = ref(false);
 const items = ref([]);
@@ -146,15 +147,12 @@ function togglePanel() {
   if (isOpen.value) loadNotifications();
 }
 
-let pollTimer = null;
 onMounted(() => {
+  // keep data warm even when panel is closed
   loadNotifications();
-  pollTimer = setInterval(loadNotifications, 30000);
 });
 
-onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer);
-});
+usePolling(loadNotifications, 30000, { immediate: false });
 </script>
 
 <style scoped>
