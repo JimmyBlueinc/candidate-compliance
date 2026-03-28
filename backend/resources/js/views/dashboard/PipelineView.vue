@@ -40,7 +40,7 @@
         </div>
       </div>
 
-      <PipelineBoard v-else class="mt-6">
+      <PipelineBoard v-if="!loading" class="mt-6">
         <PipelineColumn
           v-for="col in columns"
           :key="col.id"
