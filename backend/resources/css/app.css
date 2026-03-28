@@ -231,6 +231,47 @@
 }
 
 @layer components {
+    .app-shell {
+        position: relative;
+    }
+
+    .app-shell::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background:
+            radial-gradient(860px 420px at 8% 6%, color-mix(in srgb, var(--aq-accent-5) 22%, transparent), transparent 62%),
+            radial-gradient(900px 460px at 92% 6%, color-mix(in srgb, var(--aq-accent) 18%, transparent), transparent 60%),
+            radial-gradient(980px 560px at 70% 92%, color-mix(in srgb, var(--aq-accent-2) 16%, transparent), transparent 66%);
+    }
+
+    .app-main {
+        position: relative;
+        z-index: 1;
+    }
+
+    .app-main::before {
+        content: '';
+        position: sticky;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        display: block;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            color-mix(in srgb, var(--aq-primary) 28%, transparent),
+            transparent
+        );
+    }
+
+    .app-content > .max-w-\[1400px\] {
+        animation: fadeInUp 260ms ease;
+    }
+
     .glass-dark {
         background: var(--p-surface-card, rgba(15, 15, 18, 0.6));
         backdrop-filter: blur(20px);
@@ -393,6 +434,73 @@
 
     .compact-ui .p-dialog .p-dialog-content {
         padding: 0.9rem 1rem;
+    }
+
+    .p-dialog {
+        border-radius: var(--radius-xl);
+        border: 1px solid color-mix(in srgb, var(--aq-border) 85%, transparent);
+        box-shadow: 0 28px 60px rgba(15, 23, 42, 0.2);
+        overflow: hidden;
+    }
+
+    .p-dialog .p-dialog-header {
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--aq-surface-card) 92%, white 8%),
+            color-mix(in srgb, var(--aq-surface-2) 86%, transparent)
+        );
+        border-bottom: 1px solid color-mix(in srgb, var(--aq-border) 85%, transparent);
+    }
+
+    .p-dialog .p-dialog-content {
+        background: color-mix(in srgb, var(--aq-surface-card) 96%, transparent);
+    }
+
+    .p-inputtext,
+    .p-dropdown,
+    .p-multiselect,
+    .p-inputnumber-input,
+    .p-calendar .p-inputtext,
+    .p-textarea {
+        border-radius: var(--radius-md);
+        border-color: color-mix(in srgb, var(--aq-border) 85%, transparent);
+        background: color-mix(in srgb, var(--aq-surface-2) 84%, transparent);
+        transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .p-inputtext:focus,
+    .p-dropdown:focus,
+    .p-multiselect:focus,
+    .p-calendar .p-inputtext:focus,
+    .p-textarea:focus {
+        border-color: color-mix(in srgb, var(--aq-primary) 55%, transparent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--aq-primary) 12%, transparent);
+    }
+
+    .p-datatable {
+        border-radius: var(--radius-xl);
+        border: 1px solid color-mix(in srgb, var(--aq-border) 84%, transparent);
+        overflow: hidden;
+    }
+
+    .p-datatable .p-datatable-thead > tr > th {
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--aq-surface-2) 88%, transparent),
+            color-mix(in srgb, var(--aq-surface-1) 84%, transparent)
+        );
+        border-bottom: 1px solid color-mix(in srgb, var(--aq-border) 84%, transparent);
+        font-size: 0.74rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .p-datatable .p-datatable-tbody > tr {
+        transition: background var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .p-datatable .p-datatable-tbody > tr:hover {
+        background: color-mix(in srgb, var(--aq-primary) 6%, transparent);
     }
 
     html.theme-light .glass-dark {

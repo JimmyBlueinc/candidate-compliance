@@ -8,7 +8,7 @@
       <ForcePasswordChangeModal />
 
       <!-- Page Header -->
-      <header class="app-header shrink-0 px-6 pt-6 pb-4">
+      <header class="app-header shrink-0 px-6 pt-5 pb-4 sticky top-0 z-10 backdrop-blur-sm bg-[color:var(--aq-bg)]/65 border-b border-[color:var(--aq-border)]/60">
         <div class="max-w-[1400px] mx-auto">
           <DashboardHeader :title="pageTitle" @open-command="openCommandPalette" />
 

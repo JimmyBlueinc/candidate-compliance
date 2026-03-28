@@ -70,11 +70,11 @@ const variantClasses = computed(() => {
     primary: cn(
       'bg-[color:var(--aq-primary)] text-white',
       'hover:bg-[color:var(--aq-primary)]/90',
-      'shadow-sm hover:shadow-md hover:shadow-[color:var(--aq-primary)]/20'
+      'shadow-sm hover:shadow-md hover:shadow-[color:var(--aq-primary)]/20 hover:-translate-y-[1px]'
     ),
     secondary: cn(
       'bg-[color:var(--aq-surface-2)] text-[color:var(--aq-fg)] border border-[color:var(--aq-border)]',
-      'hover:bg-[color:var(--aq-surface-card)] hover:border-[color:var(--aq-primary)]/30'
+      'hover:bg-[color:var(--aq-surface-card)] hover:border-[color:var(--aq-primary)]/30 hover:-translate-y-[1px]'
     ),
     ghost: cn(
       'bg-transparent text-[color:var(--aq-muted)]',
@@ -83,27 +83,27 @@ const variantClasses = computed(() => {
     danger: cn(
       'bg-rose-500 text-white',
       'hover:bg-rose-600',
-      'shadow-sm hover:shadow-md hover:shadow-rose-500/20'
+      'shadow-sm hover:shadow-md hover:shadow-rose-500/20 hover:-translate-y-[1px]'
     ),
     success: cn(
       'bg-emerald-500 text-white',
       'hover:bg-emerald-600',
-      'shadow-sm hover:shadow-md hover:shadow-emerald-500/20'
+      'shadow-sm hover:shadow-md hover:shadow-emerald-500/20 hover:-translate-y-[1px]'
     ),
     cyan: cn(
       'bg-cyan-500 text-white',
       'hover:bg-cyan-600',
-      'shadow-sm hover:shadow-md hover:shadow-cyan-500/20'
+      'shadow-sm hover:shadow-md hover:shadow-cyan-500/20 hover:-translate-y-[1px]'
     ),
     violet: cn(
       'bg-violet-500 text-white',
       'hover:bg-violet-600',
-      'shadow-sm hover:shadow-md hover:shadow-violet-500/20'
+      'shadow-sm hover:shadow-md hover:shadow-violet-500/20 hover:-translate-y-[1px]'
     ),
     amber: cn(
       'bg-amber-500 text-white',
       'hover:bg-amber-600',
-      'shadow-sm hover:shadow-md hover:shadow-amber-500/20'
+      'shadow-sm hover:shadow-md hover:shadow-amber-500/20 hover:-translate-y-[1px]'
     ),
     outline: cn(
       'bg-transparent text-[color:var(--aq-primary)] border-2 border-[color:var(--aq-primary)]',

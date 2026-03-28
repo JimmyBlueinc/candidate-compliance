@@ -264,9 +264,12 @@ const groups = computed(() => {
       show: isOrgSuperAdmin.value,
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', routeName: 'dashboard.finance' },
+        { id: 'org_home', label: 'Organization Home', icon: 'home', tenantHome: true },
         { id: 'invoices', label: 'Invoices', icon: 'file', routeName: 'dashboard.invoices' },
         { id: 'accounts_receivable', label: 'Accounts Receivable', icon: 'gauge', routeName: 'dashboard.accounts_receivable' },
         { id: 'facilities', label: 'Facilities', icon: 'building', routeName: 'dashboard.facilities' },
+        { id: 'msa_dashboard', label: 'MSA Dashboard', icon: 'file', routeName: 'dashboard.facilities' },
+        { id: 'activity_logs', label: 'Activity & Audit', icon: 'activity', routeName: 'dashboard.activity_logs' },
         { id: 'org_users', label: 'Team Members', icon: 'users', routeName: 'dashboard.org_users' },
         { id: 'settings', label: 'Settings', icon: 'settings', routeName: 'dashboard.agency_settings' },
       ],
@@ -421,11 +424,17 @@ async function handleLogout() {
 }
 
 function navigateTo(item) {
-  if (item.params) {
-    router.push({ name: item.routeName, params: item.params });
-  } else {
-    router.push({ name: item.routeName });
+  if (item.tenantHome) {
+    const subdomain = String(brand.subdomain || '').trim();
+    if (subdomain) {
+      window.location.href = `https://${subdomain}.agenchq.com/home`;
+      return;
+    }
+    router.push({ name: 'tenant.home' });
+    return;
   }
+
+  router.push({ name: item.routeName, params: item.params, query: item.query });
 }
 </script>
 

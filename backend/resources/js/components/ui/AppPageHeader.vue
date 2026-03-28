@@ -1,9 +1,10 @@
 <template>
-  <div class="app-page-header mb-8">
+  <div class="app-page-header app-page-header-shell mb-8">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <!-- Title Section -->
       <div class="min-w-0">
         <div class="flex items-center gap-3">
+          <span class="aq-header-pulse" aria-hidden="true"></span>
           <!-- Breadcrumb -->
           <div v-if="breadcrumb" class="flex items-center gap-2 text-sm text-[color:var(--aq-muted)]">
             <RouterLink 
@@ -51,3 +52,42 @@ defineProps({
   },
 });
 </script>
+
+<style scoped>
+.app-page-header-shell {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--aq-border) 85%, transparent);
+  border-radius: var(--radius-xl);
+  padding: 1rem 1.1rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--aq-surface-card) 86%, white 14%),
+    color-mix(in srgb, var(--aq-surface-2) 82%, transparent)
+  );
+  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.08);
+}
+
+.app-page-header-shell::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--aq-primary) 60%, white 40%),
+    transparent
+  );
+}
+
+.aq-header-pulse {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aq-primary) 85%, white 15%);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--aq-primary) 14%, transparent);
+}
+</style>
