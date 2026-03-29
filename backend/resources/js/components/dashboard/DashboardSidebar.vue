@@ -10,8 +10,8 @@
           <span v-else class="material-symbols-outlined text-[color:var(--p-text-muted-color)] text-xl">health_metrics</span>
         </div>
         <div v-if="!ui.sidebarCollapsed" class="min-w-0">
-          <div class="font-display text-lg tracking-tight text-[color:var(--p-text-color)] truncate" :title="brand.name || 'AgencyHQ'">
-            {{ brand.name || 'AgencyHQ' }}
+          <div class="font-display text-lg tracking-tight text-[color:var(--p-text-color)] truncate" :title="brand.name || 'AgencHQ'">
+            {{ brand.name || 'AgencHQ' }}
           </div>
           <div class="text-[10px] font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">
             Dashboard

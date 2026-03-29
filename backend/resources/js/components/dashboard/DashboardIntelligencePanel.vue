@@ -22,15 +22,18 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 
 const auth = useAuthStore();
 
 const city = ref('');
 const weather = ref('');
+const weatherForecast = ref('');
 const loadingWeather = ref(false);
 const activities = ref([]);
+let activityTimer = null;
+let weatherTimer = null;
 
 const loginTimeLabel = computed(() => {
   const raw = localStorage.getItem('auth.login_at');
@@ -43,7 +46,7 @@ const loginTimeLabel = computed(() => {
 const locationLabel = computed(() => city.value || 'Resolving...');
 const weatherLabel = computed(() => {
   if (loadingWeather.value) return 'Loading...';
-  return weather.value || 'Unavailable';
+  return [weather.value, weatherForecast.value].filter(Boolean).join(' | ') || 'Unavailable';
 });
 const latestActivityLabel = computed(() => {
   const first = activities.value[0];
@@ -78,13 +81,17 @@ async function loadLocationAndWeather() {
       weather.value = 'Unavailable';
       return;
     }
-    const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current=temperature_2m,weather_code`);
+    const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto`);
     const w = await weatherRes.json();
     const temp = Number(w?.current?.temperature_2m);
     weather.value = Number.isFinite(temp) ? `${temp.toFixed(0)} C` : 'Unavailable';
+    const hi = Number(w?.daily?.temperature_2m_max?.[0]);
+    const lo = Number(w?.daily?.temperature_2m_min?.[0]);
+    weatherForecast.value = Number.isFinite(hi) && Number.isFinite(lo) ? `H ${hi.toFixed(0)} / L ${lo.toFixed(0)} C` : '';
   } catch {
     city.value = city.value || 'Unknown';
     weather.value = 'Unavailable';
+    weatherForecast.value = '';
   } finally {
     loadingWeather.value = false;
   }
@@ -93,6 +100,19 @@ async function loadLocationAndWeather() {
 onMounted(() => {
   loadActivities();
   loadLocationAndWeather();
+  activityTimer = window.setInterval(loadActivities, 10000);
+  weatherTimer = window.setInterval(loadLocationAndWeather, 15 * 60 * 1000);
+});
+
+onBeforeUnmount(() => {
+  if (activityTimer) {
+    window.clearInterval(activityTimer);
+    activityTimer = null;
+  }
+  if (weatherTimer) {
+    window.clearInterval(weatherTimer);
+    weatherTimer = null;
+  }
 });
 </script>
 

@@ -92,7 +92,7 @@
 
         <div v-else-if="importStep === 2" class="space-y-3">
           <div class="text-sm text-[color:var(--aq-muted)]">
-            Map your spreadsheet columns to AgencyHQ candidate fields.
+            Map your spreadsheet columns to AgencHQ candidate fields.
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -52,7 +52,7 @@ const auth = useAuthStore();
 
 const branding = computed(() => {
     return {
-        appName: 'AgencyHQ',
+        appName: 'AgencHQ',
         tagline: 'Candidate Compliance',
         logoUrl: null,
         primaryColor: '#0f172a',

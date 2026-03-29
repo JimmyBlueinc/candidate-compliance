@@ -164,12 +164,13 @@
                 <td class="py-3 pr-2 text-right">
                   <button
                     type="button"
-                    class="px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs font-semibold hover:bg-white/10"
+                    class="inline-flex items-center px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs font-semibold hover:bg-white/10"
                     :disabled="!row.organization_id"
                     :class="!row.organization_id ? 'opacity-50 cursor-not-allowed' : ''"
                     :title="row.organization_id ? 'Send direct message' : 'Direct messaging unavailable for users without organization context'"
                     @click="openMessageModal(row)"
                   >
+                    <i class="pi pi-send mr-1" />
                     Message
                   </button>
                 </td>

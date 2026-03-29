@@ -7,7 +7,7 @@
         <div class="w-10 h-10 bg-gradient-to-br from-primary to-accent-blue rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
           <span class="material-symbols-outlined text-white text-xl">health_metrics</span>
         </div>
-        <span class="font-display text-xl tracking-tight">AgencyHQ</span>
+        <span class="font-display text-xl tracking-tight">AgencHQ</span>
       </RouterLink>
 
       <RouterLink
@@ -30,7 +30,7 @@
         </h1>
 
         <p class="mt-4 text-sm sm:text-base" :class="bodyClass">
-          Create your AgencyHQ tenant and receive login details for your first admin account.
+          Create your AgencHQ tenant and receive login details for your first admin account.
         </p>
 
         <form class="mt-10 glass-dark p-8 rounded-[28px] border border-white/5 space-y-4" @submit.prevent="submit">

@@ -216,9 +216,9 @@ export default function DashboardSidebar({
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                 }}
-                title={brand?.name || 'AgencyHQ'}
+                title={brand?.name || 'AgencHQ'}
               >
-                {brand?.name || 'AgencyHQ'}
+                {brand?.name || 'AgencHQ'}
               </div>
               <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--p-text-muted-color)' }}>
                 Dashboard

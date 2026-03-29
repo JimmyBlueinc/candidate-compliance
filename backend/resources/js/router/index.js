@@ -903,10 +903,13 @@ router.beforeEach(async (to, from) => {
         return { name: 'dashboard.index' };
     }
 
+    const host = String(window.location.hostname || '').toLowerCase();
+    const isApexHost = host === 'agenchq.com' || host === 'www.agenchq.com';
+    const brandTitle = isApexHost ? 'AgencHQ' : (auth.user?.organization?.name || 'AgencHQ');
     if (to.meta?.title) {
-        document.title = `${to.meta.title} | ${auth.user?.organization?.name || 'AgencHQ'}`;
+        document.title = `${to.meta.title} | ${brandTitle}`;
     } else {
-        document.title = auth.user?.organization?.name || 'AgencHQ';
+        document.title = brandTitle;
     }
 
     console.log('[ROUTER] allow navigation to:', to.fullPath);
