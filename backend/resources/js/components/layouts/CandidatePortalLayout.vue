@@ -120,6 +120,8 @@
             Complete your <span class="font-bold">Personal Information</span> in My Profile to unlock all features.
           </div>
 
+          <DashboardIntelligencePanel class="mb-6" />
+
           <RouterView />
         </div>
       </div>
@@ -136,6 +138,7 @@ import { useBrandStore } from '../../stores/brand';
 import { useUiStore } from '../../stores/ui';
 import SystemBanner from '../SystemBanner.vue';
 import ForcePasswordChangeModal from '../auth/ForcePasswordChangeModal.vue';
+import DashboardIntelligencePanel from '../dashboard/DashboardIntelligencePanel.vue';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 

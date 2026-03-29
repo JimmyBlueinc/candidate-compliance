@@ -5,13 +5,16 @@
         <div class="h-9 w-9 rounded-xl flex items-center justify-center text-white font-bold shrink-0" :style="{ backgroundColor: primarySolid }">
           {{ initials }}
         </div>
-        <span class="font-bold tracking-tight truncate">{{ brandTitle }}</span>
+        <span class="font-bold tracking-tight truncate">{{ resolvedBrandTitle }}</span>
       </RouterLink>
 
       <nav v-if="mode === 'apex'" class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
+        <RouterLink to="/about" class="hover:text-slate-900">About</RouterLink>
+        <RouterLink to="/features" class="hover:text-slate-900">Features</RouterLink>
         <RouterLink to="/solutions" class="hover:text-slate-900">Solutions</RouterLink>
         <RouterLink to="/customers" class="hover:text-slate-900">Customers</RouterLink>
         <RouterLink to="/pricing" class="hover:text-slate-900">Pricing</RouterLink>
+        <RouterLink to="/contact" class="hover:text-slate-900">Contact</RouterLink>
         <RouterLink to="/jobs" class="hover:text-slate-900">Jobs</RouterLink>
       </nav>
 
@@ -61,7 +64,7 @@ const props = defineProps({
   },
   brandName: {
     type: String,
-    default: 'AgencyHQ',
+    default: 'AgencHQ',
   },
   primaryColor: {
     type: String,
@@ -79,13 +82,14 @@ const props = defineProps({
 
 defineEmits(['apex-login', 'tenant-jobs', 'tenant-dashboard', 'tenant-signin']);
 
-const brandTitle = computed(() => String(props.brandName || 'AgencyHQ'));
+const brandTitle = computed(() => String(props.brandName || 'AgencHQ'));
+const resolvedBrandTitle = computed(() => (props.mode === 'apex' ? 'AgencHQ' : brandTitle.value));
 const primarySolid = computed(() => {
   const c = String(props.primaryColor || '').trim();
   return c || '#2563eb';
 });
 const initials = computed(() => {
-  const name = brandTitle.value;
+  const name = resolvedBrandTitle.value;
   const first = name.charAt(0).toUpperCase();
   return first || 'A';
 });

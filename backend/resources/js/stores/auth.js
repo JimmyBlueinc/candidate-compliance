@@ -32,6 +32,7 @@ export const useAuthStore = defineStore('auth', {
 
     actions: {
         setSession({ token, user }) {
+            const previousToken = this.token;
             this.user = user || null;
             this.token = token || null;
 
@@ -52,6 +53,12 @@ export const useAuthStore = defineStore('auth', {
                 localStorage.removeItem(USER_STORAGE_KEY);
             }
 
+            if (this.token && this.token !== previousToken) {
+                localStorage.setItem('auth.login_at', new Date().toISOString());
+            } else if (!this.token) {
+                localStorage.removeItem('auth.login_at');
+            }
+
             this.applyAxiosAuth();
         },
 
@@ -67,6 +74,7 @@ export const useAuthStore = defineStore('auth', {
                 localStorage.removeItem(TOKEN_STORAGE_KEY);
                 localStorage.removeItem(USER_STORAGE_KEY);
                 localStorage.removeItem(TENANT_STORAGE_KEY);
+                localStorage.removeItem('auth.login_at');
                 localStorage.setItem(VERSION_KEY, STORAGE_VERSION);
             }
             

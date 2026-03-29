@@ -34,6 +34,8 @@
               Complete Now
             </button>
           </div>
+
+          <DashboardIntelligencePanel />
         </div>
       </header>
 
@@ -60,6 +62,7 @@ import { useFeatureFlagStore } from '../../stores/featureFlags';
 import { usePolling } from '../../composables/usePolling';
 import { AlertCircle } from 'lucide-vue-next';
 import DashboardHeader from '../dashboard/DashboardHeader.vue';
+import DashboardIntelligencePanel from '../dashboard/DashboardIntelligencePanel.vue';
 import CommandPalette from '../dashboard/CommandPalette.vue';
 import SystemBanner from '../SystemBanner.vue';
 import PremiumSidebar from '../ui/PremiumSidebar.vue';
@@ -146,6 +149,11 @@ const pageTitle = computed(() => {
     'dashboard.templates': 'Document Templates',
     'dashboard.filters': 'Saved Filters',
     'dashboard.profile': 'Profile',
+    'dashboard.profile_settings': 'Profile Settings',
+    'dashboard.account_settings': 'Account Settings',
+    'dashboard.preferences_settings': 'Preferences',
+    'dashboard.security_settings': 'Security',
+    'dashboard.notifications_settings': 'Notifications',
     'dashboard.change_password': 'Change Password',
     'dashboard.invoices': 'Invoices',
     'dashboard.invoice_detail': 'Invoice Details',

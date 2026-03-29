@@ -1,12 +1,12 @@
 <template>
   <div class="min-h-screen bg-white text-slate-900">
-    <PublicSiteHeader mode="apex" :brand-name="brand.name || 'AgencyHQ'" :primary-color="primarySolid" @apex-login="goLogin" />
+    <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primarySolid" @apex-login="goLogin" />
     <div class="max-w-6xl mx-auto px-6 pt-28 pb-14">
 
       <section class="rounded-3xl border border-slate-200 p-8 md:p-12 bg-gradient-to-br from-emerald-50/60 to-white">
         <h1 class="text-4xl md:text-5xl font-bold tracking-tight">Trusted by growing healthcare staffing teams</h1>
         <p class="mt-4 text-slate-600 max-w-3xl">
-          Agencies use AgencyHQ to run recruiting, compliance, and facility operations with fewer systems and better visibility.
+          Agencies use AgencHQ to run recruiting, compliance, and facility operations with fewer systems and better visibility.
         </p>
       </section>
 

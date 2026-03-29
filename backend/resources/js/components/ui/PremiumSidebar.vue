@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="app-sidebar relative z-20 h-screen shrink-0 sticky top-0 overflow-hidden border-r flex flex-col"
+    class="app-sidebar relative z-20 h-screen shrink-0 sticky top-0 overflow-visible border-r flex flex-col"
     :class="[
       ui.sidebarCollapsed ? 'w-[72px]' : 'w-[280px]',
       'transition-[width] duration-[var(--transition-base)] ease-out',
@@ -8,7 +8,7 @@
     ]"
   >
     <!-- Header -->
-    <div class="px-3 py-4 shrink-0 border-b border-[color:var(--aq-border)]">
+    <div class="relative px-3 py-4 shrink-0 border-b border-[color:var(--aq-border)]">
       <div class="flex items-center gap-3 min-w-0">
         <!-- Logo -->
         <div
@@ -18,36 +18,30 @@
             !ui.sidebarCollapsed && 'shadow-sm'
           ]"
         >
-          <img v-if="brand.logoUrl" :src="brand.logoUrl" alt="Logo" class="w-full h-full object-contain p-1.5" />
+          <img v-if="resolvedLogoUrl" :src="resolvedLogoUrl" alt="Logo" class="w-full h-full object-contain p-1.5" />
           <LayoutDashboard v-else class="w-4 h-4 text-[color:var(--aq-muted)]" />
         </div>
 
         <!-- Brand Name -->
         <div v-if="!ui.sidebarCollapsed" class="min-w-0 flex-1">
           <div class="font-display text-sm font-semibold tracking-tight text-[color:var(--aq-fg)] truncate">
-            {{ brand.name || 'AgencyHQ' }}
+            {{ resolvedBrandName }}
           </div>
           <div class="text-[10px] font-medium tracking-wider uppercase text-[color:var(--aq-muted)]">
             Operations Hub
           </div>
         </div>
-
-        <!-- Collapse Toggle -->
-        <button
-          type="button"
-          class="w-7 h-7 inline-flex items-center justify-center rounded-[var(--radius-md)] border transition-all duration-[var(--transition-fast)] shrink-0"
-          :class="[
-            'border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)]',
-            'hover:bg-[color:var(--aq-primary)]/10 hover:border-[color:var(--aq-primary)]/30',
-            ui.sidebarCollapsed && 'mx-auto'
-          ]"
-          :title="ui.sidebarCollapsed ? 'Expand' : 'Collapse'"
-          @click="ui.toggleSidebar()"
-        >
-          <ChevronRight v-if="ui.sidebarCollapsed" class="w-3.5 h-3.5 text-[color:var(--aq-muted)]" />
-          <ChevronLeft v-else class="w-3.5 h-3.5 text-[color:var(--aq-muted)]" />
-        </button>
       </div>
+      <!-- Collapse Toggle -->
+      <button
+        type="button"
+        class="absolute top-4 right-3 z-20 w-7 h-7 inline-flex items-center justify-center rounded-[var(--radius-md)] border transition-all duration-[var(--transition-fast)] shrink-0 border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)] hover:bg-[color:var(--aq-primary)]/10 hover:border-[color:var(--aq-primary)]/30"
+        :title="ui.sidebarCollapsed ? 'Expand' : 'Collapse'"
+        @click="ui.toggleSidebar()"
+      >
+        <ChevronRight v-if="ui.sidebarCollapsed" class="w-3.5 h-3.5 text-[color:var(--aq-muted)]" />
+        <ChevronLeft v-else class="w-3.5 h-3.5 text-[color:var(--aq-muted)]" />
+      </button>
     </div>
 
     <!-- Navigation -->
@@ -242,12 +236,15 @@ const isFinance = computed(() => role.value === ROLE_FINANCE);
 const isLogistics = computed(() => role.value === ROLE_LOGISTICS);
 const isCandidate = computed(() => role.value === ROLE_CANDIDATE);
 const isFacility = computed(() => role.value === ROLE_FACILITY);
+const isApexHost = computed(() => ['agenchq.com', 'www.agenchq.com'].includes(String(window.location.hostname || '').toLowerCase()));
+const resolvedBrandName = computed(() => (isApexHost.value ? 'AgencHQ' : (brand.name || 'AgencHQ')));
+const resolvedLogoUrl = computed(() => (isApexHost.value ? null : brand.logoUrl));
 
 const primaryColor = computed(() => brand.primaryColor || 'var(--aq-primary)');
 const expandedGroups = ref({
-  facilities_menu: true,
-  finance_menu: true,
-  app_platform_menu: true,
+  facilities_menu: false,
+  finance_menu: false,
+  app_platform_menu: false,
 });
 
 // Format role for display

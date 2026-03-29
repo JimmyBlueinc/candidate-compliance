@@ -396,6 +396,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
         // Platform admin: global health + broadcast
         Route::prefix('admin')->middleware('role.super_admin')->group(function () {
             Route::get('/platform-health', [\App\Http\Controllers\Api\PlatformAdminController::class, 'platformHealth']);
+            Route::get('/workforce', [\App\Http\Controllers\Api\PlatformAdminController::class, 'workforce']);
+            Route::post('/workforce/message', [\App\Http\Controllers\Api\PlatformAdminController::class, 'quickMessage']);
             Route::post('/system-message', [\App\Http\Controllers\Api\SystemMessageController::class, 'upsert']);
             Route::post('/system-message/clear', [\App\Http\Controllers\Api\SystemMessageController::class, 'clear']);
         });

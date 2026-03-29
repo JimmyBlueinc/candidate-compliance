@@ -3,12 +3,12 @@
     <div>
       <div class="flex items-center gap-2 mb-1">
         <div class="w-7 h-7 rounded-lg overflow-hidden border border-[color:var(--p-surface-border)] bg-[color:var(--p-surface-0)] flex items-center justify-center shrink-0">
-          <img v-if="brand.logoUrl" :src="brand.logoUrl" alt="Logo" class="w-full h-full object-contain p-1" />
+          <img v-if="brandLogo" :src="brandLogo" alt="Logo" class="w-full h-full object-contain p-1" />
           <span v-else class="material-symbols-outlined text-[color:var(--p-text-muted-color)] text-[14px]">apartment</span>
         </div>
         <div class="min-w-0">
-          <div class="text-xs font-semibold text-[color:var(--p-text-color)] leading-tight truncate" :title="brand.name || ''">
-            {{ brand.name || '' }}
+          <div class="text-xs font-semibold text-[color:var(--p-text-color)] leading-tight truncate" :title="brandLabel || ''">
+            {{ brandLabel || '' }}
           </div>
         </div>
       </div>
@@ -73,6 +73,9 @@ const userMenuRef = ref(null);
 const emit = defineEmits(['open-command']);
 
 const isCandidate = computed(() => auth.user?.role === 'candidate');
+const isApexHost = computed(() => ['agenchq.com', 'www.agenchq.com'].includes(String(window.location.hostname || '').toLowerCase()));
+const brandLabel = computed(() => (isApexHost.value ? 'AgencHQ' : (brand.name || 'Workspace')));
+const brandLogo = computed(() => (isApexHost.value ? null : brand.logoUrl));
 
 const userMenuItems = computed(() => {
     const role = String(auth.user?.role || '');
@@ -80,11 +83,11 @@ const userMenuItems = computed(() => {
     const isStaff = ['platform_admin', 'org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'].includes(role);
     const items = [
         { label: 'Profile', icon: 'pi pi-user', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.profile' }) },
-        { label: 'Profile Settings', icon: 'pi pi-id-card', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.profile' }) },
-        { label: 'Account Settings', icon: 'pi pi-cog', command: () => router.push({ name: 'dashboard.profile' }) },
-        { label: 'Notifications', icon: 'pi pi-bell', command: () => router.push({ name: isCandidate ? 'portal.messages' : 'dashboard.notifications' }) },
-        { label: 'Security', icon: 'pi pi-shield', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.change_password' }) },
-        { label: 'Preferences', icon: 'pi pi-sliders-h', command: () => router.push({ name: 'dashboard.profile' }) },
+        { label: 'Profile Settings', icon: 'pi pi-id-card', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.profile_settings' }) },
+        { label: 'Account Settings', icon: 'pi pi-cog', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.account_settings' }) },
+        { label: 'Notifications', icon: 'pi pi-bell', command: () => router.push({ name: isCandidate ? 'portal.messages' : 'dashboard.notifications_settings' }) },
+        { label: 'Security', icon: 'pi pi-shield', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.security_settings' }) },
+        { label: 'Preferences', icon: 'pi pi-sliders-h', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.preferences_settings' }) },
     ];
 
     if (isCandidate) {

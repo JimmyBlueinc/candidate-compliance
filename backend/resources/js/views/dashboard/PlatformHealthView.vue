@@ -79,7 +79,113 @@
           </div>
         </div>
       </div>
+
+      <div class="mt-6 rounded-2xl bg-white/[0.03] border border-white/5 p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="text-xs font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Workforce Analytics</div>
+            <div class="mt-1 text-sm text-slate-300">Login time, last active, session duration, and activity level for all users.</div>
+          </div>
+          <div class="flex gap-2">
+            <input
+              v-model="workforceSearch"
+              type="text"
+              placeholder="Search users..."
+              class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white"
+              @keyup.enter="loadWorkforce"
+            />
+            <button
+              type="button"
+              class="px-3 py-2 rounded-xl text-xs font-bold border transition-colors"
+              :style="{ backgroundColor: primarySoftBg, borderColor: primarySoftBorder, color: primaryColor }"
+              @click="loadWorkforce"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="text-left text-[11px] uppercase tracking-[0.16em] text-[color:var(--p-text-muted-color)]">
+                <th class="py-2 pr-4">User</th>
+                <th class="py-2 pr-4">Role</th>
+                <th class="py-2 pr-4">Organization</th>
+                <th class="py-2 pr-4">Login</th>
+                <th class="py-2 pr-4">Last Active</th>
+                <th class="py-2 pr-4">Session</th>
+                <th class="py-2 pr-4">Activity</th>
+                <th class="py-2 pr-2 text-right">Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="row in workforceRows"
+                :key="row.id"
+                class="border-t border-white/5 text-slate-200"
+              >
+                <td class="py-3 pr-4">
+                  <div class="font-semibold text-white">{{ row.name }}</div>
+                  <div class="text-xs text-[color:var(--p-text-muted-color)]">{{ row.email }}</div>
+                </td>
+                <td class="py-3 pr-4 capitalize">{{ row.role }}</td>
+                <td class="py-3 pr-4">{{ row.organization_name || 'N/A' }}</td>
+                <td class="py-3 pr-4">{{ formatDateTime(row.login_time) }}</td>
+                <td class="py-3 pr-4">{{ formatDateTime(row.last_active_time) }}</td>
+                <td class="py-3 pr-4">{{ formatSession(row.session_duration_minutes) }}</td>
+                <td class="py-3 pr-4">
+                  <span class="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
+                    :class="row.activity_level === 'high' ? 'bg-emerald-500/20 text-emerald-300' : row.activity_level === 'medium' ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-600/30 text-slate-300'">
+                    {{ row.activity_level }}
+                  </span>
+                </td>
+                <td class="py-3 pr-2 text-right">
+                  <button
+                    type="button"
+                    class="px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs font-semibold hover:bg-white/10"
+                    @click="openMessageModal(row)"
+                  >
+                    Message
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="!workforceLoading && workforceRows.length === 0">
+                <td colspan="8" class="py-6 text-center text-sm text-[color:var(--p-text-muted-color)]">No users found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
+
+    <Dialog v-model:visible="messageDialogOpen" modal header="Quick Message" :style="{ width: 'min(580px, 95vw)' }">
+      <div class="space-y-4">
+        <div class="text-sm text-slate-300">
+          Send a direct message to <span class="font-semibold text-white">{{ selectedRecipient?.name || 'user' }}</span>.
+        </div>
+        <textarea
+          v-model="quickMessageBody"
+          rows="4"
+          class="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white"
+          placeholder="Type your message..."
+        />
+        <div class="flex justify-end gap-2">
+          <button type="button" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-xs font-semibold" @click="messageDialogOpen = false">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="px-3 py-2 rounded-xl text-xs font-semibold"
+            :style="{ backgroundColor: primaryColor, color: '#fff' }"
+            :disabled="quickMessageSending"
+            @click="sendQuickMessage"
+          >
+            {{ quickMessageSending ? 'Sending...' : 'Send Message' }}
+          </button>
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>
 
@@ -87,6 +193,7 @@
 import { computed, ref } from 'vue';
 import { apiGet, apiPost } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
+import Dialog from 'primevue/dialog';
 
 const brand = useBrandStore();
 
@@ -101,6 +208,13 @@ const message = ref('');
 const saving = ref(false);
 const clearing = ref(false);
 const status = ref('');
+const workforceRows = ref([]);
+const workforceLoading = ref(false);
+const workforceSearch = ref('');
+const messageDialogOpen = ref(false);
+const selectedRecipient = ref(null);
+const quickMessageBody = ref('');
+const quickMessageSending = ref(false);
 
 async function refresh() {
     loading.value = true;
@@ -109,6 +223,20 @@ async function refresh() {
         tenants.value = Array.isArray(res?.data) ? res.data : [];
     } finally {
         loading.value = false;
+    }
+}
+
+async function loadWorkforce() {
+    workforceLoading.value = true;
+    try {
+        const res = await apiGet('/v1/admin/workforce', {
+            params: {
+                search: workforceSearch.value || undefined,
+            },
+        });
+        workforceRows.value = Array.isArray(res?.data) ? res.data : [];
+    } finally {
+        workforceLoading.value = false;
     }
 }
 
@@ -134,5 +262,42 @@ async function clear() {
     }
 }
 
+function openMessageModal(row) {
+    selectedRecipient.value = row;
+    quickMessageBody.value = '';
+    messageDialogOpen.value = true;
+}
+
+async function sendQuickMessage() {
+    if (!selectedRecipient.value?.id || !quickMessageBody.value.trim()) return;
+    quickMessageSending.value = true;
+    try {
+        await apiPost('/v1/admin/workforce/message', {
+            recipient_id: selectedRecipient.value.id,
+            body: quickMessageBody.value.trim(),
+        });
+        messageDialogOpen.value = false;
+        status.value = 'Quick message sent successfully.';
+    } finally {
+        quickMessageSending.value = false;
+    }
+}
+
+function formatDateTime(value) {
+    if (!value) return 'N/A';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleString();
+}
+
+function formatSession(minutes) {
+    const mins = Number(minutes);
+    if (!Number.isFinite(mins) || mins < 0) return 'N/A';
+    const hours = Math.floor(mins / 60);
+    const remainder = mins % 60;
+    return hours > 0 ? `${hours}h ${remainder}m` : `${remainder}m`;
+}
+
 refresh();
+loadWorkforce();
 </script>

@@ -54,6 +54,9 @@ import IntegrationDetailView from '../views/dashboard/IntegrationDetailView.vue'
 import MessagesInboxView from '../views/dashboard/MessagesInboxView.vue';
 import NotificationCenterView from '../views/dashboard/NotificationCenterView.vue';
 import LandingView from '../views/public/LandingView.vue';
+import AboutView from '../views/public/AboutView.vue';
+import FeaturesView from '../views/public/FeaturesView.vue';
+import ContactView from '../views/public/ContactView.vue';
 import SolutionsView from '../views/public/SolutionsView.vue';
 import CustomersView from '../views/public/CustomersView.vue';
 import PricingView from '../views/public/PricingView.vue';
@@ -157,6 +160,18 @@ const router = createRouter({
             meta: { publicPage: true },
         },
         {
+            path: '/about',
+            name: 'public.about',
+            component: AboutView,
+            meta: { publicPage: true },
+        },
+        {
+            path: '/features',
+            name: 'public.features',
+            component: FeaturesView,
+            meta: { publicPage: true },
+        },
+        {
             path: '/customers',
             name: 'public.customers',
             component: CustomersView,
@@ -184,6 +199,12 @@ const router = createRouter({
             path: '/jobs/:id/apply',
             name: 'public.jobs.apply',
             component: PublicJobApplyView,
+            meta: { publicPage: true },
+        },
+        {
+            path: '/contact',
+            name: 'public.contact',
+            component: ContactView,
             meta: { publicPage: true },
         },
         {
@@ -681,9 +702,35 @@ const router = createRouter({
                     meta: { allowedRoles: STAFF_CHAT_ROLES },
                 },
                 {
+                    path: 'notifications-settings',
+                    name: 'dashboard.notifications_settings',
+                    component: NotificationCenterView,
+                    meta: { allowedRoles: STAFF_CHAT_ROLES },
+                },
+                {
                     path: 'profile',
                     name: 'dashboard.profile',
                     component: ProfileView,
+                },
+                {
+                    path: 'profile-settings',
+                    name: 'dashboard.profile_settings',
+                    component: () => import('../views/dashboard/ProfileSettingsView.vue'),
+                },
+                {
+                    path: 'account-settings',
+                    name: 'dashboard.account_settings',
+                    component: () => import('../views/dashboard/AccountSettingsView.vue'),
+                },
+                {
+                    path: 'preferences',
+                    name: 'dashboard.preferences_settings',
+                    component: () => import('../views/dashboard/PreferencesSettingsView.vue'),
+                },
+                {
+                    path: 'security',
+                    name: 'dashboard.security_settings',
+                    component: () => import('../views/dashboard/SecuritySettingsView.vue'),
                 },
                 {
                     path: 'templates',
@@ -857,9 +904,9 @@ router.beforeEach(async (to, from) => {
     }
 
     if (to.meta?.title) {
-        document.title = `${to.meta.title} | ${auth.user?.organization?.name || 'AgencyHQ'}`;
+        document.title = `${to.meta.title} | ${auth.user?.organization?.name || 'AgencHQ'}`;
     } else {
-        document.title = auth.user?.organization?.name || 'AgencyHQ';
+        document.title = auth.user?.organization?.name || 'AgencHQ';
     }
 
     console.log('[ROUTER] allow navigation to:', to.fullPath);
@@ -870,10 +917,35 @@ router.beforeResolve((to, from) => {
     return true;
 });
 
+function trackDashboardActivity(to) {
+    try {
+        const rawUser = localStorage.getItem('auth.user');
+        const user = rawUser ? JSON.parse(rawUser) : null;
+        const userId = user?.id ? String(user.id) : null;
+        if (!userId) return;
+        const name = String(to?.name || '');
+        if (!name.startsWith('dashboard.') && !name.startsWith('portal.') && !name.startsWith('facility.')) return;
+        const key = `aq.dashboard.activity.${userId}`;
+        const current = JSON.parse(localStorage.getItem(key) || '[]');
+        const next = [
+            {
+                label: String(to?.meta?.title || name).replace(/^dashboard\./, ''),
+                route: name,
+                at: new Date().toISOString(),
+            },
+            ...(Array.isArray(current) ? current : []),
+        ].slice(0, 20);
+        localStorage.setItem(key, JSON.stringify(next));
+    } catch (_) {
+        // no-op: activity tracking should never block navigation
+    }
+}
+
 router.afterEach((to, from, failure) => {
     if (failure) {
         console.log('[ROUTER] navigation failed:', { to: to.fullPath, failure });
     }
+    trackDashboardActivity(to);
 });
 
 export default router;

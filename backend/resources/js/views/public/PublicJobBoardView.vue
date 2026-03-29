@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-white text-slate-900">
-    <PublicSiteHeader mode="apex" :brand-name="brand.name || 'AgencyHQ'" :primary-color="primaryColor" @apex-login="goLogin" />
+    <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primaryColor" @apex-login="goLogin" />
     <div class="max-w-7xl mx-auto px-6 pt-28 pb-10">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>

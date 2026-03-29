@@ -152,6 +152,21 @@ export const useBrandStore = defineStore('brand', {
             this.error = null;
 
             try {
+                const host = window.location.hostname;
+                const isApexDomain = host === 'agenchq.com' || host === 'www.agenchq.com';
+                if (isApexDomain) {
+                    this.tenantId = null;
+                    this.name = 'AgencHQ';
+                    this.slug = 'agenchq';
+                    this.subdomain = null;
+                    this.primaryColor = '#2563eb';
+                    this.logoUrl = null;
+                    this.publicHomeContent = null;
+                    this.loaded = true;
+                    localStorage.removeItem('brand');
+                    return;
+                }
+
                 console.log('[BRAND] CALLING apiGet /brand');
 
                 // Get subdomain from current window location

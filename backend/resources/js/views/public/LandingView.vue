@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-slate-50 text-slate-900 antialiased">
     <PublicSiteHeader
       mode="apex"
-      :brand-name="brand.name || 'AgencHQ'"
+      brand-name="AgencHQ"
       :primary-color="primarySolid"
       @apex-login="handleLoginClick"
     />
@@ -12,19 +12,25 @@
       <div class="pointer-events-none absolute top-36 right-0 h-80 w-80 rounded-full bg-cyan-200/35 blur-3xl" />
 
       <section class="mx-auto max-w-7xl px-6">
-        <div class="rounded-[2rem] border border-slate-200 bg-white/95 shadow-[0_26px_80px_rgba(15,23,42,0.14)] overflow-hidden">
-          <div class="grid grid-cols-1 lg:grid-cols-12">
-            <div class="lg:col-span-6 p-8 md:p-12 lg:p-14">
-              <span class="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-indigo-700">
-                Workforce Operations Cloud
+        <div class="relative overflow-hidden rounded-[2rem] border border-slate-200 shadow-[0_26px_80px_rgba(15,23,42,0.16)] min-h-[560px]">
+          <img
+            src="https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=2200&q=80"
+            alt="Professional healthcare staffing team collaborating in a modern hospital workspace"
+            class="hero-pan absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+          />
+          <div class="absolute inset-0 bg-gradient-to-r from-slate-950/88 via-slate-900/72 to-slate-900/40" />
+          <div class="relative z-10 flex h-full items-end p-8 md:p-12">
+            <div class="max-w-3xl text-white">
+              <span class="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
+                AgencHQ Staffing Cloud
               </span>
-              <h1 class="mt-6 text-4xl font-bold leading-tight tracking-tight text-slate-950 md:text-6xl">
-                Run staffing operations with the precision of a modern command center.
+              <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight md:text-6xl">
+                Place the right talent faster, with confidence at every step.
               </h1>
-              <p class="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
-                AgencHQ unifies recruiting, compliance, facility coordination, messaging, and billing into one premium operating system for fast-moving teams.
+              <p class="mt-5 text-lg leading-relaxed text-slate-100/90">
+                AgencHQ gives recruiting, compliance, operations, and finance teams one premium command center to run modern workforce delivery.
               </p>
-
               <div class="mt-8 flex flex-wrap gap-3">
                 <RouterLink
                   to="/signup"
@@ -34,107 +40,11 @@
                   Book a Live Demo
                 </RouterLink>
                 <RouterLink
-                  to="/solutions"
-                  class="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+                  to="/features"
+                  class="rounded-xl border border-white/35 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
                 >
-                  Explore Platform
+                  See Features
                 </RouterLink>
-              </div>
-
-              <div class="mt-8 grid gap-3 sm:grid-cols-3">
-                <article
-                  v-for="metric in heroMetrics"
-                  :key="metric.label"
-                  class="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3"
-                >
-                  <p class="text-xs uppercase tracking-[0.12em] text-slate-500">{{ metric.label }}</p>
-                  <p class="mt-1 text-lg font-semibold text-slate-900">{{ metric.value }}</p>
-                </article>
-              </div>
-            </div>
-
-            <div class="relative lg:col-span-6 border-t border-slate-200 bg-gradient-to-br from-indigo-50/80 via-cyan-50/70 to-violet-50/70 p-6 md:p-8 lg:border-l lg:border-t-0">
-              <div class="relative h-full min-h-[420px] rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-                <Transition name="hero-slide-fade" mode="out-in">
-                  <img
-                    :key="activeHeroSlide.id"
-                    :src="activeHeroSlide.image"
-                    :alt="activeHeroSlide.alt"
-                    class="hero-image h-56 w-full rounded-2xl object-cover"
-                    loading="lazy"
-                  />
-                </Transition>
-                <div class="mt-3 flex items-center justify-between">
-                  <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{{ activeHeroSlide.caption }}</p>
-                  <div class="inline-flex items-center gap-1.5">
-                    <span
-                      v-for="slide in heroSlides"
-                      :key="slide.id"
-                      class="h-1.5 w-5 rounded-full transition-colors"
-                      :class="slide.id === activeHeroSlide.id ? 'bg-indigo-500' : 'bg-slate-300'"
-                    />
-                  </div>
-                </div>
-
-                <div class="aq-on-dark mt-4 rounded-2xl border border-slate-200 bg-slate-950 p-4 text-slate-100 shadow-xl">
-                  <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Live Operations Pulse</p>
-                  <div class="mt-3 grid grid-cols-3 gap-3 text-sm">
-                    <div class="rounded-xl bg-slate-800/80 p-3">
-                      <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">Open Shifts</p>
-                      <p class="mt-1 text-xl font-semibold text-cyan-300">48</p>
-                    </div>
-                    <div class="rounded-xl bg-slate-800/80 p-3">
-                      <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">Compliance</p>
-                      <p class="mt-1 text-xl font-semibold text-emerald-300">93.8%</p>
-                    </div>
-                    <div class="rounded-xl bg-slate-800/80 p-3">
-                      <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">ARR Trend</p>
-                      <p class="mt-1 text-xl font-semibold text-violet-300">+12%</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <article class="rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-100 via-sky-100 to-cyan-100 p-3 shadow-sm">
-                    <div class="rounded-xl border border-indigo-200/70 bg-white/85 p-3">
-                      <p class="text-[11px] uppercase tracking-[0.14em] text-indigo-700">Care Demand Pulse</p>
-                      <svg viewBox="0 0 300 92" class="mt-2 h-16 w-full">
-                        <defs>
-                          <linearGradient id="pulseLine" x1="0" x2="1">
-                            <stop offset="0%" stop-color="#4f46e5" />
-                            <stop offset="100%" stop-color="#06b6d4" />
-                          </linearGradient>
-                        </defs>
-                        <path d="M14 68 C54 42, 84 74, 124 54 C160 36, 194 60, 230 46 C254 38, 274 42, 286 30" fill="none" stroke="url(#pulseLine)" stroke-width="6" stroke-linecap="round" />
-                        <circle cx="124" cy="54" r="5.5" fill="#4f46e5" />
-                        <circle cx="230" cy="46" r="5.5" fill="#06b6d4" />
-                        <circle cx="286" cy="30" r="6" fill="#10b981" />
-                      </svg>
-                      <div class="mt-2 flex items-end justify-between">
-                        <p class="text-xs font-semibold uppercase tracking-[0.13em] text-slate-500">Weekly Fill Momentum</p>
-                        <p class="text-sm font-semibold text-emerald-600">+18.4%</p>
-                      </div>
-                    </div>
-                  </article>
-                  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                    <img
-                      :src="heroCareImageSrc"
-                      alt="Nurses and healthcare staff collaborating on shift coordination"
-                      class="hero-image h-32 w-full object-cover"
-                      loading="lazy"
-                      @error="onHeroCareImageError"
-                    />
-                  </div>
-                </div>
-
-                <div class="floating-chip right-6 top-5">
-                  <span class="text-emerald-600">96.1%</span>
-                  Credential Completion
-                </div>
-                <div class="floating-chip left-8 bottom-6">
-                  <span class="text-indigo-700">132</span>
-                  Active Facilities
-                </div>
               </div>
             </div>
           </div>
@@ -291,7 +201,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useBrandStore } from '../../stores/brand';
 import { useAuthStore } from '../../stores/auth';
@@ -306,36 +216,6 @@ const primarySolid = computed(() => {
   const c = primaryColor.value;
   return typeof c === 'string' && c.trim().length ? c : '#4f46e5';
 });
-const heroCareImageSrc = ref('https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=1200&q=80');
-const heroSlides = [
-  {
-    id: 'ops-team',
-    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80',
-    alt: 'Recruiting and staffing team coordinating candidate pipeline',
-    caption: 'Pipeline orchestration in real time',
-  },
-  {
-    id: 'interview-collab',
-    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80',
-    alt: 'Hiring team collaboration and candidate planning session',
-    caption: 'Hiring team collaboration and alignment',
-  },
-  {
-    id: 'workforce-planning',
-    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1600&q=80',
-    alt: 'Workforce planning and staffing operations strategy',
-    caption: 'Workforce planning for multi-site operations',
-  },
-];
-const heroSlideIndex = ref(0);
-const activeHeroSlide = computed(() => heroSlides[heroSlideIndex.value] || heroSlides[0]);
-let heroSlideTimer = null;
-
-const heroMetrics = [
-  { label: 'Placement velocity', value: '2.4x faster' },
-  { label: 'Compliance coverage', value: '96% avg' },
-  { label: 'Billing visibility', value: 'Real-time' },
-];
 
 const trustBadges = ['Blueinc Health', 'Northline Care', 'Summit Workforce', 'Harbor Clinical'];
 
@@ -405,16 +285,6 @@ const modules = [
   { badge: 'Platform', title: 'Integrations + Settings', description: 'Organization-level controls with extensible system connectors.' },
 ];
 
-function onHeroCareImageError() {
-  heroCareImageSrc.value = '/images/public/tenant-careers-hero.svg';
-}
-
-function rotateHeroSlides() {
-  heroSlideTimer = window.setInterval(() => {
-    heroSlideIndex.value = (heroSlideIndex.value + 1) % heroSlides.length;
-  }, 5200);
-}
-
 function handleLoginClick() {
   if (auth.isAuthenticated) {
     if (!brand.loaded) {
@@ -428,61 +298,27 @@ function handleLoginClick() {
   }
   router.push({ name: 'login' });
 }
-
-onMounted(() => {
-  rotateHeroSlides();
-});
-
-onBeforeUnmount(() => {
-  if (heroSlideTimer) {
-    window.clearInterval(heroSlideTimer);
-    heroSlideTimer = null;
-  }
-});
 </script>
 
 <style scoped>
-.hero-image,
+.hero-pan {
+  animation: heroPan 16s ease-in-out infinite alternate;
+}
+
 .feature-image {
   transition: transform 240ms ease, filter 240ms ease;
 }
-
-.hero-slide-fade-enter-active,
-.hero-slide-fade-leave-active {
-  transition: opacity 360ms ease, transform 360ms ease;
-}
-
-.hero-slide-fade-enter-from {
-  opacity: 0;
-  transform: translateX(10px);
-}
-
-.hero-slide-fade-leave-to {
-  opacity: 0;
-  transform: translateX(-10px);
-}
-
-.hero-image:hover,
 .feature-image:hover {
   transform: scale(1.015);
   filter: saturate(1.08);
 }
 
-.floating-chip {
-  position: absolute;
-  border-radius: 9999px;
-  border: 1px solid rgb(226 232 240 / 0.95);
-  background: rgb(255 255 255 / 0.92);
-  padding: 0.45rem 0.8rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgb(71 85 105);
-  box-shadow: 0 14px 32px -20px rgb(15 23 42 / 0.5);
-}
-
-.floating-chip span {
-  margin-right: 0.35rem;
+@keyframes heroPan {
+  from {
+    transform: scale(1.03) translateX(0);
+  }
+  to {
+    transform: scale(1.08) translateX(-1.5%);
+  }
 }
 </style>
