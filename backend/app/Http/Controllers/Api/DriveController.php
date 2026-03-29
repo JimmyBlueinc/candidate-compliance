@@ -109,7 +109,7 @@ class DriveController extends Controller
         }
 
         $validated = $request->validate([
-            'file' => ['required', 'file', 'max:51200'], // 50MB
+            'file' => ['required', 'file', 'max:102400'], // 100MB
         ]);
 
         $file = $validated['file'];

@@ -101,36 +101,36 @@ const formattedValue = computed(() => {
 
 const cardToneClass = computed(() => {
   const toneMap = {
-    primary: 'bg-[color:var(--aq-primary)]/14 border-[color:var(--aq-primary)]/35',
-    emerald: 'bg-emerald-500/14 border-emerald-400/35',
-    violet: 'bg-violet-500/14 border-violet-400/35',
-    cyan: 'bg-cyan-500/14 border-cyan-400/35',
-    rose: 'bg-rose-500/14 border-rose-400/35',
-    amber: 'bg-amber-500/14 border-amber-400/35',
+    primary: 'bg-[color:var(--aq-primary)]/32 border-[color:var(--aq-primary)]/55',
+    emerald: 'bg-emerald-600/32 border-emerald-300/45',
+    violet: 'bg-violet-600/32 border-violet-300/45',
+    cyan: 'bg-cyan-600/32 border-cyan-300/45',
+    rose: 'bg-rose-600/32 border-rose-300/45',
+    amber: 'bg-amber-600/34 border-amber-300/50',
   };
   return toneMap[props.color] || toneMap.primary;
 });
 
 const labelClass = computed(() => {
   const toneMap = {
-    primary: 'text-[color:var(--aq-primary)]',
-    emerald: 'text-emerald-300',
-    violet: 'text-violet-300',
-    cyan: 'text-cyan-300',
-    rose: 'text-rose-300',
-    amber: 'text-amber-300',
+    primary: 'text-white/90',
+    emerald: 'text-emerald-100',
+    violet: 'text-violet-100',
+    cyan: 'text-cyan-100',
+    rose: 'text-rose-100',
+    amber: 'text-amber-100',
   };
   return toneMap[props.color] || toneMap.primary;
 });
 
 const valueClass = computed(() => {
   const toneMap = {
-    primary: 'text-[color:var(--aq-fg)]',
-    emerald: 'text-emerald-50',
-    violet: 'text-violet-50',
-    cyan: 'text-cyan-50',
-    rose: 'text-rose-50',
-    amber: 'text-amber-50',
+    primary: 'text-white',
+    emerald: 'text-white',
+    violet: 'text-white',
+    cyan: 'text-white',
+    rose: 'text-white',
+    amber: 'text-white',
   };
   return toneMap[props.color] || toneMap.primary;
 });
@@ -142,12 +142,12 @@ const iconBgClass = computed(() => {
     if (t < 0) return 'bg-rose-500/15';
   }
   const colorMap = {
-    primary: 'bg-[color:var(--aq-primary)]/15',
-    emerald: 'bg-emerald-500/15',
-    violet: 'bg-violet-500/15',
-    cyan: 'bg-cyan-500/15',
-    rose: 'bg-rose-500/15',
-    amber: 'bg-amber-500/15',
+    primary: 'bg-white/20',
+    emerald: 'bg-emerald-100/25',
+    violet: 'bg-violet-100/25',
+    cyan: 'bg-cyan-100/25',
+    rose: 'bg-rose-100/25',
+    amber: 'bg-amber-100/25',
   };
   return colorMap[props.color] || colorMap.primary;
 });
@@ -159,12 +159,12 @@ const iconClass = computed(() => {
     if (t < 0) return 'text-rose-400';
   }
   const colorMap = {
-    primary: 'text-[color:var(--aq-primary)]',
-    emerald: 'text-emerald-400',
-    violet: 'text-violet-400',
-    cyan: 'text-cyan-400',
-    rose: 'text-rose-400',
-    amber: 'text-amber-400',
+    primary: 'text-white',
+    emerald: 'text-emerald-50',
+    violet: 'text-violet-50',
+    cyan: 'text-cyan-50',
+    rose: 'text-rose-50',
+    amber: 'text-amber-50',
   };
   return colorMap[props.color] || colorMap.primary;
 });

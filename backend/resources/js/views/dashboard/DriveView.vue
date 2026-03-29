@@ -27,7 +27,7 @@
             class="block w-full rounded-xl border border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)] px-3 py-2 text-sm text-[color:var(--aq-fg)]"
             @change="onFileSelected"
           />
-          <p class="text-xs text-[color:var(--aq-muted)]">Up to 50MB per file. Share directly into chat threads.</p>
+          <p class="text-xs text-[color:var(--aq-muted)]">Up to 100MB per file (documents, images, and more). Share directly into chat threads.</p>
         </div>
         <div class="flex items-center justify-end gap-2">
           <Button
@@ -99,6 +99,8 @@
       </UiCard>
     </div>
 
+    <Message v-if="errorMessage" severity="error" :closable="false">{{ errorMessage }}</Message>
+
     <Dialog
       v-model:visible="shareDialogOpen"
       modal
@@ -166,6 +168,7 @@ import { apiDelete, apiGet, apiPost } from '../../lib/api';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import Dropdown from 'primevue/dropdown';
+import Message from 'primevue/message';
 import Textarea from 'primevue/textarea';
 import UiCard from '../../components/ui/UiCard.vue';
 import UiPageHeader from '../../components/ui/UiPageHeader.vue';
@@ -173,6 +176,7 @@ import UiPageHeader from '../../components/ui/UiPageHeader.vue';
 const loading = ref(false);
 const uploading = ref(false);
 const sharing = ref(false);
+const errorMessage = ref('');
 
 const fileInputRef = ref(null);
 const selectedFile = ref(null);
@@ -190,10 +194,17 @@ const recipientsLoading = ref(false);
 async function loadFiles() {
   try {
     loading.value = true;
+    errorMessage.value = '';
     const res = await apiGet('/drive/files');
-    const payload = res?.data || res || {};
+    const payload = res?.data?.owned_files
+      ? res.data
+      : (res?.data || res || {});
     ownedFiles.value = Array.isArray(payload?.owned_files) ? payload.owned_files : [];
     sharedFiles.value = Array.isArray(payload?.shared_with_me) ? payload.shared_with_me : [];
+  } catch (e) {
+    errorMessage.value = e?.response?.data?.message || e?.message || 'Failed to load drive files.';
+    ownedFiles.value = [];
+    sharedFiles.value = [];
   } finally {
     loading.value = false;
   }
@@ -208,12 +219,15 @@ async function uploadFile() {
   if (!selectedFile.value) return;
   try {
     uploading.value = true;
+    errorMessage.value = '';
     const formData = new FormData();
     formData.append('file', selectedFile.value);
     await apiPost('/drive/files', formData);
     if (fileInputRef.value) fileInputRef.value.value = '';
     selectedFile.value = null;
     await loadFiles();
+  } catch (e) {
+    errorMessage.value = e?.response?.data?.message || e?.message || 'Upload failed. Please try again.';
   } finally {
     uploading.value = false;
   }
@@ -228,16 +242,25 @@ async function removeFile(file) {
   if (!file?.id) return;
   const ok = window.confirm(`Delete ${file.name}?`);
   if (!ok) return;
-  await apiDelete(`/drive/files/${encodeURIComponent(String(file.id))}`);
-  await loadFiles();
+  try {
+    errorMessage.value = '';
+    await apiDelete(`/drive/files/${encodeURIComponent(String(file.id))}`);
+    await loadFiles();
+  } catch (e) {
+    errorMessage.value = e?.response?.data?.message || e?.message || 'Failed to delete file.';
+  }
 }
 
 async function loadRecipients() {
   try {
     recipientsLoading.value = true;
+    errorMessage.value = '';
     const res = await apiGet('/drive/recipients');
-    const rows = res?.data || res;
+    const rows = res?.data?.length ? res.data : (res?.data || res);
     recipients.value = Array.isArray(rows) ? rows : [];
+  } catch (e) {
+    errorMessage.value = e?.response?.data?.message || e?.message || 'Failed to load recipients.';
+    recipients.value = [];
   } finally {
     recipientsLoading.value = false;
   }
@@ -262,12 +285,15 @@ async function shareFile() {
   if (!shareTarget.value?.id || !shareRecipientId.value) return;
   try {
     sharing.value = true;
+    errorMessage.value = '';
     await apiPost(`/drive/files/${encodeURIComponent(String(shareTarget.value.id))}/share`, {
       recipient_id: shareRecipientId.value,
       note: shareNote.value || null,
     });
     closeShareDialog();
     await loadFiles();
+  } catch (e) {
+    errorMessage.value = e?.response?.data?.message || e?.message || 'Failed to share file.';
   } finally {
     sharing.value = false;
   }
