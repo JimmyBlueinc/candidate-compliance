@@ -17,6 +17,10 @@
     <div v-if="error" class="px-4 py-3 rounded-[var(--radius-lg)] bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
       {{ error }}
     </div>
+    <div v-if="loadNotFound" class="px-4 py-3 rounded-[var(--radius-lg)] bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm flex items-center justify-between gap-3">
+      <span>This integration cannot be loaded right now. Please return to the integrations catalog.</span>
+      <AppButton variant="secondary" size="sm" @click="goBack">Back to Integrations</AppButton>
+    </div>
 
     <div v-if="integration" class="grid grid-cols-1 xl:grid-cols-3 gap-5">
       <AppCard title="Connection Status" subtitle="Current health and sync information.">
@@ -61,6 +65,7 @@
         <div class="space-y-2">
           <AppButton class="w-full" :loading="saving" @click="save">Save Configuration</AppButton>
           <AppButton variant="secondary" class="w-full" :loading="testing" @click="runTest">Validate Connection</AppButton>
+          <AppButton variant="secondary" class="w-full" :loading="reconnecting" @click="reconnectConnection">Reconnect</AppButton>
           <AppButton variant="ghost" class="w-full" @click="disableConnection">Disable Integration</AppButton>
         </div>
       </AppCard>
@@ -120,19 +125,22 @@
 
 <script setup>
 import { reactive, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { apiGet, apiPost, apiPut } from '../../lib/api';
 import AppPageHeader from '../../components/ui/AppPageHeader.vue';
 import AppCard from '../../components/ui/AppCard.vue';
 import AppButton from '../../components/ui/AppButton.vue';
 
 const route = useRoute();
+const router = useRouter();
 const loading = ref(false);
 const saving = ref(false);
 const testing = ref(false);
+const reconnecting = ref(false);
 const status = ref('');
 const error = ref('');
 const integration = ref(null);
+const loadNotFound = ref(false);
 
 const form = reactive({
   enabled: false,
@@ -161,6 +169,7 @@ async function reload() {
   loading.value = true;
   status.value = '';
   error.value = '';
+  loadNotFound.value = false;
   try {
     const response = await apiGet(`/v1/integrations/${encodeURIComponent(integrationKey())}`);
     const row = response?.data?.integration || response?.integration || response;
@@ -168,6 +177,8 @@ async function reload() {
     hydrateForm(row);
   } catch (e) {
     error.value = e?.response?.data?.message || e?.message || 'Failed to load integration.';
+    const code = Number(e?.response?.status || 0);
+    loadNotFound.value = code === 404 || code === 422;
   } finally {
     loading.value = false;
   }
@@ -224,8 +235,43 @@ async function runTest() {
 }
 
 async function disableConnection() {
-  form.enabled = false;
-  await save();
+  saving.value = true;
+  status.value = '';
+  error.value = '';
+  try {
+    const response = await apiPost(`/v1/integrations/${encodeURIComponent(integrationKey())}/disable`, {});
+    integration.value = response?.data?.integration || response?.integration || integration.value;
+    form.enabled = false;
+    status.value = `${integration.value?.label || 'Integration'} disabled.`;
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || 'Failed to disable integration.';
+  } finally {
+    saving.value = false;
+  }
+}
+
+async function reconnectConnection() {
+  reconnecting.value = true;
+  status.value = '';
+  error.value = '';
+  try {
+    await save();
+    const response = await apiPost(`/v1/integrations/${encodeURIComponent(integrationKey())}/reconnect`, {});
+    integration.value = response?.data?.integration || response?.integration || integration.value;
+    form.enabled = true;
+    status.value = `${integration.value?.label || 'Integration'} reconnected successfully.`;
+  } catch (e) {
+    const details = e?.response?.data?.errors?.credentials;
+    error.value = Array.isArray(details) && details.length
+      ? details.join(', ')
+      : (e?.response?.data?.message || e?.message || 'Failed to reconnect integration.');
+  } finally {
+    reconnecting.value = false;
+  }
+}
+
+function goBack() {
+  router.push({ name: 'dashboard.integrations' });
 }
 
 reload();

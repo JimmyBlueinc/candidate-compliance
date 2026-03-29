@@ -347,6 +347,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             Route::get('/{key}', [\App\Http\Controllers\Api\IntegrationController::class, 'show']);
             Route::put('/{key}', [\App\Http\Controllers\Api\IntegrationController::class, 'upsert']);
             Route::post('/{key}/test', [\App\Http\Controllers\Api\IntegrationController::class, 'test']);
+            Route::post('/{key}/reconnect', [\App\Http\Controllers\Api\IntegrationController::class, 'reconnect']);
+            Route::post('/{key}/disable', [\App\Http\Controllers\Api\IntegrationController::class, 'disable']);
         });
 
         // Tenant onboarding (org_super_admin)

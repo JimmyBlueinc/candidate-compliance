@@ -199,6 +199,18 @@ class IntegrationController extends Controller
             ? $this->sanitizeBySchema($payload['credentials'] ?? [], $meta['credentials_schema'] ?? [])
             : ($row->credentials ?? []);
 
+        if ($enabled) {
+            $missing = $this->requiredCredentialErrors($key, $meta, $nextCredentials);
+            if (!empty($missing)) {
+                return response()->json([
+                    'message' => 'Missing required integration credentials.',
+                    'errors' => [
+                        'credentials' => $missing,
+                    ],
+                ], 422);
+            }
+        }
+
         $row->settings = $nextSettings;
         $row->credentials = $nextCredentials;
         $row->last_error = $payload['last_error'] ?? null;
@@ -282,6 +294,77 @@ class IntegrationController extends Controller
         ], 200, [], 'Integration test completed.');
     }
 
+    public function reconnect(Request $request, string $key): JsonResponse
+    {
+        $orgId = Org::id($request);
+        if (!$orgId) {
+            return response()->json(['message' => 'Organization context missing.'], 400);
+        }
+
+        $meta = self::SUPPORTED[$key] ?? null;
+        if (!$meta) {
+            return response()->json(['message' => 'Unsupported integration key.'], 422);
+        }
+
+        $row = IntegrationConnection::query()->firstOrNew([
+            'organization_id' => $orgId,
+            'key' => $key,
+        ]);
+
+        $credentials = $row->credentials ?? [];
+        $missing = $this->requiredCredentialErrors($key, $meta, $credentials);
+        if (!empty($missing)) {
+            $row->status = 'error';
+            $row->last_error = 'Missing or invalid integration configuration.';
+            $row->save();
+
+            return response()->json([
+                'message' => 'Reconnect failed.',
+                'errors' => [
+                    'credentials' => $missing,
+                ],
+            ], 422);
+        }
+
+        $row->enabled = true;
+        $row->status = 'connected';
+        $row->last_error = null;
+        $row->connected_at = $row->connected_at ?: now();
+        $row->last_synced_at = now();
+        $row->save();
+
+        return response()->api([
+            'integration' => $this->serializeIntegration($key, $meta, $row),
+        ], 200, [], 'Integration reconnected.');
+    }
+
+    public function disable(Request $request, string $key): JsonResponse
+    {
+        $orgId = Org::id($request);
+        if (!$orgId) {
+            return response()->json(['message' => 'Organization context missing.'], 400);
+        }
+
+        $meta = self::SUPPORTED[$key] ?? null;
+        if (!$meta) {
+            return response()->json(['message' => 'Unsupported integration key.'], 422);
+        }
+
+        $row = IntegrationConnection::query()->firstOrNew([
+            'organization_id' => $orgId,
+            'key' => $key,
+        ]);
+
+        $row->enabled = false;
+        $row->status = 'disconnected';
+        $row->last_error = null;
+        $row->save();
+
+        return response()->api([
+            'integration' => $this->serializeIntegration($key, $meta, $row),
+        ], 200, [], 'Integration disabled.');
+    }
+
     private function sanitizeBySchema(array $incoming, array $schema): array
     {
         $allowed = [];
@@ -296,6 +379,34 @@ class IntegrationController extends Controller
         }
 
         return $allowed;
+    }
+
+    private function requiredCredentialErrors(string $key, array $meta, array $credentials): array
+    {
+        $missing = [];
+        foreach (($meta['credentials_schema'] ?? []) as $field) {
+            if (!($field['required'] ?? false)) {
+                continue;
+            }
+            $value = Arr::get($credentials, (string) ($field['key'] ?? ''));
+            if ($value === null || $value === '') {
+                $missing[] = (string) ($field['label'] ?? $field['key'] ?? 'credential');
+            }
+        }
+
+        if ($key === 'slack' && empty($credentials['bot_token']) && empty($credentials['webhook_url'])) {
+            $missing[] = 'Bot Token or Incoming Webhook URL';
+        }
+
+        if ($key === 'zapier' && empty($credentials['api_key']) && empty($credentials['webhook_url'])) {
+            $missing[] = 'API Key or Zapier Hook URL';
+        }
+
+        if (!empty($credentials['webhook_url']) && !filter_var($credentials['webhook_url'], FILTER_VALIDATE_URL)) {
+            $missing[] = 'Webhook URL must be a valid URL';
+        }
+
+        return array_values(array_unique($missing));
     }
 
     private function serializeIntegration(string $key, array $meta, ?IntegrationConnection $row): array

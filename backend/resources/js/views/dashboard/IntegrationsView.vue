@@ -18,6 +18,9 @@
     <div v-if="error" class="px-4 py-3 rounded-[var(--radius-lg)] bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
       {{ error }}
     </div>
+    <div v-if="!supportsIntegrationApi" class="px-4 py-3 rounded-[var(--radius-lg)] bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm">
+      Integration API is unavailable in this environment. Toggle states are saved to organization settings, but full Manage screens require the integrations API endpoints.
+    </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <AppStatCard label="Connected" :value="connectedCount" :icon="PlugZap" color="emerald" />
@@ -40,7 +43,7 @@
               <div class="text-xs text-[color:var(--aq-muted)] mt-1 leading-relaxed">{{ item.description }}</div>
               <div class="mt-2 flex items-center gap-2 text-[11px] text-[color:var(--aq-muted)]">
                 <span class="rounded-full bg-[color:var(--aq-surface-2)] px-2 py-0.5 uppercase tracking-[0.12em]">{{ item.category }}</span>
-                <span class="rounded-full bg-[color:var(--aq-surface-2)] px-2 py-0.5 uppercase tracking-[0.12em]">{{ item.auth_method }}</span>
+                <span class="rounded-full bg-[color:var(--aq-surface-2)] px-2 py-0.5 uppercase tracking-[0.12em]">{{ formatAuthMethod(item.auth_method) }}</span>
               </div>
             </div>
             <span class="text-[10px] font-semibold px-2 py-1 rounded-full"
@@ -65,11 +68,20 @@
           </div>
           <div class="mt-3 flex gap-2">
             <RouterLink
+              v-if="supportsIntegrationApi"
               :to="{ name: 'dashboard.integrations.detail', params: { key: item.key } }"
               class="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--aq-border)] px-3 py-2 text-xs font-semibold text-[color:var(--aq-fg)] hover:bg-[color:var(--aq-surface-2)] transition"
             >
               Manage
             </RouterLink>
+            <button
+              v-else
+              type="button"
+              disabled
+              class="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--aq-border)] px-3 py-2 text-xs font-semibold text-[color:var(--aq-muted)] opacity-70 cursor-not-allowed"
+            >
+              Manage
+            </button>
             <a
               v-if="item.docs_url"
               :href="item.docs_url"
@@ -95,7 +107,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { apiGet, apiPut } from '../../lib/api';
+import { apiGet, apiPost, apiPut } from '../../lib/api';
 import { PlugZap, Sparkles, Cloud, Workflow, RefreshCw } from 'lucide-vue-next';
 import AppPageHeader from '../../components/ui/AppPageHeader.vue';
 import AppCard from '../../components/ui/AppCard.vue';
@@ -199,10 +211,14 @@ async function toggleIntegration(key, enabled) {
   error.value = '';
   try {
     if (supportsIntegrationApi.value) {
-      await apiPut(`/v1/integrations/${encodeURIComponent(key)}`, {
-        enabled: !!enabled,
-        status: enabled ? 'connected' : 'disconnected',
-      });
+      if (enabled) {
+        await apiPut(`/v1/integrations/${encodeURIComponent(key)}`, {
+          enabled: true,
+          status: 'connected',
+        });
+      } else {
+        await apiPost(`/v1/integrations/${encodeURIComponent(key)}/disable`, {});
+      }
     } else {
       const nextModulePreferences = {
         ...(modulePreferences.value || {}),
@@ -224,6 +240,16 @@ async function toggleIntegration(key, enabled) {
   } finally {
     saving.value = false;
   }
+}
+
+function formatAuthMethod(value) {
+  const map = {
+    oauth2: 'OAuth',
+    oauth2_or_webhook: 'OAuth/Webhook',
+    api_key_or_webhook: 'API Key/Webhook',
+  };
+  const key = String(value || '').toLowerCase();
+  return map[key] || 'API';
 }
 
 function formatDate(value) {
