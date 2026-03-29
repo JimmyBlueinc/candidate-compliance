@@ -87,6 +87,27 @@
             <div class="mt-1 text-sm text-slate-300">Login time, last active, session duration, and activity level for all users.</div>
           </div>
           <div class="flex gap-2">
+            <select
+              v-model="workforceRole"
+              class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white"
+            >
+              <option value="">All roles</option>
+              <option value="platform_admin">Platform Admin</option>
+              <option value="org_super_admin">Org Super Admin</option>
+              <option value="admin">Admin</option>
+              <option value="recruiter">Recruiter</option>
+              <option value="candidate">Candidate</option>
+              <option value="facility">Facility</option>
+            </select>
+            <select
+              v-model="workforceSort"
+              class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white"
+            >
+              <option value="last_active">Sort: Last Active</option>
+              <option value="login_time">Sort: Login Time</option>
+              <option value="session_duration">Sort: Session Duration</option>
+              <option value="name">Sort: Name</option>
+            </select>
             <input
               v-model="workforceSearch"
               type="text"
@@ -144,6 +165,9 @@
                   <button
                     type="button"
                     class="px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs font-semibold hover:bg-white/10"
+                    :disabled="!row.organization_id"
+                    :class="!row.organization_id ? 'opacity-50 cursor-not-allowed' : ''"
+                    :title="row.organization_id ? 'Send direct message' : 'Direct messaging unavailable for users without organization context'"
                     @click="openMessageModal(row)"
                   >
                     Message
@@ -211,6 +235,8 @@ const status = ref('');
 const workforceRows = ref([]);
 const workforceLoading = ref(false);
 const workforceSearch = ref('');
+const workforceRole = ref('');
+const workforceSort = ref('last_active');
 const messageDialogOpen = ref(false);
 const selectedRecipient = ref(null);
 const quickMessageBody = ref('');
@@ -232,6 +258,8 @@ async function loadWorkforce() {
         const res = await apiGet('/v1/admin/workforce', {
             params: {
                 search: workforceSearch.value || undefined,
+                role: workforceRole.value || undefined,
+                sort: workforceSort.value || 'last_active',
             },
         });
         workforceRows.value = Array.isArray(res?.data) ? res.data : [];

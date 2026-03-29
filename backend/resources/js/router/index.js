@@ -704,7 +704,7 @@ const router = createRouter({
                 {
                     path: 'notifications-settings',
                     name: 'dashboard.notifications_settings',
-                    component: NotificationCenterView,
+                    component: () => import('../views/dashboard/NotificationsSettingsView.vue'),
                     meta: { allowedRoles: STAFF_CHAT_ROLES },
                 },
                 {
