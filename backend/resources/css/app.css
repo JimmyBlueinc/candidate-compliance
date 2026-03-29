@@ -251,6 +251,8 @@
     .app-main {
         position: relative;
         z-index: 1;
+        scroll-behavior: smooth;
+        scrollbar-gutter: stable;
     }
 
     .app-main::before {
@@ -271,6 +273,10 @@
 
     .app-content > .max-w-\[1400px\] {
         animation: fadeInUp 260ms ease;
+    }
+
+    .dashboard-flow > * + * {
+        margin-top: 1.75rem;
     }
 
     .glass-dark {

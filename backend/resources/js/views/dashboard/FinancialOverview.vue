@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-8 pb-6 md:pb-10">
     <!-- Page Header -->
     <AppPageHeader title="Dashboard" subtitle="Today's overview across finance, compliance, and operations">
       <template #actions>
@@ -35,7 +35,7 @@
     </AppPageHeader>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <AppStatCard
         label="Gross Revenue"
         :value="money(totals.gross_revenue)"
@@ -71,7 +71,7 @@
     </div>
 
     <!-- Main Content Grid -->
-    <div class="grid grid-cols-12 gap-6">
+    <div class="grid grid-cols-12 gap-8">
       <div
         v-for="widgetKey in orderedWidgetKeys"
         :key="widgetKey"

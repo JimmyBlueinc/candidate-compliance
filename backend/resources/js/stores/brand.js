@@ -21,6 +21,16 @@ function hexToRgb(hex) {
     return { r, g, b };
 }
 
+function applyPrimaryColorCssVars(color) {
+    if (!color) return;
+    document.documentElement.style.setProperty('--brand-primary', color);
+    document.documentElement.style.setProperty('--p-primary-color', color);
+    const rgb = hexToRgb(color);
+    if (rgb) {
+        document.documentElement.style.setProperty('--brand-primary-rgb', `${rgb.r} ${rgb.g} ${rgb.b}`);
+    }
+}
+
 function extractSubdomain() {
     const host = window.location.hostname;
     console.log('[BRAND] extractSubdomain - hostname:', host);
@@ -113,13 +123,7 @@ export const useBrandStore = defineStore('brand', {
                     this.loaded = true;
 
                     if (this.primaryColor) {
-                        document.documentElement.style.setProperty('--brand-primary', this.primaryColor);
-                        // Also set PrimeVue theme variable for UI components
-                        document.documentElement.style.setProperty('--p-primary-color', this.primaryColor);
-                        const rgb = hexToRgb(this.primaryColor);
-                        if (rgb) {
-                            document.documentElement.style.setProperty('--brand-primary-rgb', `${rgb.r} ${rgb.g} ${rgb.b}`);
-                        }
+                        applyPrimaryColorCssVars(this.primaryColor);
                     }
                     console.log('[BRAND] Loaded from storage:', data);
                 }
@@ -197,14 +201,7 @@ export const useBrandStore = defineStore('brand', {
                 this.loaded = true;
 
                 if (this.primaryColor) {
-                    document.documentElement.style.setProperty('--brand-primary', this.primaryColor);
-                    // Also set PrimeVue theme variable for UI components
-                    document.documentElement.style.setProperty('--p-primary-color', this.primaryColor);
-
-                    const rgb = hexToRgb(this.primaryColor);
-                    if (rgb) {
-                        document.documentElement.style.setProperty('--brand-primary-rgb', `${rgb.r} ${rgb.g} ${rgb.b}`);
-                    }
+                    applyPrimaryColorCssVars(this.primaryColor);
                 }
 
                 this.saveToStorage();
@@ -256,16 +253,17 @@ export const useBrandStore = defineStore('brand', {
             this.loaded = true;
 
             if (this.primaryColor) {
-                document.documentElement.style.setProperty('--brand-primary', this.primaryColor);
-                // Also set PrimeVue theme variable for UI components
-                document.documentElement.style.setProperty('--p-primary-color', this.primaryColor);
-                const rgb = hexToRgb(this.primaryColor);
-                if (rgb) {
-                    document.documentElement.style.setProperty('--brand-primary-rgb', `${rgb.r} ${rgb.g} ${rgb.b}`);
-                }
+                applyPrimaryColorCssVars(this.primaryColor);
             }
 
             this.saveToStorage();
+        },
+
+        setLivePrimaryColor(colorValue) {
+            const next = normalizeHexColor(colorValue);
+            if (!next) return;
+            this.primaryColor = next;
+            applyPrimaryColorCssVars(next);
         },
     },
 });

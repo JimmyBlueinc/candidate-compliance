@@ -254,7 +254,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { apiGet, apiPost, apiPut } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import { RefreshCw, Save, Upload } from 'lucide-vue-next';
@@ -307,6 +307,7 @@ const preferences = ref({
   },
 });
 const featureFlags = ref({});
+const HEX_COLOR_PATTERN = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
 const featureFlagDefs = [
   {
@@ -386,6 +387,13 @@ function onLogoSelected(e) {
   logoPreviewUrl.value = URL.createObjectURL(f);
 }
 
+function normalizeColorInput(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const normalized = raw.startsWith('#') ? raw : `#${raw}`;
+  return normalized;
+}
+
 async function save() {
   saving.value = true;
   status.value = '';
@@ -393,7 +401,7 @@ async function save() {
   try {
     const fd = new FormData();
     fd.append('_method', 'PUT');
-    fd.append('primary_color', primaryColor.value || '');
+    fd.append('primary_color', normalizeColorInput(primaryColor.value) || '');
     if (logoFile.value) {
       fd.append('logo', logoFile.value);
     }
@@ -457,6 +465,12 @@ async function toggleFeatureFlag(flagKey, enabled) {
     error.value = e?.response?.data?.message || e?.message || 'Failed to update feature module.';
   }
 }
+
+watch(primaryColor, (value) => {
+  const normalized = normalizeColorInput(value);
+  if (!HEX_COLOR_PATTERN.test(normalized)) return;
+  brand.setLivePrimaryColor(normalized);
+});
 
 reload();
 </script>

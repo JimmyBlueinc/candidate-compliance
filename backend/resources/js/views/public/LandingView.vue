@@ -51,6 +51,58 @@
       </section>
 
       <section class="mx-auto mt-16 max-w-7xl px-6">
+        <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 p-6 shadow-[0_24px_70px_rgba(2,6,23,0.35)] md:p-8">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.28),transparent_45%)]" />
+          <div class="relative z-10">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">Dashboard Experience</p>
+            <h2 class="mt-3 text-3xl font-bold tracking-tight text-white">A command-center view your team actually enjoys using.</h2>
+            <p class="mt-3 max-w-3xl text-sm text-white/80">
+              Inspired by real operations dashboards: clean signal cards, activity context, and an executive snapshot built for staffing teams.
+            </p>
+
+            <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="grid gap-3 md:grid-cols-4">
+                <div class="rounded-xl border border-white/10 bg-slate-900/70 p-3">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-white/60">Login time</p>
+                  <p class="mt-1 text-sm font-semibold text-white">08:14 AM</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-slate-900/70 p-3">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-white/60">Location</p>
+                  <p class="mt-1 text-sm font-semibold text-white">Lagos, NG</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-slate-900/70 p-3">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-white/60">Weather</p>
+                  <p class="mt-1 text-sm font-semibold text-white">32 C | H35 / L26</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-slate-900/70 p-3">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-white/60">Recent activity</p>
+                  <p class="mt-1 text-sm font-semibold text-white">Finance review updated</p>
+                </div>
+              </div>
+
+              <div class="mt-4 grid gap-3 md:grid-cols-4">
+                <article v-for="kpi in dashboardPreviewKpis" :key="kpi.label" class="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-white/60">{{ kpi.label }}</p>
+                  <p class="mt-2 text-2xl font-bold text-white">{{ kpi.value }}</p>
+                </article>
+              </div>
+
+              <div class="mt-4 grid gap-3 md:grid-cols-2">
+                <div class="rounded-xl border border-white/10 bg-slate-900/65 p-4">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-white/60">Facility Profitability</p>
+                  <p class="mt-3 text-sm text-white/75">Monitor margin performance by location and spot underperforming accounts quickly.</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-slate-900/65 p-4">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-white/60">Compliance Trend</p>
+                  <p class="mt-3 text-sm text-white/75">Track expiring credentials and completion velocity before they impact active placements.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mx-auto mt-16 max-w-7xl px-6">
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <h2 class="text-3xl font-bold tracking-tight text-slate-900">Purpose-built for staffing leaders</h2>
@@ -131,6 +183,12 @@ const metrics = [
   { label: 'Pipeline visibility', value: '100%', note: 'real-time stage transparency' },
   { label: 'Team coordination', value: '8 hrs', note: 'saved weekly per recruiter' },
   { label: 'Revenue clarity', value: 'Live', note: 'always-on operational reporting' },
+];
+const dashboardPreviewKpis = [
+  { label: 'Gross revenue', value: '$0.00' },
+  { label: 'Labor cost', value: '$0.00' },
+  { label: 'Net margin', value: '$0.00' },
+  { label: 'Projected profit', value: '$0.00' },
 ];
 
 const pillars = [

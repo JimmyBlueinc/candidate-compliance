@@ -40,7 +40,7 @@
       </header>
 
       <!-- Main Content -->
-      <div class="app-content flex-1 min-h-0 px-6 pb-6">
+      <div class="app-content flex-1 min-h-0 px-6 pb-12 lg:pb-16">
         <div class="max-w-[1400px] mx-auto h-full">
           <RouterView />
         </div>
