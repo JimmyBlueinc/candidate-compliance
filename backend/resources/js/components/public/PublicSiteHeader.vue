@@ -24,7 +24,7 @@
             Jobs
           </button>
           <button
-            v-if="showDashboardButton"
+            v-if="canShowTenantDashboard"
             type="button"
             class="px-3.5 py-2 rounded-xl text-sm font-semibold text-white"
             :style="{ backgroundColor: primarySolid }"
@@ -78,6 +78,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  currentRole: {
+    type: String,
+    default: '',
+  },
 });
 
 defineEmits(['apex-login', 'tenant-jobs', 'tenant-dashboard', 'tenant-signin']);
@@ -92,6 +96,24 @@ const initials = computed(() => {
   const name = resolvedBrandTitle.value;
   const first = name.charAt(0).toUpperCase();
   return first || 'A';
+});
+
+const canShowTenantDashboard = computed(() => {
+  if (!props.showDashboardButton) return false;
+  const role = String(props.currentRole || '').trim().toLowerCase();
+  return [
+    'platform_admin',
+    'super_admin',
+    'org_super_admin',
+    'org_owner',
+    'org_admin',
+    'admin',
+    'recruiter',
+    'scheduler',
+    'compliance',
+    'finance',
+    'logistics',
+  ].includes(role);
 });
 </script>
 

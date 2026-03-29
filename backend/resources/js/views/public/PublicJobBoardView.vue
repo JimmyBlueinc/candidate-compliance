@@ -17,17 +17,7 @@
         </div>
       </section>
 
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-600">
-            Jobs
-          </div>
-          <h1 class="mt-4 text-4xl sm:text-5xl font-bold tracking-tight">Find a role. Apply in minutes.</h1>
-          <p class="mt-2 text-slate-600 max-w-2xl">
-            Browse open jobs across organizations and submit applications quickly.
-          </p>
-        </div>
-
+      <div class="mt-8 flex flex-wrap items-start justify-between gap-4">
         <div class="flex items-center gap-2">
           <RouterLink to="/" class="px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700">Home</RouterLink>
           <RouterLink to="/portal/login" class="px-4 py-2 rounded-xl text-sm font-semibold border" :style="{ backgroundColor: primarySoftBg, borderColor: primarySoftBorder, color: primaryColor }">
@@ -124,6 +114,16 @@
           </div>
         </div>
       </div>
+
+      <section class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+        <h2 class="text-2xl font-bold tracking-tight text-slate-900">Why candidates choose AgencHQ</h2>
+        <div class="mt-6 grid gap-4 md:grid-cols-3">
+          <article v-for="point in candidatePoints" :key="point.title" class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <h3 class="text-base font-semibold text-slate-900">{{ point.title }}</h3>
+            <p class="mt-2 text-sm text-slate-600">{{ point.description }}</p>
+          </article>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -154,6 +154,20 @@ const filters = ref({
   city: '',
   state: '',
 });
+const candidatePoints = [
+  {
+    title: 'Simple, guided applications',
+    description: 'Apply quickly with a guided flow and no confusing screens.',
+  },
+  {
+    title: 'Transparent job details',
+    description: 'Review work mode, location, and key role context before you apply.',
+  },
+  {
+    title: 'Direct portal access',
+    description: 'Move straight into your candidate portal to continue your hiring journey.',
+  },
+];
 
 function formatWorkMode(v) {
   if (!v) return '—';

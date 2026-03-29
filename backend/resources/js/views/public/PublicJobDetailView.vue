@@ -1,126 +1,86 @@
 <template>
-  <div class="min-h-screen bg-[var(--app-bg)] text-[var(--app-fg)] selection:bg-purple-500/30">
-    <div class="max-w-7xl mx-auto px-6 sm:px-10 py-10">
-      <div class="flex items-start justify-between gap-4">
-        <div class="min-w-0">
-          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-xs font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">
-            Job detail
+  <div class="min-h-screen bg-[#f8fafc] text-slate-900">
+    <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primaryColor" @apex-login="goLogin" />
+    <div class="max-w-7xl mx-auto px-6 pt-28 pb-16">
+      <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-7 md:p-10">
+        <img
+          src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1800&q=80"
+          alt="Candidate and recruiter discussing a role"
+          class="absolute inset-0 h-full w-full object-cover opacity-25"
+          loading="lazy"
+        />
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/92 via-slate-900/85 to-slate-900/70" />
+        <div class="relative z-10">
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">Job Detail</p>
+          <h1 class="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">{{ job?.title || 'Loading...' }}</h1>
+          <p v-if="job" class="mt-3 text-sm text-white/85">
+            {{ job.organization_name }} - {{ job.facility_name || 'Facility' }}
+            <template v-if="job.facility_city || job.facility_state">
+              - {{ [job.facility_city, job.facility_state].filter(Boolean).join(', ') }}
+            </template>
+          </p>
+          <div class="mt-5 flex flex-wrap gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-semibold border border-white/20 bg-white/10 text-white">{{ job?.specialty || 'Specialty' }}</span>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold border" :style="{ backgroundColor: primarySoftBg, borderColor: primarySoftBorder, color: '#fff' }">{{ formatWorkMode(job?.work_mode) }}</span>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold border border-white/20 bg-white/10 text-white">Starts: {{ formatDate(job?.start_date) }}</span>
           </div>
-          <h1 class="mt-5 font-display text-4xl sm:text-5xl text-white tracking-tight truncate">{{ job?.title || 'Loading…' }}</h1>
-          <div v-if="job" class="mt-3 text-sm text-[color:var(--p-text-muted-color)] truncate">
-            {{ job.organization_name }}
-            <span class="opacity-40">•</span>
-            {{ job.facility_name }}
-            <span v-if="job.facility_city || job.facility_state" class="opacity-40">•</span>
-            <span v-if="job.facility_city">{{ job.facility_city }}</span>
-            <span v-if="job.facility_city && job.facility_state">, </span>
-            <span v-if="job.facility_state">{{ job.facility_state }}</span>
-          </div>
-
-          <div v-if="job" class="mt-5 flex flex-wrap gap-2">
-            <span class="px-3 py-1 rounded-full text-[11px] font-black tracking-widest uppercase border border-white/10 bg-white/5 text-slate-200">
-              {{ job.specialty || 'Specialty —' }}
-            </span>
-            <span
-              class="px-3 py-1 rounded-full text-[11px] font-black tracking-widest uppercase border"
-              :style="{ backgroundColor: primarySoftBg, borderColor: primarySoftBorder, color: primaryColor }"
-            >
-              {{ formatWorkMode(job.work_mode) }}
-            </span>
-            <span class="px-3 py-1 rounded-full text-[11px] font-black tracking-widest uppercase border border-white/10 bg-white/5 text-slate-200">
-              Starts: {{ formatDate(job.start_date) }}
-            </span>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <RouterLink :to="{ name: 'public.jobs' }" class="px-4 py-2 rounded-xl text-sm font-semibold border border-white/25 bg-white/10 text-white hover:bg-white/20">Back to jobs</RouterLink>
+            <RouterLink v-if="job?.id" :to="{ name: 'public.jobs.apply', params: { id: job.id } }" class="px-4 py-2 rounded-xl text-sm font-semibold text-white" :style="{ backgroundColor: primaryColor }">Apply now</RouterLink>
           </div>
         </div>
+      </section>
 
-        <div class="flex items-center gap-2 shrink-0">
-          <RouterLink
-            :to="{ name: 'public.jobs' }"
-            class="px-4 py-2 rounded-full text-xs font-black tracking-widest uppercase border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
-          >
-            Back
-          </RouterLink>
-          <RouterLink
-            v-if="job?.id"
-            :to="{ name: 'public.jobs.apply', params: { id: job.id } }"
-            class="px-4 py-2 rounded-full text-xs font-black tracking-widest uppercase border"
-            :style="{ backgroundColor: primaryColor, borderColor: primaryColor, color: '#fff' }"
-          >
-            Apply
-          </RouterLink>
-        </div>
-      </div>
+      <div v-if="loading" class="mt-8 text-sm text-slate-500">Loading...</div>
+      <div v-else-if="error" class="mt-8 text-sm text-red-600">{{ error }}</div>
 
-      <div v-if="loading" class="mt-8 text-sm text-[color:var(--p-text-muted-color)]">Loading…</div>
-      <div v-else-if="error" class="mt-8 text-sm text-red-400">{{ error }}</div>
+      <section v-else-if="job" class="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <article class="lg:col-span-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+          <h2 class="text-2xl font-bold tracking-tight text-slate-900">About this role</h2>
+          <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-700">{{ job.description || 'No description provided.' }}</p>
 
-      <div v-else-if="job" class="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-8 glass-dark rounded-[32px] p-8 border border-white/5">
-          <div class="text-xs font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">About this role</div>
-          <div class="mt-4 text-sm text-slate-200 whitespace-pre-wrap">{{ job.description || '—' }}</div>
-
-          <div class="mt-7 p-5 rounded-2xl border border-white/10 bg-white/5">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <div class="text-[11px] font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Ready to apply?</div>
-                <div class="mt-2 text-sm text-slate-200">Create (or verify) your candidate account and submit your application.</div>
-              </div>
-              <span class="material-symbols-outlined text-white/70">bolt</span>
-            </div>
+          <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <h3 class="text-lg font-semibold text-slate-900">Application highlights</h3>
+            <ul class="mt-3 space-y-1 text-sm text-slate-700">
+              <li>- Fast account creation and one-step application flow</li>
+              <li>- Your progress continues directly in the candidate portal</li>
+              <li>- Messaging and updates happen in one place after submission</li>
+            </ul>
             <RouterLink
               :to="{ name: 'public.jobs.apply', params: { id: job.id } }"
-              class="mt-4 inline-flex items-center justify-center w-full px-4 py-3 rounded-2xl text-xs font-black tracking-widest uppercase border"
-              :style="{ backgroundColor: primaryColor, borderColor: primaryColor, color: '#fff' }"
+              class="mt-5 inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              :style="{ backgroundColor: primaryColor }"
             >
-              Apply now
+              Continue to apply
             </RouterLink>
           </div>
-        </div>
+        </article>
 
-        <div class="lg:col-span-4 glass-dark rounded-[32px] p-8 border border-white/5">
-          <div class="text-xs font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Key details</div>
-
-          <div class="mt-5 space-y-3 text-sm">
-            <div class="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div class="text-[color:var(--p-text-muted-color)]">Organization</div>
-              <div class="text-white font-semibold truncate">{{ job.organization_name || '—' }}</div>
-            </div>
-            <div class="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div class="text-[color:var(--p-text-muted-color)]">Facility</div>
-              <div class="text-white font-semibold truncate">{{ job.facility_name || '—' }}</div>
-            </div>
-            <div class="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div class="text-[color:var(--p-text-muted-color)]">Work mode</div>
-              <div class="text-white font-semibold">{{ formatWorkMode(job.work_mode) }}</div>
-            </div>
-            <div class="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div class="text-[color:var(--p-text-muted-color)]">Start date</div>
-              <div class="text-white font-semibold">{{ formatDate(job.start_date) }}</div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div class="text-[11px] font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Pay rate</div>
-                <div class="mt-2 text-white font-semibold">{{ money(job.pay_rate) }}/hr</div>
-              </div>
-              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div class="text-[11px] font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Stipend</div>
-                <div class="mt-2 text-white font-semibold">{{ money(job.stipend_weekly) }}</div>
-              </div>
-            </div>
+        <article class="lg:col-span-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+          <h2 class="text-lg font-semibold text-slate-900">Key details</h2>
+          <div class="mt-4 space-y-3 text-sm">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><span class="text-slate-500">Organization:</span> <span class="font-semibold text-slate-900">{{ job.organization_name || '-' }}</span></div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><span class="text-slate-500">Facility:</span> <span class="font-semibold text-slate-900">{{ job.facility_name || '-' }}</span></div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><span class="text-slate-500">Work mode:</span> <span class="font-semibold text-slate-900">{{ formatWorkMode(job.work_mode) }}</span></div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><span class="text-slate-500">Start date:</span> <span class="font-semibold text-slate-900">{{ formatDate(job.start_date) }}</span></div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><span class="text-slate-500">Pay rate:</span> <span class="font-semibold text-slate-900">{{ money(job.pay_rate) }}/hr</span></div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><span class="text-slate-500">Weekly stipend:</span> <span class="font-semibold text-slate-900">{{ money(job.stipend_weekly) }}</span></div>
           </div>
-        </div>
-      </div>
+        </article>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { apiGet } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
+import PublicSiteHeader from '../../components/public/PublicSiteHeader.vue';
 
 const route = useRoute();
+const router = useRouter();
 const brand = useBrandStore();
 
 const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
@@ -150,6 +110,10 @@ function formatWorkMode(v) {
   if (v === 'on_site') return 'On-site';
   if (v === 'remote') return 'Remote';
   return String(v);
+}
+
+function goLogin() {
+  router.push({ name: 'login' });
 }
 
 async function refresh() {

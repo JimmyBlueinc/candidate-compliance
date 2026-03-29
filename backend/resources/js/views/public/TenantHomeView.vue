@@ -6,6 +6,7 @@
       :primary-color="primarySolid"
       :show-dashboard-button="isAdmin"
       :show-sign-in-button="!auth.isAuthenticated"
+      :current-role="auth.user?.role || ''"
       @tenant-jobs="goToJobs"
       @tenant-dashboard="goToDashboard"
       @tenant-signin="goToLogin"
