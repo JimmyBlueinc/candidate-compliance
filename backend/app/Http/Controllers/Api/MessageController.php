@@ -168,8 +168,9 @@ class MessageController extends Controller
             }
 
             if ($isStaff) {
-                if ((string) ($recipient->role ?? '') !== 'candidate') {
-                    return response()->json(['message' => 'Unauthorized. Staff can only direct-message candidates.'], 403);
+                $allowedStaffRecipientRoles = ['org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics', 'candidate'];
+                if (!in_array((string) ($recipient->role ?? ''), $allowedStaffRecipientRoles, true)) {
+                    return response()->json(['message' => 'Unauthorized. Staff can only message users within organization operations roles or candidates.'], 403);
                 }
             } elseif ($isCandidate) {
                 $candidateAllowedStaffRoles = ['org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics', 'platform_admin'];

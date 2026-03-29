@@ -17,6 +17,25 @@
 
     <!-- Invoices Table -->
     <AppCard title="Invoice List" subtitle="All invoices organized by billing period.">
+      <div class="mb-5 rounded-[var(--radius-lg)] border border-[color:var(--aq-border)] p-4">
+        <div class="mb-3 text-xs font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">
+          Create Manual Invoice
+        </div>
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <input v-model="newInvoice.facility_name" type="text" class="auth-like-input" placeholder="Facility name" />
+          <input v-model.number="newInvoice.total_hours" type="number" min="0" step="0.25" class="auth-like-input" placeholder="Total hours" />
+          <input v-model.number="newInvoice.bill_rate" type="number" min="0" step="0.01" class="auth-like-input" placeholder="Bill rate" />
+          <input v-model="newInvoice.week_start_date" type="date" class="auth-like-input" />
+          <input v-model="newInvoice.week_end_date" type="date" class="auth-like-input" />
+          <input v-model="newInvoice.due_at" type="date" class="auth-like-input" />
+        </div>
+        <div class="mt-4 flex items-center justify-end">
+          <AppButton size="sm" :loading="creatingInvoice" @click="createInvoice">
+            Create Invoice
+          </AppButton>
+        </div>
+      </div>
+
       <div v-if="loading" class="py-8">
         <div class="space-y-3">
           <AppSkeleton v-for="i in 5" :key="i" variant="text" />
@@ -89,7 +108,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import { apiGet, normalizeApiList } from '../../lib/api';
+import { apiGet, apiPost, normalizeApiList } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import { RefreshCw, FileText, CreditCard } from 'lucide-vue-next';
 import AppPageHeader from '../../components/ui/AppPageHeader.vue';
@@ -110,6 +129,15 @@ const error = ref('');
 
 const isPaymentModalOpen = ref(false);
 const selectedInvoiceId = ref('');
+const creatingInvoice = ref(false);
+const newInvoice = ref({
+  facility_name: '',
+  week_start_date: '',
+  week_end_date: '',
+  total_hours: '',
+  bill_rate: '',
+  due_at: '',
+});
 
 function money(v) {
   const n = Number(v || 0);
@@ -186,6 +214,35 @@ async function load() {
   }
 }
 
+async function createInvoice() {
+  if (creatingInvoice.value) return;
+  creatingInvoice.value = true;
+  error.value = '';
+  try {
+    await apiPost('/v1/invoices', {
+      facility_name: String(newInvoice.value.facility_name || '').trim(),
+      week_start_date: newInvoice.value.week_start_date,
+      week_end_date: newInvoice.value.week_end_date,
+      total_hours: Number(newInvoice.value.total_hours || 0),
+      bill_rate: Number(newInvoice.value.bill_rate || 0),
+      due_at: newInvoice.value.due_at || null,
+    });
+    newInvoice.value = {
+      facility_name: '',
+      week_start_date: '',
+      week_end_date: '',
+      total_hours: '',
+      bill_rate: '',
+      due_at: '',
+    };
+    await load();
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || 'Failed to create invoice';
+  } finally {
+    creatingInvoice.value = false;
+  }
+}
+
 function openRecordPayment(row) {
   selectedInvoiceId.value = String(row?.id ?? '');
   if (!selectedInvoiceId.value) return;
@@ -212,3 +269,14 @@ function onPaymentRecorded(updatedInvoice) {
 
 onMounted(load);
 </script>
+
+<style scoped>
+.auth-like-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--aq-border) 88%, transparent);
+  background: color-mix(in srgb, var(--aq-surface-1) 88%, transparent);
+  padding: 0.55rem 0.7rem;
+  font-size: 0.8rem;
+}
+</style>

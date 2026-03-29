@@ -303,6 +303,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
         });
 
         // Invoices
+        Route::middleware('role.finance')->post('/invoices', [\App\Http\Controllers\Api\InvoiceController::class, 'store']);
         Route::middleware('role.finance')->get('/invoices', [\App\Http\Controllers\Api\InvoiceController::class, 'index']);
         Route::middleware('role.finance')->get('/invoices/{id}', [\App\Http\Controllers\Api\InvoiceController::class, 'show']);
         Route::middleware('role.finance')->post('/invoices/{id}/issue', [\App\Http\Controllers\Api\InvoiceController::class, 'issue']);
