@@ -191,6 +191,17 @@ const shareNote = ref('');
 const recipients = ref([]);
 const recipientsLoading = ref(false);
 
+function extractApiError(e, fallback) {
+  const data = e?.response?.data || {};
+  const validation = data?.errors;
+  if (validation && typeof validation === 'object') {
+    const firstField = Object.keys(validation)[0];
+    const firstMessage = firstField ? validation[firstField]?.[0] : null;
+    if (firstMessage) return String(firstMessage);
+  }
+  return data?.message || e?.message || fallback;
+}
+
 async function loadFiles() {
   try {
     loading.value = true;
@@ -202,7 +213,7 @@ async function loadFiles() {
     ownedFiles.value = Array.isArray(payload?.owned_files) ? payload.owned_files : [];
     sharedFiles.value = Array.isArray(payload?.shared_with_me) ? payload.shared_with_me : [];
   } catch (e) {
-    errorMessage.value = e?.response?.data?.message || e?.message || 'Failed to load drive files.';
+    errorMessage.value = extractApiError(e, 'Failed to load drive files.');
     ownedFiles.value = [];
     sharedFiles.value = [];
   } finally {
@@ -225,9 +236,6 @@ async function uploadFile() {
     await apiPost('/drive/files', formData, {
       // Large files can take longer than the global 10s API timeout.
       timeout: 180000,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
     });
     if (fileInputRef.value) fileInputRef.value.value = '';
     selectedFile.value = null;
@@ -236,7 +244,7 @@ async function uploadFile() {
     const timeoutHit = e?.code === 'ECONNABORTED' || /timeout/i.test(String(e?.message || ''));
     errorMessage.value = timeoutHit
       ? 'Upload is taking too long. Please try again or use a smaller file/network connection.'
-      : (e?.response?.data?.message || e?.message || 'Upload failed. Please try again.');
+      : extractApiError(e, 'Upload failed. Please try again.');
   } finally {
     uploading.value = false;
   }
@@ -256,7 +264,7 @@ async function removeFile(file) {
     await apiDelete(`/drive/files/${encodeURIComponent(String(file.id))}`);
     await loadFiles();
   } catch (e) {
-    errorMessage.value = e?.response?.data?.message || e?.message || 'Failed to delete file.';
+    errorMessage.value = extractApiError(e, 'Failed to delete file.');
   }
 }
 
@@ -268,7 +276,7 @@ async function loadRecipients() {
     const rows = res?.data?.length ? res.data : (res?.data || res);
     recipients.value = Array.isArray(rows) ? rows : [];
   } catch (e) {
-    errorMessage.value = e?.response?.data?.message || e?.message || 'Failed to load recipients.';
+    errorMessage.value = extractApiError(e, 'Failed to load recipients.');
     recipients.value = [];
   } finally {
     recipientsLoading.value = false;
@@ -302,7 +310,7 @@ async function shareFile() {
     closeShareDialog();
     await loadFiles();
   } catch (e) {
-    errorMessage.value = e?.response?.data?.message || e?.message || 'Failed to share file.';
+    errorMessage.value = extractApiError(e, 'Failed to share file.');
   } finally {
     sharing.value = false;
   }
