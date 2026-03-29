@@ -17,7 +17,8 @@ sed -i "s/listen 10000/listen ${PORT}/g" /etc/nginx/http.d/default.conf
 # Force-clear Laravel caches (guards against stale bootstrap/cache/*.php causing 404s)
 rm -f /var/www/html/bootstrap/cache/*.php || true
 
-# Run migrations (Render will handle this, but good to have as fallback)
+# Run migrations (Render will handle this, but keep resilient fallbacks)
+php artisan migrate --force --path=/var/www/html/migrations --realpath || true
 php artisan migrate --force --no-interaction || true
 
 # Clear and cache config for production

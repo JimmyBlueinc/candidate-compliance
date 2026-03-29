@@ -230,7 +230,9 @@ chown -R www-data:www-data /var/www/html/database\n\
 chmod -R 775 /var/www/html/database\n\
 \n\
 # Run migrations (will use DB_HOST from environment)\n\
+# First use the copied, non-mounted migration path (ECS-safe), then default path as fallback.\n\
 php artisan migrate --force --path=/var/www/html/migrations --realpath || true\n\
+php artisan migrate --force --no-interaction || true\n\
 \n\
 # Create storage link\n\
 php artisan storage:link || true\n\
