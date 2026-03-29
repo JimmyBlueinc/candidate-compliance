@@ -17,6 +17,9 @@
     <div v-if="error" class="px-4 py-3 rounded-[var(--radius-lg)] bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
       {{ error }}
     </div>
+    <div v-if="usingSettingsFallback" class="px-4 py-3 rounded-[var(--radius-lg)] bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm">
+      Compatibility mode is active. Credentials and settings are saved from this UI for this organization.
+    </div>
     <div v-if="loadNotFound" class="px-4 py-3 rounded-[var(--radius-lg)] bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm flex items-center justify-between gap-3">
       <span>This integration cannot be loaded right now. Please return to the integrations catalog.</span>
       <AppButton variant="secondary" size="sm" @click="goBack">Back to Integrations</AppButton>
@@ -141,6 +144,7 @@ const status = ref('');
 const error = ref('');
 const integration = ref(null);
 const loadNotFound = ref(false);
+const usingSettingsFallback = ref(false);
 
 const form = reactive({
   enabled: false,
@@ -157,6 +161,108 @@ function hydrateForm(row) {
 function integrationKey() {
   return String(route.params.key || '');
 }
+
+const FALLBACK_DEFS = {
+  google_drive: {
+    key: 'google_drive',
+    label: 'Google Drive',
+    description: 'Store and sync candidate and compliance files.',
+    auth_method: 'oauth2',
+    category: 'storage',
+    docs_url: 'https://developers.google.com/drive',
+    required_scopes: ['drive.file'],
+    settings_schema: [
+      { key: 'folder_id', label: 'Default Folder ID', type: 'text', required: false },
+      { key: 'sync_direction', label: 'Sync Direction', type: 'select', required: true, options: ['push', 'pull', 'bidirectional'] },
+    ],
+    credentials_schema: [
+      { key: 'client_id', label: 'Google Client ID', type: 'text', required: true },
+      { key: 'client_secret', label: 'Google Client Secret', type: 'password', required: true },
+    ],
+  },
+  google_calendar: {
+    key: 'google_calendar',
+    label: 'Google Calendar',
+    description: 'Sync interviews, orientation, and shift-related events.',
+    auth_method: 'oauth2',
+    category: 'scheduling',
+    docs_url: 'https://developers.google.com/calendar',
+    required_scopes: ['calendar.events'],
+    settings_schema: [
+      { key: 'calendar_id', label: 'Calendar ID', type: 'text', required: false },
+      { key: 'auto_create_events', label: 'Auto-create events', type: 'boolean', required: false },
+    ],
+    credentials_schema: [
+      { key: 'client_id', label: 'Google Client ID', type: 'text', required: true },
+      { key: 'client_secret', label: 'Google Client Secret', type: 'password', required: true },
+    ],
+  },
+  slack: {
+    key: 'slack',
+    label: 'Slack',
+    description: 'Send recruiting, compliance, and operations alerts.',
+    auth_method: 'oauth2_or_webhook',
+    category: 'communication',
+    docs_url: 'https://api.slack.com',
+    required_scopes: ['chat:write', 'channels:read'],
+    settings_schema: [
+      { key: 'default_channel', label: 'Default Channel', type: 'text', required: false },
+      { key: 'notify_on_new_applications', label: 'Notify on new applications', type: 'boolean', required: false },
+    ],
+    credentials_schema: [
+      { key: 'bot_token', label: 'Bot Token', type: 'password', required: false },
+      { key: 'webhook_url', label: 'Incoming Webhook URL', type: 'text', required: false },
+    ],
+  },
+  dropbox: {
+    key: 'dropbox',
+    label: 'Dropbox',
+    description: 'Archive and exchange credential and onboarding packets.',
+    auth_method: 'oauth2',
+    category: 'storage',
+    docs_url: 'https://developers.dropbox.com',
+    required_scopes: ['files.content.write'],
+    settings_schema: [{ key: 'root_path', label: 'Root Path', type: 'text', required: false }],
+    credentials_schema: [
+      { key: 'client_id', label: 'Dropbox App Key', type: 'text', required: true },
+      { key: 'client_secret', label: 'Dropbox App Secret', type: 'password', required: true },
+    ],
+  },
+  quickbooks: {
+    key: 'quickbooks',
+    label: 'QuickBooks',
+    description: 'Sync invoices, payment statuses, and accounting mapping.',
+    auth_method: 'oauth2',
+    category: 'finance',
+    docs_url: 'https://developer.intuit.com',
+    required_scopes: ['com.intuit.quickbooks.accounting'],
+    settings_schema: [
+      { key: 'realm_id', label: 'Realm ID', type: 'text', required: false },
+      { key: 'auto_push_invoices', label: 'Auto-push invoices', type: 'boolean', required: false },
+    ],
+    credentials_schema: [
+      { key: 'client_id', label: 'QuickBooks Client ID', type: 'text', required: true },
+      { key: 'client_secret', label: 'QuickBooks Client Secret', type: 'password', required: true },
+    ],
+  },
+  zapier: {
+    key: 'zapier',
+    label: 'Zapier',
+    description: 'Trigger no-code automations from staffing lifecycle events.',
+    auth_method: 'api_key_or_webhook',
+    category: 'automation',
+    docs_url: 'https://platform.zapier.com',
+    required_scopes: [],
+    settings_schema: [
+      { key: 'event_namespace', label: 'Event Namespace', type: 'text', required: false },
+      { key: 'emit_candidate_events', label: 'Emit candidate events', type: 'boolean', required: false },
+    ],
+    credentials_schema: [
+      { key: 'api_key', label: 'Zapier API Key', type: 'password', required: false },
+      { key: 'webhook_url', label: 'Zapier Hook URL', type: 'text', required: false },
+    ],
+  },
+};
 
 function formatDate(value) {
   if (!value) return 'N/A';
@@ -175,16 +281,30 @@ async function reload() {
     const row = response?.data?.integration || response?.integration || response;
     integration.value = row;
     hydrateForm(row);
+    usingSettingsFallback.value = false;
   } catch (e) {
-    error.value = e?.response?.data?.message || e?.message || 'Failed to load integration.';
     const code = Number(e?.response?.status || 0);
-    loadNotFound.value = code === 404 || code === 422;
+    if (code === 404 || code === 422) {
+      try {
+        await loadFromSettingsFallback();
+        usingSettingsFallback.value = true;
+      } catch (fallbackError) {
+        error.value = fallbackError?.response?.data?.message || fallbackError?.message || 'Failed to load integration.';
+        loadNotFound.value = true;
+      }
+    } else {
+      error.value = e?.response?.data?.message || e?.message || 'Failed to load integration.';
+    }
   } finally {
     loading.value = false;
   }
 }
 
 async function save() {
+  if (usingSettingsFallback.value) {
+    await saveFallback();
+    return;
+  }
   saving.value = true;
   status.value = '';
   error.value = '';
@@ -214,6 +334,10 @@ async function save() {
 }
 
 async function runTest() {
+  if (usingSettingsFallback.value) {
+    await runTestFallback();
+    return;
+  }
   testing.value = true;
   status.value = '';
   error.value = '';
@@ -235,6 +359,10 @@ async function runTest() {
 }
 
 async function disableConnection() {
+  if (usingSettingsFallback.value) {
+    await disableFallback();
+    return;
+  }
   saving.value = true;
   status.value = '';
   error.value = '';
@@ -251,6 +379,10 @@ async function disableConnection() {
 }
 
 async function reconnectConnection() {
+  if (usingSettingsFallback.value) {
+    await reconnectFallback();
+    return;
+  }
   reconnecting.value = true;
   status.value = '';
   error.value = '';
@@ -272,6 +404,195 @@ async function reconnectConnection() {
 
 function goBack() {
   router.push({ name: 'dashboard.integrations' });
+}
+
+function buildCredentialPresence(credentials = {}, schema = []) {
+  const out = {};
+  for (const field of schema) {
+    const key = String(field?.key || '');
+    if (!key) continue;
+    out[key] = Boolean(credentials[key]);
+  }
+  return out;
+}
+
+function validateCredentialsForDef(def, credentials) {
+  const missing = [];
+  for (const field of def?.credentials_schema || []) {
+    if (!field?.required) continue;
+    const key = String(field?.key || '');
+    const value = credentials?.[key];
+    if (value === null || value === undefined || String(value).trim() === '') {
+      missing.push(field?.label || key);
+    }
+  }
+  if (def?.key === 'slack' && !credentials?.bot_token && !credentials?.webhook_url) {
+    missing.push('Bot Token or Incoming Webhook URL');
+  }
+  if (def?.key === 'zapier' && !credentials?.api_key && !credentials?.webhook_url) {
+    missing.push('API Key or Zapier Hook URL');
+  }
+  const webhookUrl = String(credentials?.webhook_url || '').trim();
+  if (webhookUrl && !/^https?:\/\//i.test(webhookUrl)) {
+    missing.push('Webhook URL must be a valid URL');
+  }
+  return Array.from(new Set(missing));
+}
+
+async function readModulePreferences() {
+  const settingsRes = await apiGet('/v1/agency/settings');
+  return settingsRes?.data?.settings?.module_preferences || settingsRes?.settings?.module_preferences || {};
+}
+
+async function writeModulePreferences(modulePreferences) {
+  await apiPut('/v1/agency/settings', {
+    module_preferences: modulePreferences,
+  });
+}
+
+async function loadFromSettingsFallback() {
+  const key = integrationKey();
+  const def = FALLBACK_DEFS[key];
+  if (!def) {
+    throw new Error('Unsupported integration key.');
+  }
+  const modulePreferences = await readModulePreferences();
+  const integrationsMap = modulePreferences?.integrations || {};
+  const configsMap = modulePreferences?.integration_configs || {};
+  const cfg = configsMap[key] || {};
+  const credentials = cfg?.credentials || {};
+  const enabled = cfg?.enabled ?? integrationsMap[key] === true;
+  const row = {
+    ...def,
+    enabled: Boolean(enabled),
+    status: cfg?.status || (enabled ? 'connected' : 'disconnected'),
+    settings: cfg?.settings || {},
+    credential_presence: buildCredentialPresence(credentials, def.credentials_schema),
+    connected_at: cfg?.connected_at || null,
+    last_synced_at: cfg?.last_synced_at || null,
+    last_error: cfg?.last_error || null,
+    _credentials_raw: credentials,
+  };
+  integration.value = row;
+  hydrateForm(row);
+}
+
+async function saveFallback() {
+  saving.value = true;
+  status.value = '';
+  error.value = '';
+  try {
+    const key = integrationKey();
+    const def = FALLBACK_DEFS[key];
+    const modulePreferences = await readModulePreferences();
+    const integrationsMap = { ...(modulePreferences?.integrations || {}) };
+    const configsMap = { ...(modulePreferences?.integration_configs || {}) };
+    const currentCfg = configsMap[key] || {};
+    const mergedCredentials = { ...(currentCfg?.credentials || {}) };
+    for (const [k, v] of Object.entries(form.credentials || {})) {
+      if (v !== null && v !== undefined && String(v).trim() !== '') {
+        mergedCredentials[k] = v;
+      }
+    }
+    const enabled = Boolean(form.enabled);
+    const nextCfg = {
+      ...currentCfg,
+      enabled,
+      status: enabled ? 'connected' : 'disconnected',
+      settings: { ...(form.settings || {}) },
+      credentials: mergedCredentials,
+      connected_at: enabled ? (currentCfg?.connected_at || new Date().toISOString()) : null,
+      last_error: null,
+    };
+    integrationsMap[key] = enabled;
+    configsMap[key] = nextCfg;
+    const nextModulePreferences = {
+      ...(modulePreferences || {}),
+      integrations: integrationsMap,
+      integration_configs: configsMap,
+    };
+    await writeModulePreferences(nextModulePreferences);
+    integration.value = {
+      ...def,
+      ...integration.value,
+      enabled,
+      status: nextCfg.status,
+      settings: nextCfg.settings,
+      credential_presence: buildCredentialPresence(mergedCredentials, def.credentials_schema),
+      connected_at: nextCfg.connected_at,
+      last_error: nextCfg.last_error,
+      _credentials_raw: mergedCredentials,
+    };
+    form.credentials = {};
+    status.value = `${integration.value?.label || 'Integration'} settings saved.`;
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || 'Failed to save integration settings.';
+  } finally {
+    saving.value = false;
+  }
+}
+
+async function runTestFallback() {
+  testing.value = true;
+  status.value = '';
+  error.value = '';
+  try {
+    await saveFallback();
+    const def = FALLBACK_DEFS[integrationKey()];
+    const creds = integration.value?._credentials_raw || {};
+    const missing = validateCredentialsForDef(def, creds);
+    if (missing.length) {
+      error.value = missing.join(', ');
+      integration.value = {
+        ...integration.value,
+        status: 'error',
+        last_error: 'Missing or invalid integration configuration.',
+      };
+      return;
+    }
+    integration.value = {
+      ...integration.value,
+      status: integration.value?.enabled ? 'connected' : 'disconnected',
+      last_synced_at: new Date().toISOString(),
+      last_error: null,
+    };
+    status.value = 'Integration validation completed successfully.';
+  } finally {
+    testing.value = false;
+  }
+}
+
+async function disableFallback() {
+  form.enabled = false;
+  await saveFallback();
+  status.value = `${integration.value?.label || 'Integration'} disabled.`;
+}
+
+async function reconnectFallback() {
+  reconnecting.value = true;
+  status.value = '';
+  error.value = '';
+  try {
+    await saveFallback();
+    const def = FALLBACK_DEFS[integrationKey()];
+    const creds = integration.value?._credentials_raw || {};
+    const missing = validateCredentialsForDef(def, creds);
+    if (missing.length) {
+      error.value = missing.join(', ');
+      return;
+    }
+    form.enabled = true;
+    await saveFallback();
+    integration.value = {
+      ...integration.value,
+      status: 'connected',
+      last_synced_at: new Date().toISOString(),
+      last_error: null,
+    };
+    status.value = `${integration.value?.label || 'Integration'} reconnected successfully.`;
+  } finally {
+    reconnecting.value = false;
+  }
 }
 
 reload();

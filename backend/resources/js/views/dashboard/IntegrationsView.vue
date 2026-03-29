@@ -19,7 +19,7 @@
       {{ error }}
     </div>
     <div v-if="!supportsIntegrationApi" class="px-4 py-3 rounded-[var(--radius-lg)] bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm">
-      Integration API is unavailable in this environment. Toggle states are saved to organization settings, but full Manage screens require the integrations API endpoints.
+      Running compatibility mode for integrations in this environment. You can still open Manage and configure per-organization credentials from the UI.
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -68,20 +68,11 @@
           </div>
           <div class="mt-3 flex gap-2">
             <RouterLink
-              v-if="supportsIntegrationApi"
               :to="{ name: 'dashboard.integrations.detail', params: { key: item.key } }"
               class="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--aq-border)] px-3 py-2 text-xs font-semibold text-[color:var(--aq-fg)] hover:bg-[color:var(--aq-surface-2)] transition"
             >
               Manage
             </RouterLink>
-            <button
-              v-else
-              type="button"
-              disabled
-              class="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--aq-border)] px-3 py-2 text-xs font-semibold text-[color:var(--aq-muted)] opacity-70 cursor-not-allowed"
-            >
-              Manage
-            </button>
             <a
               v-if="item.docs_url"
               :href="item.docs_url"
@@ -170,12 +161,12 @@ async function reload() {
         modulePreferences.value = unwrap(settingsRes)?.settings?.module_preferences || {};
         const prefMap = modulePreferences.value?.integrations || {};
         const fallbackDefs = [
-          { key: 'google_drive', label: 'Google Drive', description: 'Cloud document storage', category: 'storage', auth_method: 'oauth2' },
-          { key: 'google_calendar', label: 'Google Calendar', description: 'Calendar scheduling sync', category: 'scheduling', auth_method: 'oauth2' },
-          { key: 'slack', label: 'Slack', description: 'Team communication and alerts', category: 'communication', auth_method: 'oauth2_or_webhook' },
-          { key: 'dropbox', label: 'Dropbox', description: 'File transfer and archive', category: 'storage', auth_method: 'oauth2' },
-          { key: 'quickbooks', label: 'QuickBooks', description: 'Accounting and invoicing', category: 'finance', auth_method: 'oauth2' },
-          { key: 'zapier', label: 'Zapier', description: 'Workflow automation', category: 'automation', auth_method: 'api_key_or_webhook' },
+          { key: 'google_drive', label: 'Google Drive', description: 'Cloud document storage', category: 'storage', auth_method: 'oauth2', docs_url: 'https://developers.google.com/drive' },
+          { key: 'google_calendar', label: 'Google Calendar', description: 'Calendar scheduling sync', category: 'scheduling', auth_method: 'oauth2', docs_url: 'https://developers.google.com/calendar' },
+          { key: 'slack', label: 'Slack', description: 'Team communication and alerts', category: 'communication', auth_method: 'oauth2_or_webhook', docs_url: 'https://api.slack.com' },
+          { key: 'dropbox', label: 'Dropbox', description: 'File transfer and archive', category: 'storage', auth_method: 'oauth2', docs_url: 'https://developers.dropbox.com' },
+          { key: 'quickbooks', label: 'QuickBooks', description: 'Accounting and invoicing', category: 'finance', auth_method: 'oauth2', docs_url: 'https://developer.intuit.com' },
+          { key: 'zapier', label: 'Zapier', description: 'Workflow automation', category: 'automation', auth_method: 'api_key_or_webhook', docs_url: 'https://platform.zapier.com' },
         ];
         integrations.value = fallbackDefs.map((d) => ({
           ...d,
@@ -185,7 +176,7 @@ async function reload() {
           connected_at: null,
           last_synced_at: null,
           last_error: null,
-          docs_url: null,
+          docs_url: d.docs_url,
         }));
         error.value = '';
       } catch (fallbackError) {
