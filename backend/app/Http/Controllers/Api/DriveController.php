@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DriveController extends Controller
@@ -142,11 +143,29 @@ class DriveController extends Controller
             return $guard;
         }
 
-        $validated = $request->validate([
-            'file' => ['required', 'file', 'max:102400'], // 100MB
-        ]);
+        try {
+            $validated = $request->validate([
+                'file' => ['required', 'file', 'max:102400'], // 100MB
+            ]);
+        } catch (ValidationException $e) {
+            Log::warning('Drive upload validation failed', [
+                'organization_id' => $orgId,
+                'user_id' => $user->id,
+                'errors' => $e->errors(),
+                ...$this->driveRequestContext($request),
+            ]);
+            throw $e;
+        }
 
         $file = $validated['file'];
+        Log::info('Drive upload request accepted', [
+            'organization_id' => $orgId,
+            'user_id' => $user->id,
+            'filename' => (string) $file->getClientOriginalName(),
+            'size_bytes' => (int) ($file->getSize() ?? 0),
+            'mime_type' => (string) ($file->getClientMimeType() ?: ''),
+            ...$this->driveRequestContext($request),
+        ]);
         $candidateDisks = $this->resolveDriveDiskCandidates();
         $primaryDisk = $candidateDisks[0] ?? $this->resolveDriveDisk();
         $record = null;
@@ -175,6 +194,8 @@ class DriveController extends Controller
                     'user_id' => $user->id,
                     'disk' => $disk,
                     'error' => $e->getMessage(),
+                    'filename' => (string) $file->getClientOriginalName(),
+                    'size_bytes' => (int) ($file->getSize() ?? 0),
                 ]);
             }
         }
@@ -191,6 +212,16 @@ class DriveController extends Controller
                 'message' => 'Failed to upload file. Storage is unavailable. Please contact support if this continues.',
             ], 422);
         }
+
+        Log::info('Drive upload stored successfully', [
+            'organization_id' => $orgId,
+            'user_id' => $user->id,
+            'file_id' => (int) $record->id,
+            'storage_disk' => (string) ($record->storage_disk ?? ''),
+            'path' => (string) ($record->path ?? ''),
+            'filename' => (string) ($record->name ?? ''),
+            'size_bytes' => (int) ($record->size_bytes ?? 0),
+        ]);
 
         return response()->api([
             'file' => $this->serializeFile($record, true),
@@ -487,5 +518,24 @@ class DriveController extends Controller
         }
 
         return $this->resolveDriveDisk();
+    }
+
+    private function driveRequestContext(Request $request): array
+    {
+        $contentLength = (int) ($request->server('CONTENT_LENGTH') ?? 0);
+        $contentType = (string) ($request->header('content-type') ?? '');
+        $hasFile = $request->hasFile('file');
+        $tmpFile = $request->file('file');
+
+        return [
+            'method' => (string) $request->method(),
+            'path' => (string) $request->path(),
+            'content_type' => $contentType,
+            'content_length' => $contentLength,
+            'has_file' => $hasFile,
+            'file_error_code' => $tmpFile ? $tmpFile->getError() : null,
+            'all_file_keys' => array_keys($request->allFiles()),
+            'all_input_keys' => array_keys($request->all()),
+        ];
     }
 }
