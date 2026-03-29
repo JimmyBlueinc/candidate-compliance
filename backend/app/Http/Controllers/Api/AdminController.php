@@ -31,7 +31,7 @@ class AdminController extends Controller
         $users = User::withCount('credentials')
             ->when($currentUser->role === 'platform_admin' && $orgId, fn ($q) => $q->where('organization_id', $orgId))
             ->when($currentUser->role !== 'platform_admin', fn ($q) => $q->where('organization_id', $currentUser->organization_id))
-            ->when($currentUser->role === 'org_super_admin', fn ($q) => $q->whereIn('role', ['admin', 'org_super_admin', 'recruiter', 'scheduler', 'compliance', 'finance', 'logistics']))
+            ->when($currentUser->role === 'org_super_admin', fn ($q) => $q->whereIn('role', ['admin', 'org_super_admin', 'recruiter', 'scheduler', 'compliance', 'finance', 'logistics', 'candidate']))
             ->when(in_array($currentUser->role, ['admin', 'recruiter'], true), fn ($q) => $q->whereIn('role', ['candidate', 'admin', 'recruiter', 'compliance', 'finance', 'logistics']))
             ->orderBy('created_at', 'desc')
             ->get()
@@ -93,8 +93,18 @@ class AdminController extends Controller
                 ->first();
 
             if ($existingUser) {
-                $isTerminated = (string) ($existingUser->access_status ?? 'active') === 'terminated';
-                if ($isTerminated) {
+                $existingStatus = strtolower((string) ($existingUser->access_status ?? 'active'));
+                $canRecycle = in_array($existingStatus, ['terminated', 'suspended'], true);
+
+                // Backward-compat: if a candidate user is orphaned from candidate records, allow cleanup/reuse.
+                if (!$canRecycle && (string) $existingUser->role === 'candidate') {
+                    $hasCandidateRecord = DB::table('candidates')
+                        ->where('user_id', (int) $existingUser->id)
+                        ->exists();
+                    $canRecycle = !$hasCandidateRecord;
+                }
+
+                if ($canRecycle) {
                     try {
                         $this->deleteUserRecord($existingUser);
                     } catch (QueryException $e) {
@@ -111,7 +121,7 @@ class AdminController extends Controller
                     }
                 } else {
                     throw ValidationException::withMessages([
-                        'email' => ['A user with this email already exists in this organization.'],
+                        'email' => [$this->duplicateEmailConflictMessage($existingUser)],
                     ]);
                 }
             }
@@ -379,6 +389,15 @@ class AdminController extends Controller
 
             $user->delete();
         });
+    }
+
+    private function duplicateEmailConflictMessage(User $existingUser): string
+    {
+        $role = (string) ($existingUser->role ?? 'user');
+        $access = strtolower((string) ($existingUser->access_status ?? 'active'));
+        $roleLabel = ucfirst(str_replace('_', ' ', $role));
+
+        return "This email is already used by an existing {$roleLabel} account ({$access}). Remove or deactivate that account first, then try again.";
     }
 }
 
