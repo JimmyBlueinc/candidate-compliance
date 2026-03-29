@@ -27,7 +27,7 @@
           <input v-model="form.email_notifications_enabled" type="checkbox" />
           <span class="text-sm text-[color:var(--aq-fg)]">Enable email notifications</span>
         </label>
-        <div class="md:col-span-2 flex items-center justify-end gap-2">
+        <div class="md:col-span-2 mt-2 flex items-center justify-end gap-3 border-t border-[color:var(--aq-border)] pt-4">
           <span v-if="status" class="text-xs text-emerald-400">{{ status }}</span>
           <button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500" :disabled="saving">
             {{ saving ? 'Saving...' : 'Save Preferences' }}

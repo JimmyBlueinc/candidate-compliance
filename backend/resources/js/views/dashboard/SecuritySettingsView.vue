@@ -32,7 +32,7 @@
           />
         </label>
       </div>
-      <div class="mt-4 flex items-center justify-end gap-2">
+      <div class="mt-6 flex items-center justify-end gap-3 border-t border-[color:var(--aq-border)] pt-4">
         <span v-if="status" class="text-xs text-emerald-400">{{ status }}</span>
         <button
           type="button"
@@ -43,7 +43,7 @@
           {{ saving ? 'Saving...' : 'Save Security Preferences' }}
         </button>
       </div>
-      <div class="mt-5 flex items-center justify-end">
+      <div class="mt-4 flex items-center justify-end">
         <RouterLink
           :to="{ name: 'dashboard.change_password' }"
           class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"

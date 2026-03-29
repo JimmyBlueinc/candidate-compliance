@@ -166,7 +166,7 @@
                       @keyup.enter="confirmReject(selected)"
                     />
                     
-                    <div class="flex justify-end gap-2">
+                    <div class="mt-1 flex justify-end gap-3 border-t border-white/10 pt-4">
                       <Button label="Cancel" size="small" text @click="cancelReject" />
                       <Button 
                         label="Confirm Rejection" 
