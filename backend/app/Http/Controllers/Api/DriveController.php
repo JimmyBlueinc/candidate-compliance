@@ -8,9 +8,11 @@ use App\Models\User;
 use App\Models\UserDriveFile;
 use App\Models\UserDriveFileShare;
 use App\Support\Org;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -325,12 +327,65 @@ class DriveController extends Controller
 
     private function ensureDriveReady(): ?JsonResponse
     {
-        if (!Schema::hasTable('user_drive_files') || !Schema::hasTable('user_drive_file_shares')) {
-            return response()->json([
-                'message' => 'Drive tables are not ready yet. Please run latest migrations.',
-            ], 503);
+        if (Schema::hasTable('user_drive_files') && Schema::hasTable('user_drive_file_shares')) {
+            return null;
         }
 
-        return null;
+        // Self-heal path for environments where deploy boot missed migrations.
+        $this->attemptDriveSchemaRecovery();
+
+        if (Schema::hasTable('user_drive_files') && Schema::hasTable('user_drive_file_shares')) {
+            return null;
+        }
+
+        return response()->json([
+            'message' => 'Drive tables are not ready yet. Please run latest migrations.',
+        ], 503);
+    }
+
+    private function attemptDriveSchemaRecovery(): void
+    {
+        try {
+            Artisan::call('migrate', ['--force' => true, '--no-interaction' => true]);
+        } catch (\Throwable $e) {
+            Log::warning('Drive recovery migrate attempt failed', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        try {
+            if (!Schema::hasTable('user_drive_files')) {
+                Schema::create('user_drive_files', function (Blueprint $table): void {
+                    $table->id();
+                    $table->foreignId('tenant_id')->constrained('organizations')->cascadeOnDelete();
+                    $table->foreignId('owner_user_id')->constrained('users')->cascadeOnDelete();
+                    $table->string('name');
+                    $table->string('path');
+                    $table->string('mime_type', 191)->nullable();
+                    $table->unsignedBigInteger('size_bytes')->default(0);
+                    $table->string('extension', 32)->nullable();
+                    $table->timestamps();
+                    $table->index(['tenant_id', 'owner_user_id'], 'user_drive_files_tenant_owner_idx');
+                });
+            }
+
+            if (!Schema::hasTable('user_drive_file_shares')) {
+                Schema::create('user_drive_file_shares', function (Blueprint $table): void {
+                    $table->id();
+                    $table->foreignId('tenant_id')->constrained('organizations')->cascadeOnDelete();
+                    $table->foreignId('file_id')->constrained('user_drive_files')->cascadeOnDelete();
+                    $table->foreignId('owner_user_id')->constrained('users')->cascadeOnDelete();
+                    $table->foreignId('recipient_user_id')->constrained('users')->cascadeOnDelete();
+                    $table->foreignId('message_id')->nullable()->constrained('messages')->nullOnDelete();
+                    $table->timestamps();
+                    $table->unique(['file_id', 'recipient_user_id'], 'user_drive_file_shares_file_recipient_unique');
+                    $table->index(['tenant_id', 'recipient_user_id'], 'user_drive_file_shares_tenant_recipient_idx');
+                });
+            }
+        } catch (\Throwable $e) {
+            Log::error('Drive schema recovery failed', [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
