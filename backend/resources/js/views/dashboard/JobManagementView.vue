@@ -229,7 +229,7 @@ function resetForm() {
     form.stipend_weekly = '';
     form.start_date = '';
     form.work_mode = 'on_site';
-    form.published = false;
+    form.published = true;
     form.status = 'open';
     formError.value = '';
 }

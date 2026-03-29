@@ -409,8 +409,8 @@ const normalizedJobs = computed(() =>
     id: job.id,
     title: job.title || 'Untitled Role',
     description: job.description || '',
-    location: job.location || 'Multiple locations',
-    type: job.employment_type || job.type || 'Full-time',
+    location: [job.facility_city, job.facility_state].filter(Boolean).join(', ') || job.facility_name || 'Multiple locations',
+    type: formatWorkMode(job.work_mode),
   })),
 );
 
@@ -481,6 +481,13 @@ const howItWorks = [
   { title: 'Get matched and onboarded', description: 'Recruiters guide you into the right opportunities and next steps.' },
 ];
 
+function formatWorkMode(v) {
+  if (!v) return 'Open';
+  if (v === 'on_site') return 'On-site';
+  if (v === 'remote') return 'Remote';
+  return String(v).replace(/_/g, ' ');
+}
+
 function scrollToSection(id) {
   const el = document.getElementById(id);
   if (el) {
@@ -523,10 +530,11 @@ function applyToJob(job) {
 async function fetchJobs() {
   jobsLoading.value = true;
   try {
-    const response = await apiGet('/jobs', {
-      params: { subdomain: brand.subdomain },
+    const org = String(brand.slug || '').trim();
+    const response = await apiGet('/public/job-board', {
+      params: org ? { org } : {},
     });
-    jobs.value = response?.jobs || response?.data || [];
+    jobs.value = Array.isArray(response?.data) ? response.data : [];
   } catch (_error) {
     jobs.value = [];
   } finally {

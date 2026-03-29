@@ -71,6 +71,7 @@ class PublicJobBoardController extends Controller
                 'facilities.state as facility_state',
                 'job_orders.specialty',
                 'job_orders.work_mode',
+                'job_orders.description',
                 'job_orders.start_date',
                 'job_orders.end_date',
                 'job_orders.pay_rate',

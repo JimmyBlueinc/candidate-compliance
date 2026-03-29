@@ -52,7 +52,8 @@
               <div>
                 <h3 class="font-semibold text-lg mb-1">{{ job.title }}</h3>
                 <p class="text-[color:var(--p-text-muted-color)] text-sm mb-3">
-                  {{ job.location || 'Remote' }} · {{ job.employment_type || 'Full-time' }}
+                  {{ [job.facility_city, job.facility_state].filter(Boolean).join(', ') || job.facility_name || 'Multiple locations' }}
+                  · {{ formatWorkMode(job.work_mode) }}
                 </p>
                 <p class="text-sm line-clamp-2">{{ job.description }}</p>
               </div>
@@ -105,16 +106,24 @@ function applyToJob(job) {
 async function fetchJobs() {
   loading.value = true;
   try {
-    const res = await apiGet('/jobs', {
-      params: { subdomain: brand.subdomain }
+    const org = String(brand.slug || '').trim();
+    const res = await apiGet('/public/job-board', {
+      params: org ? { org } : {},
     });
-    jobs.value = res?.jobs || res?.data || [];
+    jobs.value = Array.isArray(res?.data) ? res.data : [];
   } catch (e) {
     console.error('[TENANT_JOBS] Error:', e);
     jobs.value = [];
   } finally {
     loading.value = false;
   }
+}
+
+function formatWorkMode(v) {
+  if (!v) return 'Open';
+  if (v === 'on_site') return 'On-site';
+  if (v === 'remote') return 'Remote';
+  return String(v).replace(/_/g, ' ');
 }
 
 onMounted(async () => {
