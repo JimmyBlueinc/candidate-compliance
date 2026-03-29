@@ -128,6 +128,7 @@ const pageTitle = computed(() => {
     'dashboard.org_users': 'Team Members',
     'dashboard.facilities': 'Facilities',
     'dashboard.messages': 'Messages',
+    'dashboard.drive': 'My Drive',
     'dashboard.notifications': 'Notifications',
     'dashboard.admin_users': 'Platform Users',
     'dashboard.finance': 'Financial Overview',

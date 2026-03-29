@@ -165,6 +165,7 @@ const portalNav = [
     { name: 'portal.timesheets', label: 'Timesheets', icon: 'receipt_long' },
     { name: 'portal.availability', label: 'Availability', icon: 'event_available' },
     { name: 'portal.messages', label: 'Messages', icon: 'chat' },
+    { name: 'portal.drive', label: 'My Drive', icon: 'folder' },
 ];
 
 const navItemStyle = computed(() => (targetName) => {
@@ -209,8 +210,8 @@ function isLocked(routeName) {
     // Phase 1 complete: all tabs unlocked
     if (phase1Complete) return false;
     
-    // Phase 1 not complete: only Dashboard, Profile, Jobs, Availability, Messages, Credentials unlocked
-    const allowed = ['portal.dashboard', 'portal.profile', 'portal.jobs', 'portal.availability', 'portal.messages', 'portal.credentials'];
+    // Phase 1 not complete: only core candidate actions unlocked
+    const allowed = ['portal.dashboard', 'portal.profile', 'portal.jobs', 'portal.availability', 'portal.messages', 'portal.credentials', 'portal.drive'];
     return !allowed.includes(String(routeName || ''));
 }
 

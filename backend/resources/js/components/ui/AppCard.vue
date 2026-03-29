@@ -69,7 +69,7 @@ const props = defineProps({
 
 const surfaceClasses = computed(() => {
   const surfaces = {
-    default: 'bg-[color:var(--aq-surface-card)] border-[color:var(--aq-border)]',
+    default: 'bg-[color:color-mix(in_srgb,var(--aq-surface-card)_88%,var(--aq-primary)_12%)] border-[color:color-mix(in_srgb,var(--aq-border)_84%,var(--aq-primary)_16%)]',
     elevated: 'bg-[color:var(--aq-surface-2)] border-[color:var(--aq-border)] shadow-[var(--shadow-lg)]',
     glass: 'bg-[color:var(--aq-surface-card)]/60 backdrop-blur-xl border-[color:var(--aq-border)]',
   };

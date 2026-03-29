@@ -52,6 +52,7 @@ import FacilityDetailView from '../views/dashboard/FacilityDetailView.vue';
 import IntegrationsView from '../views/dashboard/IntegrationsView.vue';
 import IntegrationDetailView from '../views/dashboard/IntegrationDetailView.vue';
 import MessagesInboxView from '../views/dashboard/MessagesInboxView.vue';
+import DriveView from '../views/dashboard/DriveView.vue';
 import NotificationCenterView from '../views/dashboard/NotificationCenterView.vue';
 import LandingView from '../views/public/LandingView.vue';
 import AboutView from '../views/public/AboutView.vue';
@@ -299,6 +300,11 @@ const router = createRouter({
                     path: 'messages',
                     name: 'portal.messages',
                     component: PortalMessagesView,
+                },
+                {
+                    path: 'drive',
+                    name: 'portal.drive',
+                    component: DriveView,
                 },
             ],
         },
@@ -693,6 +699,12 @@ const router = createRouter({
                     name: 'dashboard.messages',
                     component: MessagesInboxView,
                     meta: { allowedRoles: STAFF_CHAT_ROLES },
+                },
+                {
+                    path: 'drive',
+                    name: 'dashboard.drive',
+                    component: DriveView,
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_COMPLIANCE, ROLE_SCHEDULER, ROLE_FINANCE, ROLE_LOGISTICS] },
                 },
 
                 {

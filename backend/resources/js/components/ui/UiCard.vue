@@ -6,6 +6,10 @@
       'hover:shadow-lg hover:shadow-primary/5',
       props.class
     )"
+    :style="{
+      backgroundColor: 'color-mix(in srgb, var(--aq-surface-card) 88%, var(--aq-primary) 12%)',
+      borderColor: 'color-mix(in srgb, var(--aq-border) 84%, var(--aq-primary) 16%)'
+    }"
   >
     <div v-if="$slots.header || props.title" class="mb-4 flex items-center justify-between">
       <slot name="header">

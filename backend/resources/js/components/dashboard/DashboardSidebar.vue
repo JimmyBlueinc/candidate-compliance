@@ -221,6 +221,7 @@ const groups = computed(() => {
                 { id: 'compliance', label: 'Compliance', icon: 'verified', routeName: 'dashboard.compliance', show: isOrgSuperAdmin.value || isRecruiter.value },
                 { id: 'logistics', label: 'Logistics', icon: 'local_shipping', routeName: 'dashboard.logistics', show: isOrgSuperAdmin.value || isRecruiter.value || isLogistics.value },
                 { id: 'messages', label: 'Messages', icon: 'chat_bubble', routeName: 'dashboard.messages' },
+                { id: 'drive', label: 'My Drive', icon: 'folder', routeName: 'dashboard.drive' },
                 { id: 'notifications', label: 'Notifications', icon: 'notifications', routeName: 'dashboard.notifications' },
             ].filter(i => i.show !== false),
         },
@@ -248,6 +249,7 @@ const groups = computed(() => {
                 { id: 'my_shifts', label: 'Shifts', icon: 'calendar_today', routeName: 'portal.shifts' },
                 { id: 'my_timesheets', label: 'Time', icon: 'timer', routeName: 'portal.timesheets' },
                 { id: 'messages', label: 'Messages', icon: 'chat_bubble', routeName: 'portal.messages' },
+                { id: 'drive', label: 'My Drive', icon: 'folder', routeName: 'portal.drive' },
             ],
         },
         {

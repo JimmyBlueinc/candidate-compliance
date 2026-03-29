@@ -204,6 +204,7 @@ import {
   Megaphone,
   Search,
   PlugZap,
+  FolderOpen,
 } from 'lucide-vue-next';
 
 import {
@@ -356,6 +357,7 @@ const groups = computed(() => {
         { id: 'compliance', label: 'Compliance', icon: 'shield', routeName: 'dashboard.compliance', show: isOrgSuperAdmin.value || isRecruiter.value },
         { id: 'logistics', label: 'Logistics', icon: 'truck', routeName: 'dashboard.logistics', show: isOrgSuperAdmin.value || isRecruiter.value || isLogistics.value },
         { id: 'messages', label: 'Messages', icon: 'messages', routeName: 'dashboard.messages' },
+        { id: 'drive', label: 'My Drive', icon: 'folder', routeName: 'dashboard.drive' },
         { id: 'notifications', label: 'Notifications', icon: 'bell', routeName: 'dashboard.notifications' },
       ].filter((i) => i.show !== false),
     },
@@ -383,6 +385,7 @@ const groups = computed(() => {
         { id: 'my_shifts', label: 'Shifts', icon: 'calendar', routeName: 'portal.shifts' },
         { id: 'my_timesheets', label: 'Timesheets', icon: 'timer', routeName: 'portal.timesheets' },
         { id: 'messages', label: 'Messages', icon: 'messages', routeName: 'portal.messages' },
+        { id: 'drive', label: 'My Drive', icon: 'folder', routeName: 'portal.drive' },
       ],
     },
     {
@@ -465,6 +468,7 @@ function resolveIcon(key) {
     megaphone: Megaphone,
     search: Search,
     integrations: PlugZap,
+    folder: FolderOpen,
   };
 
   return map[String(key || '')] || LayoutGrid;

@@ -447,6 +447,14 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('/org/candidate-users', [\App\Http\Controllers\Api\OrgController::class, 'candidateUsers']);
     Route::get('/org/staff-chat-users', [\App\Http\Controllers\Api\OrgController::class, 'staffUsersForCandidateChat']);
 
+    // Personal drive (Google Drive-like internal file hub)
+    Route::get('/drive/files', [\App\Http\Controllers\Api\DriveController::class, 'index']);
+    Route::post('/drive/files', [\App\Http\Controllers\Api\DriveController::class, 'store']);
+    Route::delete('/drive/files/{id}', [\App\Http\Controllers\Api\DriveController::class, 'destroy']);
+    Route::post('/drive/files/{id}/share', [\App\Http\Controllers\Api\DriveController::class, 'share']);
+    Route::get('/drive/files/{id}/download', [\App\Http\Controllers\Api\DriveController::class, 'download']);
+    Route::get('/drive/recipients', [\App\Http\Controllers\Api\DriveController::class, 'recipients']);
+
     Route::get('/notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);

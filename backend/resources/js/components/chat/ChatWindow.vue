@@ -36,7 +36,7 @@
              :class="[msg.user_id === auth.user.id ? 'items-end' : 'items-start']">
           <div class="flex items-end gap-2 max-w-[85%]">
             <div v-if="msg.user_id !== auth.user.id" class="w-6 h-6 rounded-full overflow-hidden shrink-0 border border-[color:var(--aq-border)]">
-              <img :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(msg.user?.name || 'U')}&background=random&color=fff`" class="w-full h-full object-cover" />
+              <img :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(msg.user?.name || 'Deleted User')}&background=random&color=fff`" class="w-full h-full object-cover" />
             </div>
             
             <div class="px-4 py-2 rounded-[20px] text-sm shadow-sm relative group"
@@ -53,7 +53,7 @@
             </div>
           </div>
           <div class="text-[9px] mt-1 text-[color:var(--aq-muted)] px-1" v-if="msg.user_id !== auth.user.id">
-            {{ msg.user?.name }} • {{ msg.user?.role }}
+            {{ msg.user?.name || 'Deleted User' }} • {{ msg.user?.role || 'removed' }}
           </div>
         </div>
       </template>
