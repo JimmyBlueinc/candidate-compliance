@@ -103,7 +103,12 @@ async function handleAction(n) {
   }
   
   if (n.type === 'message' || n.type === 'new_message') {
-    router.push({ name: 'dashboard.messages' });
+    const senderId = Number(n?.data?.sender_id || 0);
+    if (senderId > 0) {
+      router.push({ name: 'dashboard.messages', query: { recipient_id: senderId } });
+    } else {
+      router.push({ name: 'dashboard.messages' });
+    }
   } else {
     router.push({ name: 'dashboard.notifications' });
   }

@@ -109,6 +109,14 @@
                 <div v-if="canManage && user.role !== 'platform_admin' && user.id !== auth.user?.id" class="flex items-center gap-2 justify-end">
                   <button
                     type="button"
+                    class="p-2 rounded-[var(--radius-md)] text-[color:var(--aq-muted)] hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+                    title="Message"
+                    @click="openQuickMessage(user)"
+                  >
+                    <MessageCircle class="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
                     class="p-2 rounded-[var(--radius-md)] text-[color:var(--aq-muted)] hover:text-[color:var(--aq-fg)] hover:bg-[color:var(--aq-surface-2)] transition-colors"
                     title="Edit"
                     @click="openEdit(user.id)"
@@ -228,6 +236,30 @@
         </div>
       </template>
     </AppModal>
+
+    <AppModal v-model="quickMessageOpen" title="Quick Message" size="md">
+      <div class="space-y-4">
+        <div v-if="quickMessageTarget" class="text-sm text-[color:var(--aq-muted)]">
+          To: <span class="font-semibold text-[color:var(--aq-fg)]">{{ quickMessageTarget.name }}</span>
+          ({{ quickMessageTarget.email }})
+        </div>
+        <textarea
+          v-model="quickMessageBody"
+          class="app-input min-h-[120px]"
+          placeholder="Type your message..."
+          maxlength="5000"
+        />
+      </div>
+      <template #footer>
+        <div class="flex items-center gap-3 justify-end">
+          <AppButton variant="ghost" @click="quickMessageOpen = false">Cancel</AppButton>
+          <AppButton :loading="sendingQuickMessage" :disabled="!quickMessageBody.trim()" @click="sendQuickMessage">
+            <Send class="w-4 h-4" />
+            Send
+          </AppButton>
+        </div>
+      </template>
+    </AppModal>
   </div>
 </template>
 
@@ -236,7 +268,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { apiDelete, apiGet, apiPost, apiPut } from '../../lib/api';
 import { useAuthStore } from '../../stores/auth';
 import { ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_SCHEDULER, ROLE_COMPLIANCE, ROLE_FINANCE, ROLE_LOGISTICS, STAFF_ROLES } from '../../lib/roles';
-import { Users, User, Shield, UserCheck, CheckCircle, XCircle, Plus, RefreshCw, Edit3, Trash2, Copy, AlertCircle } from 'lucide-vue-next';
+import { Users, User, Shield, UserCheck, CheckCircle, XCircle, Plus, RefreshCw, Edit3, Trash2, Copy, AlertCircle, MessageCircle, Send } from 'lucide-vue-next';
 import AppPageHeader from '../../components/ui/AppPageHeader.vue';
 import AppCard from '../../components/ui/AppCard.vue';
 import AppStatCard from '../../components/ui/AppStatCard.vue';
@@ -268,6 +300,10 @@ const editRole = ref('');
 const editPassword = ref('');
 const editPasswordConfirm = ref('');
 const savingEdit = ref(false);
+const quickMessageOpen = ref(false);
+const quickMessageUserId = ref('');
+const quickMessageBody = ref('');
+const sendingQuickMessage = ref(false);
 
 const canManage = computed(() => auth.user?.role === 'org_super_admin');
 
@@ -317,6 +353,7 @@ const filteredUsers = computed(() => {
 });
 
 const currentEditUser = computed(() => users.value.find((a) => String(a.id) === String(editUserId.value)) || null);
+const quickMessageTarget = computed(() => users.value.find((u) => String(u.id) === String(quickMessageUserId.value)) || null);
 
 const credentialsDialogOpen = computed({
   get: () => Boolean(createdCredentials.value),
@@ -471,6 +508,33 @@ async function submitEdit() {
 async function copyCredentials() {
   if (!createdCredentials.value) return;
   await navigator.clipboard.writeText(`Email: ${createdCredentials.value.email}\nPassword: ${createdCredentials.value.tempPassword}`);
+}
+
+function openQuickMessage(user) {
+  if (!user?.id) return;
+  quickMessageUserId.value = String(user.id);
+  quickMessageBody.value = '';
+  quickMessageOpen.value = true;
+}
+
+async function sendQuickMessage() {
+  if (!quickMessageTarget.value?.id) return;
+  if (!quickMessageBody.value.trim()) return;
+
+  try {
+    sendingQuickMessage.value = true;
+    error.value = '';
+    await apiPost('/messages', {
+      recipient_id: Number(quickMessageTarget.value.id),
+      body: String(quickMessageBody.value || '').trim(),
+    });
+    quickMessageOpen.value = false;
+    quickMessageBody.value = '';
+  } catch (e) {
+    error.value = extractApiError(e, 'Failed to send message');
+  } finally {
+    sendingQuickMessage.value = false;
+  }
 }
 
 watch(

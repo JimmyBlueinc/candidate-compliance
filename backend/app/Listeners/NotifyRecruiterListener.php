@@ -49,6 +49,7 @@ class NotifyRecruiterListener
                     [
                         'message' => substr($message->body, 0, 50),
                         'from' => $actor->name,
+                        'sender_id' => (int) $actor->id,
                     ],
                     $event->tenantId
                 );
@@ -64,6 +65,7 @@ class NotifyRecruiterListener
                     [
                         'message' => substr($message->body, 0, 50),
                         'from' => $actor->name,
+                        'sender_id' => (int) $actor->id,
                     ]
                 );
                 return;
@@ -89,6 +91,7 @@ class NotifyRecruiterListener
                 [
                     'message' => substr($message->body, 0, 50),
                     'from' => $actor->name,
+                    'sender_id' => (int) $actor->id,
                 ],
                 $event->tenantId
             );

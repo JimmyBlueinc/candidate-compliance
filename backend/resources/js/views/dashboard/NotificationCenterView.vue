@@ -30,7 +30,7 @@
             type="button"
             class="w-full text-left p-4 rounded-2xl border transition-colors"
             :class="!n.read_at ? 'border-primary/40 bg-primary/5' : 'border-[color:var(--p-surface-border)] hover:bg-[color:var(--p-surface-hover)]'"
-            @click="markOne(n)"
+            @click="openNotification(n)"
           >
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0">
@@ -52,6 +52,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { apiGet, apiPost } from '../../lib/api';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -63,6 +64,7 @@ const marking = ref(false);
 const error = ref('');
 
 const unreadCount = computed(() => items.value.filter((i) => !i.read_at).length);
+const router = useRouter();
 
 function normalize(res) {
   return Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
@@ -105,6 +107,23 @@ async function markOne(n) {
   } catch (e) {
     error.value = e?.response?.data?.message || e?.message || 'Failed to mark as read.';
   }
+}
+
+async function openNotification(n) {
+  await markOne(n);
+
+  const type = String(n?.type || '');
+  if (type === 'message' || type === 'new_message') {
+    const senderId = Number(n?.data?.sender_id || 0);
+    if (senderId > 0) {
+      router.push({ name: 'dashboard.messages', query: { recipient_id: senderId } });
+      return;
+    }
+    router.push({ name: 'dashboard.messages' });
+    return;
+  }
+
+  router.push({ name: 'dashboard.notifications' });
 }
 
 function formatTime(dateStr) {

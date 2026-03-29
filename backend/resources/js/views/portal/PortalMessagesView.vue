@@ -23,10 +23,13 @@ const selectedUser = computed(() => {
 
 async function loadStaff() {
   try {
+    const activeId = Number(selectedId.value || 0);
     const res = await apiGet('/org/chat-users');
     const rows = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
     staff.value = rows;
-    if (rows.length > 0) {
+    if (activeId > 0 && rows.some((u) => Number(u.id) === activeId)) {
+      selectedId.value = activeId;
+    } else if (rows.length > 0) {
       selectedId.value = rows[0].id;
     }
   } catch (e) {
@@ -50,6 +53,20 @@ onBeforeUnmount(() => {
     pollTimer = null;
   }
 });
+
+function formatRole(role) {
+  const roleMap = {
+    org_super_admin: 'Admin',
+    platform_admin: 'Admin',
+    admin: 'Admin',
+    recruiter: 'Recruiter',
+    compliance: 'Compliance',
+    scheduler: 'Scheduler',
+    finance: 'Finance',
+    logistics: 'Logistics',
+  };
+  return roleMap[String(role || '').toLowerCase()] || 'Team';
+}
 </script>
 
 <template>
@@ -90,7 +107,13 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-bold text-white truncate">{{ u.name }}</div>
-                  <div class="text-[10px] font-black uppercase tracking-widest" :style="{ color: primaryColor }">{{ u.role }}</div>
+                  <div class="text-[10px] font-black uppercase tracking-widest" :style="{ color: primaryColor }">{{ formatRole(u.role) }}</div>
+                </div>
+                <div
+                  v-if="Number(u.unread_count || 0) > 0"
+                  class="min-w-5 h-5 px-1 rounded-full bg-[color:var(--aq-primary)] text-white text-[10px] font-bold flex items-center justify-center"
+                >
+                  {{ u.unread_count > 9 ? '9+' : u.unread_count }}
                 </div>
               </div>
             </button>

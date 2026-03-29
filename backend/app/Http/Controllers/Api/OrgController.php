@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Message;
 use App\Models\User;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
@@ -35,6 +36,13 @@ class OrgController extends Controller
 
         $fiveMinutesAgo = now()->subMinutes(5);
         $hasLastActivity = Schema::hasColumn('users', 'last_activity_at');
+        $unreadCounts = Message::query()
+            ->where('tenant_id', $orgId)
+            ->where('recipient_id', $user->id)
+            ->whereNull('read_at')
+            ->groupBy('user_id')
+            ->selectRaw('user_id, COUNT(*) as unread_count')
+            ->pluck('unread_count', 'user_id');
 
         $rows = User::query()
             ->where('organization_id', $orgId)
@@ -60,6 +68,7 @@ class OrgController extends Controller
                     'role' => (string) ($u->role ?? 'user'),
                     'avatar' => $u->avatar_url,
                     'is_online' => (bool) $isOnline,
+                    'unread_count' => (int) ($unreadCounts[(int) $u->id] ?? 0),
                 ];
             })
             ->sort(function (array $a, array $b) {

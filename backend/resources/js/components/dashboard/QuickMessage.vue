@@ -25,6 +25,7 @@ import { apiGet } from '../../lib/api';
 
 const router = useRouter();
 const unreadCount = ref(0);
+let timer = null;
 
 async function loadUnreadCount() {
   try {
@@ -35,14 +36,33 @@ async function loadUnreadCount() {
   }
 }
 
-function goMessages() {
+async function goMessages() {
+  try {
+    const res = await apiGet('/org/chat-users', { params: { q: '' }, timeout: 12000 });
+    const rows = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+    const target = rows
+      .slice()
+      .sort((a, b) => Number(b.unread_count || 0) - Number(a.unread_count || 0))
+      .find((u) => Number(u.unread_count || 0) > 0);
+
+    if (target?.id) {
+      router.push({ name: 'dashboard.messages', query: { recipient_id: target.id } });
+      return;
+    }
+  } catch (_e) {
+    // Fallback to general inbox
+  }
+
   router.push({ name: 'dashboard.messages' });
 }
 
 onMounted(() => {
   loadUnreadCount();
-  // Poll every 30 seconds
-  const timer = setInterval(loadUnreadCount, 30000);
-  onUnmounted(() => clearInterval(timer));
+  timer = setInterval(loadUnreadCount, 30000);
+});
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer);
+  timer = null;
 });
 </script>

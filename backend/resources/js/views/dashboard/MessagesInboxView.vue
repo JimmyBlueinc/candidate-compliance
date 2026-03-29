@@ -49,11 +49,33 @@
 
           <div class="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2 space-y-1">
             <button
+              v-if="isStaffUser"
+              type="button"
+              class="candidate-item"
+              :class="selectedGroupChannel === 'team' ? 'candidate-item-active' : ''"
+              @click="selectTeamGroup"
+            >
+              <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-[color:var(--aq-primary)]/15 border border-[color:var(--aq-primary)]/30 flex items-center justify-center text-[color:var(--aq-primary)] font-bold text-sm overflow-hidden">
+                  <i class="pi pi-users text-sm" />
+                </div>
+              </div>
+
+              <div class="min-w-0 flex-1 text-left">
+                <div class="text-sm font-semibold text-[color:var(--aq-fg)] truncate">Team Group</div>
+                <div class="text-[11px] text-[color:var(--aq-muted)] truncate">All admins and team members</div>
+                <div class="text-[10px] uppercase tracking-wider text-[color:var(--aq-muted)]/90 truncate">
+                  Group Channel
+                </div>
+              </div>
+            </button>
+
+            <button
               v-for="c in recipients"
               :key="c.id"
               type="button"
               class="candidate-item"
-              :class="selectedRecipientId === c.id ? 'candidate-item-active' : ''"
+              :class="selectedRecipientId === c.id && !selectedGroupChannel ? 'candidate-item-active' : ''"
               @click="selectRecipient(c)"
             >
               <div class="relative">
@@ -71,8 +93,15 @@
                 <div class="text-sm font-semibold text-[color:var(--aq-fg)] truncate">{{ c.name || 'Candidate' }}</div>
                 <div class="text-[11px] text-[color:var(--aq-muted)] truncate">{{ c.email || '—' }}</div>
                 <div class="text-[10px] uppercase tracking-wider text-[color:var(--aq-muted)]/90 truncate">
-                  {{ c.role || 'user' }} • {{ c.is_online ? 'Online' : 'Offline' }}
+                  {{ formatRole(c.role) }} • {{ c.is_online ? 'Online' : 'Offline' }}
                 </div>
+              </div>
+              <div
+                v-if="Number(c.unread_count || 0) > 0"
+                class="ml-2 min-w-5 h-5 px-1 rounded-full bg-[color:var(--aq-primary)] text-white text-[10px] font-bold flex items-center justify-center"
+                :title="`${c.unread_count} unread`"
+              >
+                {{ c.unread_count > 9 ? '9+' : c.unread_count }}
               </div>
             </button>
 
@@ -86,9 +115,10 @@
 
       <main class="lg:col-span-8 xl:col-span-9 flex flex-col min-h-0">
         <ChatWindow
-          v-if="selectedRecipientId"
+          v-if="selectedRecipientId || selectedGroupChannel"
           :contextTitle="selectedLabel"
           :recipientId="selectedRecipientId"
+          :groupChannel="selectedGroupChannel"
           class="flex-1 min-h-0"
         />
 
@@ -112,6 +142,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { apiGet } from '../../lib/api';
+import { useAuthStore } from '../../stores/auth';
 import ChatWindow from '../../components/chat/ChatWindow.vue';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
@@ -127,6 +158,7 @@ import {
 } from 'lucide-vue-next';
 
 const brand = useBrandStore();
+const auth = useAuthStore();
 const route = useRoute();
 const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
 
@@ -136,7 +168,13 @@ const loading = ref(false);
 const error = ref('');
 
 const selectedRecipientId = ref(null);
+const selectedGroupChannel = ref('');
+const isStaffUser = computed(() => {
+  const role = String(auth.user?.role || '');
+  return ['platform_admin', 'org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'].includes(role);
+});
 const selectedLabel = computed(() => {
+  if (selectedGroupChannel.value === 'team') return 'Team Group';
   const row = recipients.value.find((c) => Number(c.id) === Number(selectedRecipientId.value));
   return row?.name ? `Chat with ${row.name}` : 'Messages';
 });
@@ -155,8 +193,14 @@ async function runSearch() {
     });
     const next = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
     recipients.value = next;
-    const preselectedRecipientId = Number(route.query?.recipient_id || 0);
+    const preselectedRecipientId = Number(route.query?.recipient_id || route.query?.recipient || 0);
+    const preselectedGroup = String(route.query?.group || '');
+    if (preselectedGroup === 'team' && isStaffUser.value) {
+      selectedRecipientId.value = null;
+      selectedGroupChannel.value = 'team';
+    }
     if (preselectedRecipientId > 0 && next.some((c) => Number(c.id) === preselectedRecipientId)) {
+      selectedGroupChannel.value = '';
       selectedRecipientId.value = preselectedRecipientId;
     }
     if (activeId > 0 && !next.some((c) => Number(c.id) === activeId)) {
@@ -189,18 +233,47 @@ function clearSearch() {
   query.value = '';
   recipients.value = [];
   selectedRecipientId.value = null;
+  selectedGroupChannel.value = '';
 }
 
 function selectRecipient(c) {
   selectedRecipientId.value = Number(c.id);
+  selectedGroupChannel.value = '';
+}
+
+function selectTeamGroup() {
+  selectedRecipientId.value = null;
+  selectedGroupChannel.value = 'team';
+}
+
+function formatRole(role) {
+  const roleMap = {
+    org_super_admin: 'Admin',
+    platform_admin: 'Admin',
+    admin: 'Admin',
+    recruiter: 'Recruiter',
+    compliance: 'Compliance',
+    scheduler: 'Scheduler',
+    finance: 'Finance',
+    logistics: 'Logistics',
+    candidate: 'Candidate',
+  };
+  return roleMap[String(role || '').toLowerCase()] || 'User';
 }
 
 watch(
-  () => route.query?.recipient_id,
-  (value) => {
-    const id = Number(value || 0);
+  () => [route.query?.recipient_id, route.query?.recipient, route.query?.group],
+  ([recipientId, recipient, group]) => {
+    const id = Number(recipientId || recipient || 0);
+    const selectedGroup = String(group || '');
+    if (selectedGroup === 'team' && isStaffUser.value) {
+      selectedGroupChannel.value = 'team';
+      selectedRecipientId.value = null;
+      return;
+    }
     if (!id) return;
     if (recipients.value.some((c) => Number(c.id) === id)) {
+      selectedGroupChannel.value = '';
       selectedRecipientId.value = id;
       return;
     }

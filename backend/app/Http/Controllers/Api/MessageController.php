@@ -31,6 +31,7 @@ class MessageController extends Controller
             'submission_id' => ['nullable', 'integer', 'exists:submissions,id'],
             'placement_id' => ['nullable', 'integer', 'exists:placements,id'],
             'recipient_id' => ['nullable', 'integer', 'exists:users,id'],
+            'group_channel' => ['nullable', 'string', 'in:team'],
             'since_id' => ['nullable', 'integer', 'min:1'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:200'],
         ]);
@@ -57,7 +58,17 @@ class MessageController extends Controller
         $recipientId = null;
 
         // Filter by context if provided
-        if ($request->filled('job_order_id')) {
+        if ($request->filled('group_channel')) {
+            $staffRoles = ['platform_admin', 'org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'];
+            if (!in_array((string) ($user->role ?? ''), $staffRoles, true)) {
+                return response()->json(['message' => 'Unauthorized. Team channel is for staff only.'], 403);
+            }
+
+            $query->whereNull('recipient_id')
+                ->whereNull('job_order_id')
+                ->whereNull('submission_id')
+                ->whereNull('placement_id');
+        } elseif ($request->filled('job_order_id')) {
             $query->where('job_order_id', $request->job_order_id);
         } elseif ($request->filled('submission_id')) {
             $query->where('submission_id', $request->submission_id);
@@ -132,18 +143,27 @@ class MessageController extends Controller
             'submission_id' => ['nullable', 'integer', 'exists:submissions,id'],
             'placement_id' => ['nullable', 'integer', 'exists:placements,id'],
             'recipient_id' => ['nullable', 'integer', 'exists:users,id'],
+            'group_channel' => ['nullable', 'string', 'in:team'],
         ]);
 
-        // Ensure at least one context or recipient is provided
+        // Ensure at least one context, recipient, or allowed channel is provided
         $contextFields = ['job_order_id', 'submission_id', 'placement_id', 'recipient_id'];
+        $groupChannel = (string) ($validated['group_channel'] ?? '');
         $providedFields = array_intersect(array_keys(array_filter($validated)), $contextFields);
-        
-        if (count($providedFields) < 1) {
+
+        if ($groupChannel === '' && count($providedFields) < 1) {
             return response()->json(['message' => 'Either a context (job, submission, placement) or a recipient_id must be provided.'], 422);
         }
 
-        $field = reset($providedFields);
-        $value = $validated[$field];
+        $field = $groupChannel !== '' ? 'group_channel' : reset($providedFields);
+        $value = $groupChannel !== '' ? $groupChannel : $validated[$field];
+
+        if ($field === 'group_channel') {
+            $staffRoles = ['platform_admin', 'org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'];
+            if (!in_array((string) ($user->role ?? ''), $staffRoles, true)) {
+                return response()->json(['message' => 'Unauthorized. Team channel is for staff only.'], 403);
+            }
+        }
 
         if ($field === 'recipient_id') {
             $recipient = User::query()->find($value);
@@ -218,6 +238,10 @@ class MessageController extends Controller
             if (isset($validated[$f])) {
                 $messageData[$f] = $validated[$f];
             }
+        }
+
+        if ($field === 'group_channel') {
+            $messageData['recipient_id'] = null;
         }
 
         $message = Message::create($messageData);

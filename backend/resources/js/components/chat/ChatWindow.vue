@@ -53,7 +53,7 @@
             </div>
           </div>
           <div class="text-[9px] mt-1 text-[color:var(--aq-muted)] px-1" v-if="msg.user_id !== auth.user.id">
-            {{ msg.user?.name || 'Deleted User' }} • {{ msg.user?.role || 'removed' }}
+            {{ msg.user?.name || 'Deleted User' }} • {{ formatRole(msg.user?.role) }}
           </div>
         </div>
       </template>
@@ -116,6 +116,7 @@ const props = defineProps({
   submissionId: { type: Number, default: null },
   placementId: { type: Number, default: null },
   recipientId: { type: Number, default: null },
+  groupChannel: { type: String, default: '' },
   contextTitle: { type: String, default: '' }
 });
 
@@ -137,7 +138,8 @@ async function loadMessages({ incremental = false } = {}) {
   loading.value = true;
   try {
     const params = {};
-    if (props.jobOrderId) params.job_order_id = props.jobOrderId;
+    if (props.groupChannel) params.group_channel = props.groupChannel;
+    else if (props.jobOrderId) params.job_order_id = props.jobOrderId;
     else if (props.submissionId) params.submission_id = props.submissionId;
     else if (props.placementId) params.placement_id = props.placementId;
     else if (props.recipientId) params.recipient_id = props.recipientId;
@@ -186,7 +188,7 @@ async function loadMessages({ incremental = false } = {}) {
 async function sendMessage() {
   if ((!newMessage.value.trim() && !selectedAttachment.value) || sending.value) return;
 
-  if (!props.jobOrderId && !props.submissionId && !props.placementId && !props.recipientId) {
+  if (!props.groupChannel && !props.jobOrderId && !props.submissionId && !props.placementId && !props.recipientId) {
     sendError.value = 'Select a conversation before sending a message.';
     return;
   }
@@ -211,7 +213,8 @@ async function sendMessage() {
     if (!messageBody) return;
 
     const payload = { body: messageBody };
-    if (props.jobOrderId) payload.job_order_id = props.jobOrderId;
+    if (props.groupChannel) payload.group_channel = props.groupChannel;
+    else if (props.jobOrderId) payload.job_order_id = props.jobOrderId;
     else if (props.submissionId) payload.submission_id = props.submissionId;
     else if (props.placementId) payload.placement_id = props.placementId;
     else if (props.recipientId) payload.recipient_id = props.recipientId;
@@ -251,6 +254,21 @@ function formatTime(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatRole(role) {
+  const roleMap = {
+    org_super_admin: 'Admin',
+    platform_admin: 'Admin',
+    admin: 'Admin',
+    recruiter: 'Recruiter',
+    scheduler: 'Scheduler',
+    compliance: 'Compliance',
+    finance: 'Finance',
+    logistics: 'Logistics',
+    candidate: 'Candidate',
+  };
+  return roleMap[String(role || '').toLowerCase()] || 'User';
 }
 
 function isNearBottom() {
@@ -295,7 +313,7 @@ onUnmounted(() => {
   }
 });
 
-watch(() => [props.jobOrderId, props.submissionId, props.placementId, props.recipientId], () => {
+watch(() => [props.jobOrderId, props.submissionId, props.placementId, props.recipientId, props.groupChannel], () => {
   resetConversation();
   loadMessages({ incremental: false });
 });

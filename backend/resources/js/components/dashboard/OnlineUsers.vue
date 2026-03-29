@@ -106,7 +106,7 @@ function togglePanel() {
 
 function startChat(user) {
   isOpen.value = false;
-  router.push({ name: 'dashboard.messages', query: { recipient: user.id } });
+  router.push({ name: 'dashboard.messages', query: { recipient_id: user.id } });
 }
 
 function formatRole(role) {
