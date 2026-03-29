@@ -57,6 +57,7 @@
               <p class="text-sm font-medium text-[color:var(--aq-fg)] truncate">{{ user.name }}</p>
               <p class="text-[11px] text-[color:var(--aq-muted)]">{{ formatRole(user.role) }}</p>
             </div>
+            <span v-if="Number(user.unread_count || 0) > 0" class="w-2 h-2 rounded-full bg-cyan-400"></span>
             <MessageSquare class="w-4 h-4 text-cyan-400 shrink-0" />
           </button>
         </div>
@@ -89,8 +90,20 @@ const onlineUsers = ref([]);
 async function loadOnlineUsers() {
   loading.value = true;
   try {
-    const res = await apiGet('/users/online');
-    onlineUsers.value = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+    const onlineRes = await apiGet('/users/online');
+    const onlineRows = Array.isArray(onlineRes?.data) ? onlineRes.data : (Array.isArray(onlineRes) ? onlineRes : []);
+    let unreadById = new Map();
+    try {
+      const chatUsersRes = await apiGet('/org/chat-users', { params: { q: '' } });
+      const chatRows = Array.isArray(chatUsersRes?.data) ? chatUsersRes.data : (Array.isArray(chatUsersRes) ? chatUsersRes : []);
+      unreadById = new Map(chatRows.map((row) => [Number(row.id), Number(row.unread_count || 0)]));
+    } catch {
+      unreadById = new Map();
+    }
+    onlineUsers.value = onlineRows.map((u) => ({
+      ...u,
+      unread_count: unreadById.get(Number(u.id)) || 0,
+    }));
   } catch {
     // Silently fail - online status is optional
     onlineUsers.value = [];

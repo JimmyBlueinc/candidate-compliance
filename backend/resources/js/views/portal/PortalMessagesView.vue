@@ -107,6 +107,7 @@ function formatRole(role) {
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-bold text-white truncate">{{ u.name }}</div>
+                  <div class="text-[11px] text-slate-300/85 truncate">{{ u.last_message_preview || u.email || '—' }}</div>
                   <div class="text-[10px] font-black uppercase tracking-widest" :style="{ color: primaryColor }">{{ formatRole(u.role) }}</div>
                 </div>
                 <div

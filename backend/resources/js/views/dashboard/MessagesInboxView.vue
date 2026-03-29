@@ -91,7 +91,9 @@
 
               <div class="min-w-0 flex-1 text-left">
                 <div class="text-sm font-semibold text-[color:var(--aq-fg)] truncate">{{ c.name || 'Candidate' }}</div>
-                <div class="text-[11px] text-[color:var(--aq-muted)] truncate">{{ c.email || '—' }}</div>
+                <div class="text-[11px] text-[color:var(--aq-muted)] truncate">
+                  {{ c.last_message_preview || c.email || '—' }}
+                </div>
                 <div class="text-[10px] uppercase tracking-wider text-[color:var(--aq-muted)]/90 truncate">
                   {{ formatRole(c.role) }} • {{ c.is_online ? 'Online' : 'Offline' }}
                 </div>

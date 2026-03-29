@@ -147,31 +147,48 @@ class DriveController extends Controller
         ]);
 
         $file = $validated['file'];
-        $disk = $this->resolveDriveDisk();
+        $primaryDisk = $this->resolveDriveDisk();
+        $candidateDisks = array_values(array_unique([$primaryDisk, 'local']));
+        $record = null;
+        $lastError = null;
 
-        try {
-            $storedPath = $file->store("drive/{$orgId}/{$user->id}", $disk);
+        foreach ($candidateDisks as $disk) {
+            try {
+                $storedPath = $file->store("drive/{$orgId}/{$user->id}", $disk);
 
-            $record = UserDriveFile::query()->create([
-                'tenant_id' => $orgId,
-                'owner_user_id' => (int) $user->id,
-                'name' => (string) $file->getClientOriginalName(),
-                'path' => (string) $storedPath,
-                'storage_disk' => (string) $disk,
-                'mime_type' => (string) ($file->getClientMimeType() ?: ''),
-                'size_bytes' => (int) $file->getSize(),
-                'extension' => (string) ($file->getClientOriginalExtension() ?: ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('Drive upload failed', [
+                $record = UserDriveFile::query()->create([
+                    'tenant_id' => $orgId,
+                    'owner_user_id' => (int) $user->id,
+                    'name' => (string) $file->getClientOriginalName(),
+                    'path' => (string) $storedPath,
+                    'storage_disk' => (string) $disk,
+                    'mime_type' => (string) ($file->getClientMimeType() ?: ''),
+                    'size_bytes' => (int) $file->getSize(),
+                    'extension' => (string) ($file->getClientOriginalExtension() ?: ''),
+                ]);
+
+                break;
+            } catch (\Throwable $e) {
+                $lastError = $e;
+                Log::warning('Drive upload attempt failed', [
+                    'organization_id' => $orgId,
+                    'user_id' => $user->id,
+                    'disk' => $disk,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if (!$record) {
+            Log::error('Drive upload failed on all disks', [
                 'organization_id' => $orgId,
                 'user_id' => $user->id,
-                'disk' => $disk,
-                'error' => $e->getMessage(),
+                'primary_disk' => $primaryDisk,
+                'last_error' => $lastError?->getMessage(),
             ]);
 
             return response()->json([
-                'message' => 'Failed to upload file. Check drive storage configuration and try again.',
+                'message' => 'Failed to upload file. Storage is unavailable. Please contact support if this continues.',
             ], 422);
         }
 
@@ -343,14 +360,21 @@ class DriveController extends Controller
 
     private function ensureDriveReady(): ?JsonResponse
     {
-        if (Schema::hasTable('user_drive_files') && Schema::hasTable('user_drive_file_shares')) {
+        $hasFilesTable = Schema::hasTable('user_drive_files');
+        $hasSharesTable = Schema::hasTable('user_drive_file_shares');
+        $hasStorageDiskColumn = $hasFilesTable && Schema::hasColumn('user_drive_files', 'storage_disk');
+
+        if ($hasFilesTable && $hasSharesTable && $hasStorageDiskColumn) {
             return null;
         }
 
         // Self-heal path for environments where deploy boot missed migrations.
         $this->attemptDriveSchemaRecovery();
 
-        if (Schema::hasTable('user_drive_files') && Schema::hasTable('user_drive_file_shares')) {
+        $hasFilesTable = Schema::hasTable('user_drive_files');
+        $hasSharesTable = Schema::hasTable('user_drive_file_shares');
+        $hasStorageDiskColumn = $hasFilesTable && Schema::hasColumn('user_drive_files', 'storage_disk');
+        if ($hasFilesTable && $hasSharesTable && $hasStorageDiskColumn) {
             return null;
         }
 
@@ -417,11 +441,22 @@ class DriveController extends Controller
         $preferred = (string) (config('filesystems.drive_disk') ?: config('filesystems.default') ?: 'local');
         $disks = (array) config('filesystems.disks', []);
 
-        if (array_key_exists($preferred, $disks)) {
-            return $preferred;
+        if (!array_key_exists($preferred, $disks)) {
+            return 'local';
         }
 
-        return 'local';
+        $driver = (string) ($disks[$preferred]['driver'] ?? '');
+        if ($driver === 's3') {
+            $bucket = (string) ($disks[$preferred]['bucket'] ?? '');
+            if (trim($bucket) === '') {
+                Log::warning('Drive disk bucket missing; using local fallback', [
+                    'preferred_disk' => $preferred,
+                ]);
+                return 'local';
+            }
+        }
+
+        return $preferred;
     }
 
     private function resolveFileDisk(UserDriveFile $file): string
