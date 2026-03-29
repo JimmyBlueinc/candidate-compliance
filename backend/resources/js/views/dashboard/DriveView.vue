@@ -222,12 +222,21 @@ async function uploadFile() {
     errorMessage.value = '';
     const formData = new FormData();
     formData.append('file', selectedFile.value);
-    await apiPost('/drive/files', formData);
+    await apiPost('/drive/files', formData, {
+      // Large files can take longer than the global 10s API timeout.
+      timeout: 180000,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     if (fileInputRef.value) fileInputRef.value.value = '';
     selectedFile.value = null;
     await loadFiles();
   } catch (e) {
-    errorMessage.value = e?.response?.data?.message || e?.message || 'Upload failed. Please try again.';
+    const timeoutHit = e?.code === 'ECONNABORTED' || /timeout/i.test(String(e?.message || ''));
+    errorMessage.value = timeoutHit
+      ? 'Upload is taking too long. Please try again or use a smaller file/network connection.'
+      : (e?.response?.data?.message || e?.message || 'Upload failed. Please try again.');
   } finally {
     uploading.value = false;
   }

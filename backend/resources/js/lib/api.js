@@ -28,7 +28,8 @@ export function getHttp() {
     const base = getApiBase();
     _http = axios.create({
         baseURL: base,
-        timeout: 10000,
+        // Keep a safer default for slower production networks.
+        timeout: 30000,
     });
     
     // Log once so we can verify the resolved URL
