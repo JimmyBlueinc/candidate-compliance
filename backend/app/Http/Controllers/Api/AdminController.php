@@ -81,6 +81,42 @@ class AdminController extends Controller
             ]);
         }
 
+        $targetOrgId = $currentUser->role === 'platform_admin'
+            ? (int) $orgId
+            : (int) ($currentUser->organization_id ?? 0);
+
+        $normalizedEmail = strtolower(trim((string) $request->input('email', '')));
+        if ($normalizedEmail !== '') {
+            $existingUser = User::query()
+                ->where('organization_id', $targetOrgId)
+                ->whereRaw('LOWER(email) = ?', [$normalizedEmail])
+                ->first();
+
+            if ($existingUser) {
+                $isTerminated = (string) ($existingUser->access_status ?? 'active') === 'terminated';
+                if ($isTerminated) {
+                    try {
+                        $this->deleteUserRecord($existingUser);
+                    } catch (QueryException $e) {
+                        Log::error('Failed reusing terminated email', [
+                            'existing_user_id' => $existingUser->id,
+                            'organization_id' => $targetOrgId,
+                            'email' => $normalizedEmail,
+                            'error' => $e->getMessage(),
+                        ]);
+
+                        throw ValidationException::withMessages([
+                            'email' => ['This email belongs to a terminated account that could not be purged yet. Try again shortly.'],
+                        ]);
+                    }
+                } else {
+                    throw ValidationException::withMessages([
+                        'email' => ['A user with this email already exists in this organization.'],
+                    ]);
+                }
+            }
+        }
+
         $allowedRoles = $currentUser->role === 'platform_admin'
             ? ['org_super_admin', 'admin', 'recruiter', 'scheduler', 'compliance', 'finance', 'logistics', 'candidate']
             : ($currentUser->role === 'org_super_admin'
@@ -117,7 +153,7 @@ class AdminController extends Controller
             $user = User::create([
                 'organization_id' => $currentUser->role === 'platform_admin' ? $orgId : $currentUser->organization_id,
                 'name' => htmlspecialchars(strip_tags($request->name), ENT_QUOTES, 'UTF-8'),
-                'email' => filter_var($request->email, FILTER_SANITIZE_EMAIL),
+                'email' => filter_var($normalizedEmail ?: (string) $request->email, FILTER_SANITIZE_EMAIL),
                 'password' => Hash::make($tempPassword),
                 'role' => $request->role,
                 'must_change_password' => true,
@@ -308,24 +344,7 @@ class AdminController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($user): void {
-                // Remove related rows that still use restrictive foreign keys to users.
-                DB::table('messages')
-                    ->where('user_id', $user->id)
-                    ->orWhere('recipient_id', $user->id)
-                    ->delete();
-
-                DB::table('notifications')
-                    ->where('user_id', $user->id)
-                    ->delete();
-
-                DB::table('personal_access_tokens')
-                    ->where('tokenable_type', User::class)
-                    ->where('tokenable_id', $user->id)
-                    ->delete();
-
-                $user->delete();
-            });
+            $this->deleteUserRecord($user);
         } catch (QueryException $e) {
             Log::error('Failed deleting user', [
                 'target_user_id' => $user->id,
@@ -339,6 +358,27 @@ class AdminController extends Controller
         }
 
         return response()->api(null, 200, [], 'User deleted successfully');
+    }
+
+    private function deleteUserRecord(User $user): void
+    {
+        DB::transaction(function () use ($user): void {
+            DB::table('messages')
+                ->where('user_id', $user->id)
+                ->orWhere('recipient_id', $user->id)
+                ->delete();
+
+            DB::table('notifications')
+                ->where('user_id', $user->id)
+                ->delete();
+
+            DB::table('personal_access_tokens')
+                ->where('tokenable_type', User::class)
+                ->where('tokenable_id', $user->id)
+                ->delete();
+
+            $user->delete();
+        });
     }
 }
 
