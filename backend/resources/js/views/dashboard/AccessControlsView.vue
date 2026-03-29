@@ -103,7 +103,7 @@ const tab = ref('admins');
 
 const tabOptions = computed(() => {
     const options = [{ label: `Admins (${admins.value.length})`, value: 'admins' }];
-    if (auth.user?.role !== 'org_super_admin') {
+    if (auth.user?.role === 'org_super_admin' || auth.user?.role === 'platform_admin') {
         options.push({ label: `Candidates (${candidates.value.length})`, value: 'candidates' });
     }
     return options;

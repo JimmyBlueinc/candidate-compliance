@@ -62,6 +62,13 @@ class OrgController extends Controller
                     'is_online' => (bool) $isOnline,
                 ];
             })
+            ->sort(function (array $a, array $b) {
+                if ($a['is_online'] !== $b['is_online']) {
+                    return $a['is_online'] ? -1 : 1;
+                }
+
+                return strcasecmp((string) $a['name'], (string) $b['name']);
+            })
             ->values();
 
         return response()->api($rows);

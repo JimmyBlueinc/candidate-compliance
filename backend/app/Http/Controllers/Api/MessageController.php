@@ -159,7 +159,7 @@ class MessageController extends Controller
                 return response()->json(['message' => 'You cannot message yourself.'], 422);
             }
 
-            $staffRoles = ['org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'];
+            $staffRoles = ['platform_admin', 'org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'];
             $isStaff = in_array((string) ($user->role ?? ''), $staffRoles, true);
             $isCandidate = (string) ($user->role ?? '') === 'candidate';
 
