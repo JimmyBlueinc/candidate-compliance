@@ -104,7 +104,7 @@ RUN mkdir -p /etc/nginx/http.d && \
     root /var/www/html/public;\
     index index.php;\
 \
-    client_max_body_size 10M;\
+    client_max_body_size 120M;\
 \
     access_log /dev/stdout;\
     error_log /dev/stderr;\

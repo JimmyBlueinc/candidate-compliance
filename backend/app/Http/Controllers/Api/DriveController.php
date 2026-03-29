@@ -12,6 +12,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -25,41 +27,54 @@ class DriveController extends Controller
             return response()->json(['message' => 'Organization context missing.'], 400);
         }
 
-        $owned = UserDriveFile::query()
-            ->where('tenant_id', $orgId)
-            ->where('owner_user_id', $user->id)
-            ->withCount('shares')
-            ->orderByDesc('id')
-            ->limit(500)
-            ->get()
-            ->map(fn (UserDriveFile $f) => $this->serializeFile($f, true))
-            ->values();
+        if ($guard = $this->ensureDriveReady()) {
+            return $guard;
+        }
 
-        $shared = UserDriveFileShare::query()
-            ->where('tenant_id', $orgId)
-            ->where('recipient_user_id', $user->id)
-            ->with(['file', 'owner:id,name,email'])
-            ->orderByDesc('id')
-            ->limit(500)
-            ->get()
-            ->map(function (UserDriveFileShare $share) {
-                $file = $share->file;
-                if (!$file) {
-                    return null;
-                }
+        try {
+            $owned = UserDriveFile::query()
+                ->where('tenant_id', $orgId)
+                ->where('owner_user_id', $user->id)
+                ->withCount('shares')
+                ->orderByDesc('id')
+                ->limit(500)
+                ->get()
+                ->map(fn (UserDriveFile $f) => $this->serializeFile($f, true))
+                ->values();
 
-                return [
-                    ...$this->serializeFile($file, false),
-                    'shared_by' => $share->owner ? [
-                        'id' => (int) $share->owner->id,
-                        'name' => (string) $share->owner->name,
-                        'email' => (string) $share->owner->email,
-                    ] : null,
-                    'shared_at' => $share->created_at?->toIso8601String(),
-                ];
-            })
-            ->filter()
-            ->values();
+            $shared = UserDriveFileShare::query()
+                ->where('tenant_id', $orgId)
+                ->where('recipient_user_id', $user->id)
+                ->with(['file', 'owner:id,name,email'])
+                ->orderByDesc('id')
+                ->limit(500)
+                ->get()
+                ->map(function (UserDriveFileShare $share) {
+                    $file = $share->file;
+                    if (!$file) {
+                        return null;
+                    }
+
+                    return [
+                        ...$this->serializeFile($file, false),
+                        'shared_by' => $share->owner ? [
+                            'id' => (int) $share->owner->id,
+                            'name' => (string) ($share->owner->name ?: 'Deleted User'),
+                            'email' => (string) ($share->owner->email ?: ''),
+                        ] : null,
+                        'shared_at' => $share->created_at?->toIso8601String(),
+                    ];
+                })
+                ->filter()
+                ->values();
+        } catch (QueryException $e) {
+            Log::error('Drive index query failed', [
+                'user_id' => $user->id,
+                'organization_id' => $orgId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['message' => 'Drive is temporarily unavailable. Please try again shortly.'], 503);
+        }
 
         return response()->api([
             'owned_files' => $owned,
@@ -75,27 +90,40 @@ class DriveController extends Controller
             return response()->json(['message' => 'Organization context missing.'], 400);
         }
 
+        if ($guard = $this->ensureDriveReady()) {
+            return $guard;
+        }
+
         $q = trim((string) $request->query('q', ''));
 
-        $rows = User::query()
-            ->where('organization_id', $orgId)
-            ->whereKeyNot($user->id)
-            ->when($q !== '', function ($query) use ($q) {
-                $query->where(function ($sub) use ($q) {
-                    $sub->where('name', 'like', '%' . $q . '%')
-                        ->orWhere('email', 'like', '%' . $q . '%');
-                });
-            })
-            ->orderBy('name')
-            ->limit(100)
-            ->get(['id', 'name', 'email', 'role'])
-            ->map(fn (User $u) => [
-                'id' => (int) $u->id,
-                'name' => (string) ($u->name ?: 'Deleted User'),
-                'email' => (string) $u->email,
-                'role' => (string) ($u->role ?: 'user'),
-            ])
-            ->values();
+        try {
+            $rows = User::query()
+                ->where('organization_id', $orgId)
+                ->whereKeyNot($user->id)
+                ->when($q !== '', function ($query) use ($q) {
+                    $query->where(function ($sub) use ($q) {
+                        $sub->where('name', 'like', '%' . $q . '%')
+                            ->orWhere('email', 'like', '%' . $q . '%');
+                    });
+                })
+                ->orderBy('name')
+                ->limit(100)
+                ->get(['id', 'name', 'email', 'role'])
+                ->map(fn (User $u) => [
+                    'id' => (int) $u->id,
+                    'name' => (string) ($u->name ?: 'Deleted User'),
+                    'email' => (string) $u->email,
+                    'role' => (string) ($u->role ?: 'user'),
+                ])
+                ->values();
+        } catch (QueryException $e) {
+            Log::error('Drive recipients query failed', [
+                'user_id' => $user->id,
+                'organization_id' => $orgId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['message' => 'Drive is temporarily unavailable. Please try again shortly.'], 503);
+        }
 
         return response()->api($rows);
     }
@@ -106,6 +134,10 @@ class DriveController extends Controller
         $orgId = Org::id($request);
         if (!$orgId) {
             return response()->json(['message' => 'Organization context missing.'], 400);
+        }
+
+        if ($guard = $this->ensureDriveReady()) {
+            return $guard;
         }
 
         $validated = $request->validate([
@@ -139,6 +171,10 @@ class DriveController extends Controller
             return response()->json(['message' => 'Organization context missing.'], 400);
         }
 
+        if ($guard = $this->ensureDriveReady()) {
+            return $guard;
+        }
+
         $record = UserDriveFile::query()
             ->where('tenant_id', $orgId)
             ->whereKey($id)
@@ -160,6 +196,10 @@ class DriveController extends Controller
         $orgId = Org::id($request);
         if (!$orgId) {
             return response()->json(['message' => 'Organization context missing.'], 400);
+        }
+
+        if ($guard = $this->ensureDriveReady()) {
+            return $guard;
         }
 
         $validated = $request->validate([
@@ -184,7 +224,7 @@ class DriveController extends Controller
             return response()->json(['message' => 'You cannot share file to yourself.'], 422);
         }
 
-        $downloadUrl = url('/api/v1/drive/files/' . (int) $file->id . '/download');
+        $downloadUrl = url('/api/drive/files/' . (int) $file->id . '/download');
         $note = trim((string) ($validated['note'] ?? ''));
         $body = "Shared a drive file: {$file->name}\nOpen: {$downloadUrl}";
         if ($note !== '') {
@@ -240,6 +280,10 @@ class DriveController extends Controller
             return response()->json(['message' => 'Organization context missing.'], 400);
         }
 
+        if ($guard = $this->ensureDriveReady()) {
+            return $guard;
+        }
+
         $file = UserDriveFile::query()
             ->where('tenant_id', $orgId)
             ->whereKey($id)
@@ -272,10 +316,21 @@ class DriveController extends Controller
             'mime_type' => (string) ($file->mime_type ?? ''),
             'size_bytes' => (int) ($file->size_bytes ?? 0),
             'extension' => (string) ($file->extension ?? ''),
-            'download_url' => url('/api/v1/drive/files/' . (int) $file->id . '/download'),
+            'download_url' => url('/api/drive/files/' . (int) $file->id . '/download'),
             'created_at' => $file->created_at?->toIso8601String(),
             'updated_at' => $file->updated_at?->toIso8601String(),
             'shares_count' => $includeShares ? (int) ($file->shares_count ?? 0) : null,
         ];
+    }
+
+    private function ensureDriveReady(): ?JsonResponse
+    {
+        if (!Schema::hasTable('user_drive_files') || !Schema::hasTable('user_drive_file_shares')) {
+            return response()->json([
+                'message' => 'Drive tables are not ready yet. Please run latest migrations.',
+            ], 503);
+        }
+
+        return null;
     }
 }
