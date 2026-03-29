@@ -13,6 +13,7 @@ class UserDriveFile extends Model
         'owner_user_id',
         'name',
         'path',
+        'storage_disk',
         'mime_type',
         'size_bytes',
         'extension',

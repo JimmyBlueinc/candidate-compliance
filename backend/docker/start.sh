@@ -6,6 +6,14 @@ PORT=${PORT:-10000}
 
 echo "Starting container with PORT=${PORT}"
 
+# Ensure PHP upload limits are high enough for Drive (100MB target).
+cat >/usr/local/etc/php/conf.d/99-upload-limits.ini <<'EOF'
+upload_max_filesize=120M
+post_max_size=120M
+max_file_uploads=50
+max_execution_time=300
+EOF
+
 # Ensure log directories exist (Railway containers can start with empty /var/log)
 mkdir -p /var/log/supervisor
 mkdir -p /var/log/nginx

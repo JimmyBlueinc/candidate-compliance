@@ -54,6 +54,9 @@ RUN docker-php-ext-install \
     gd \
     zip
 
+# Increase PHP upload/body limits for drive uploads.
+RUN printf 'upload_max_filesize=120M\npost_max_size=120M\nmax_file_uploads=50\nmax_execution_time=300\n' > /usr/local/etc/php/conf.d/99-upload-limits.ini
+
 # Install Composer
 COPY --from=public.ecr.aws/docker/library/composer:latest /usr/bin/composer /usr/bin/composer
 

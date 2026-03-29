@@ -147,18 +147,33 @@ class DriveController extends Controller
         ]);
 
         $file = $validated['file'];
-        $disk = config('filesystems.default');
-        $storedPath = $file->store("drive/{$orgId}/{$user->id}", $disk);
+        $disk = $this->resolveDriveDisk();
 
-        $record = UserDriveFile::query()->create([
-            'tenant_id' => $orgId,
-            'owner_user_id' => (int) $user->id,
-            'name' => (string) $file->getClientOriginalName(),
-            'path' => (string) $storedPath,
-            'mime_type' => (string) ($file->getClientMimeType() ?: ''),
-            'size_bytes' => (int) $file->getSize(),
-            'extension' => (string) ($file->getClientOriginalExtension() ?: ''),
-        ]);
+        try {
+            $storedPath = $file->store("drive/{$orgId}/{$user->id}", $disk);
+
+            $record = UserDriveFile::query()->create([
+                'tenant_id' => $orgId,
+                'owner_user_id' => (int) $user->id,
+                'name' => (string) $file->getClientOriginalName(),
+                'path' => (string) $storedPath,
+                'storage_disk' => (string) $disk,
+                'mime_type' => (string) ($file->getClientMimeType() ?: ''),
+                'size_bytes' => (int) $file->getSize(),
+                'extension' => (string) ($file->getClientOriginalExtension() ?: ''),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Drive upload failed', [
+                'organization_id' => $orgId,
+                'user_id' => $user->id,
+                'disk' => $disk,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to upload file. Check drive storage configuration and try again.',
+            ], 422);
+        }
 
         return response()->api([
             'file' => $this->serializeFile($record, true),
@@ -186,7 +201,8 @@ class DriveController extends Controller
             return response()->json(['message' => 'Only file owner can delete this document.'], 403);
         }
 
-        Storage::disk(config('filesystems.default'))->delete($record->path);
+        $disk = $this->resolveFileDisk($record);
+        Storage::disk($disk)->delete($record->path);
         $record->delete();
 
         return response()->api(['deleted' => true], 200, [], 'File deleted successfully.');
@@ -302,7 +318,7 @@ class DriveController extends Controller
             return response()->json(['message' => 'Unauthorized access to file.'], 403);
         }
 
-        $disk = config('filesystems.default');
+        $disk = $this->resolveFileDisk($file);
         if (!Storage::disk($disk)->exists($file->path)) {
             return response()->json(['message' => 'File not found.'], 404);
         }
@@ -361,6 +377,7 @@ class DriveController extends Controller
                     $table->foreignId('owner_user_id')->constrained('users')->cascadeOnDelete();
                     $table->string('name');
                     $table->string('path');
+                    $table->string('storage_disk', 80)->nullable();
                     $table->string('mime_type', 191)->nullable();
                     $table->unsignedBigInteger('size_bytes')->default(0);
                     $table->string('extension', 32)->nullable();
@@ -382,10 +399,39 @@ class DriveController extends Controller
                     $table->index(['tenant_id', 'recipient_user_id'], 'user_drive_file_shares_tenant_recipient_idx');
                 });
             }
+
+            if (Schema::hasTable('user_drive_files') && !Schema::hasColumn('user_drive_files', 'storage_disk')) {
+                Schema::table('user_drive_files', function (Blueprint $table): void {
+                    $table->string('storage_disk', 80)->nullable()->after('path');
+                });
+            }
         } catch (\Throwable $e) {
             Log::error('Drive schema recovery failed', [
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    private function resolveDriveDisk(): string
+    {
+        $preferred = (string) (config('filesystems.drive_disk') ?: config('filesystems.default') ?: 'local');
+        $disks = (array) config('filesystems.disks', []);
+
+        if (array_key_exists($preferred, $disks)) {
+            return $preferred;
+        }
+
+        return 'local';
+    }
+
+    private function resolveFileDisk(UserDriveFile $file): string
+    {
+        $savedDisk = trim((string) ($file->storage_disk ?? ''));
+        $disks = (array) config('filesystems.disks', []);
+        if ($savedDisk !== '' && array_key_exists($savedDisk, $disks)) {
+            return $savedDisk;
+        }
+
+        return $this->resolveDriveDisk();
     }
 }

@@ -21,6 +21,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Drive Files Disk
+    |--------------------------------------------------------------------------
+    |
+    | Dedicated disk used by the personal drive feature. Keep this separate
+    | from the global default so avatars/other files can remain local while
+    | drive uploads use private S3 storage in production.
+    |
+    */
+    'drive_disk' => env('DRIVE_FILESYSTEM_DISK', env('FILESYSTEM_DISK', 'local')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
