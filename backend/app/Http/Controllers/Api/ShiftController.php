@@ -12,6 +12,7 @@ use App\Models\ShiftTemplate;
 use App\Support\Org;
 use App\Services\AvailabilityIndexService;
 use App\Services\AvailabilityService;
+use App\Services\NotificationService;
 use App\Services\ShiftAssignmentService;
 use App\Services\ShiftService;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +22,10 @@ use Carbon\Carbon;
 
 class ShiftController extends Controller
 {
+    public function __construct(
+        private NotificationService $notificationService
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
         $orgId = Org::id($request);
@@ -452,6 +457,15 @@ class ShiftController extends Controller
 
         $assignment = $service->approveRequest($orgId, $requestId, $request->user());
 
+        $shiftRequest = ShiftRequest::query()
+            ->with(['candidate:id,user_id,name,email'])
+            ->where('tenant_id', $orgId)
+            ->find($requestId);
+
+        if ($shiftRequest) {
+            $this->notifyShiftRequestDecision($shiftRequest, (int) $orgId, 'approved', null);
+        }
+
         return response()->api($assignment);
     }
 
@@ -467,8 +481,45 @@ class ShiftController extends Controller
         ]);
 
         $req = $service->rejectRequest($orgId, $requestId, (string) $validated['reason'], $request->user());
+        $req->loadMissing(['candidate:id,user_id,name,email']);
+        $this->notifyShiftRequestDecision($req, (int) $orgId, 'rejected', (string) $validated['reason']);
 
         return response()->api($req);
+    }
+
+    private function notifyShiftRequestDecision(ShiftRequest $req, int $tenantId, string $decision, ?string $reason): void
+    {
+        $candidateUserId = (int) ($req->candidate?->user_id ?? 0);
+        $candidateName = (string) ($req->candidate?->name ?? 'Candidate');
+
+        if ($candidateUserId > 0) {
+            $this->notificationService->notify(
+                [$candidateUserId],
+                $decision === 'approved' ? 'shift_request_approved' : 'shift_request_rejected',
+                'shift_request',
+                (int) $req->id,
+                [
+                    'candidate_name' => $candidateName,
+                    'shift_id' => (int) $req->shift_id,
+                    'status' => $decision,
+                    'reason' => $reason,
+                ],
+                $tenantId
+            );
+        }
+
+        $this->notificationService->notifyAdmins(
+            $tenantId,
+            $decision === 'approved' ? 'shift_request_approved' : 'shift_request_rejected',
+            'shift_request',
+            (int) $req->id,
+            [
+                'candidate_name' => $candidateName,
+                'shift_id' => (int) $req->shift_id,
+                'status' => $decision,
+                'reason' => $reason,
+            ]
+        );
     }
 
     public function checkIn(Request $request, int $id, ShiftService $service): JsonResponse

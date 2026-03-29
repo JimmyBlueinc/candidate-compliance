@@ -10,6 +10,7 @@ use App\Models\Candidate;
 use App\Models\Scopes\TenantScope;
 use App\Models\Timesheet;
 use App\Services\InvoiceGenerationService;
+use App\Services\NotificationService;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,8 @@ use Illuminate\Support\Facades\Log;
 class TimesheetController extends Controller
 {
     public function __construct(
-        private InvoiceGenerationService $invoiceService
+        private InvoiceGenerationService $invoiceService,
+        private NotificationService $notificationService
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -212,7 +214,7 @@ class TimesheetController extends Controller
 
         $timesheets = Timesheet::query()
             ->with([
-                'candidate:id,name,first_name,last_name,email',
+                'candidate:id,user_id,name,first_name,last_name,email',
                 'assignment:id,tenant_id,candidate_id,job_order_id,status,facility_name',
                 'entries:id,timesheet_id,work_date,hours_worked,overtime_hours,notes',
             ])
@@ -250,6 +252,7 @@ class TimesheetController extends Controller
                 'assignment_id' => $t->assignment_id,
                 'candidate' => $t->candidate ? [
                     'id' => $t->candidate->id,
+                    'user_id' => $t->candidate->user_id,
                     'name' => $t->candidate->name,
                     'first_name' => $t->candidate->first_name,
                     'last_name' => $t->candidate->last_name,
@@ -308,6 +311,7 @@ class TimesheetController extends Controller
         $timesheet->save();
 
         TimesheetApproved::dispatch($timesheet, $orgId, $request->user());
+        $this->notifyTimesheetDecision($timesheet, $orgId, 'approved', null);
 
         return response()->api([
             'id' => $timesheet->id,
@@ -347,10 +351,47 @@ class TimesheetController extends Controller
         $timesheet->rejected_by_user_id = $request->user()?->id;
         $timesheet->rejection_reason = $validated['reason'];
         $timesheet->save();
+        $this->notifyTimesheetDecision($timesheet, $orgId, 'rejected', (string) $validated['reason']);
 
         return response()->api([
             'id' => $timesheet->id,
             'status' => $timesheet->status,
         ]);
+    }
+
+    private function notifyTimesheetDecision(Timesheet $timesheet, int $tenantId, string $decision, ?string $reason): void
+    {
+        $timesheet->loadMissing(['candidate:id,user_id,name']);
+        $candidateUserId = (int) ($timesheet->candidate?->user_id ?? 0);
+        $candidateName = (string) ($timesheet->candidate?->name ?? 'Candidate');
+
+        if ($candidateUserId > 0) {
+            $this->notificationService->notify(
+                [$candidateUserId],
+                $decision === 'approved' ? 'timesheet_approved' : 'timesheet_rejected',
+                'timesheet',
+                (int) $timesheet->id,
+                [
+                    'candidate_name' => $candidateName,
+                    'week_start_date' => $timesheet->week_start_date?->format('Y-m-d'),
+                    'status' => $decision,
+                    'reason' => $reason,
+                ],
+                $tenantId
+            );
+        }
+
+        $this->notificationService->notifyAdmins(
+            $tenantId,
+            $decision === 'approved' ? 'timesheet_approved' : 'timesheet_rejected',
+            'timesheet',
+            (int) $timesheet->id,
+            [
+                'candidate_name' => $candidateName,
+                'week_start_date' => $timesheet->week_start_date?->format('Y-m-d'),
+                'status' => $decision,
+                'reason' => $reason,
+            ]
+        );
     }
 }

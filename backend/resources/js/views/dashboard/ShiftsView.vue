@@ -103,6 +103,16 @@
         <Column header="Actions" class="text-right">
           <template #body="{ data }">
             <div class="flex items-center justify-end gap-1">
+              <Button
+                v-if="data.assigned_candidate?.user_id"
+                icon="pi pi-comments"
+                severity="secondary"
+                text
+                rounded
+                size="small"
+                v-tooltip.top="'Message Candidate'"
+                @click="messageShiftCandidate(data)"
+              />
               <template v-if="data.status === 'requested'">
                 <Button 
                   icon="pi pi-check" 
@@ -359,10 +369,18 @@ async function approveRequest(shift) {
 
 async function rejectRequest(shift) {
   if (!shift.request_id) return;
+  const reason = window.prompt('Please provide a reason for rejecting this request:');
+  if (reason === null) return;
+  if (!String(reason).trim()) {
+    error.value = 'Rejection reason is required.';
+    return;
+  }
   acting.value = true;
   try {
     error.value = '';
-    await apiPost(`/v1/shifts/requests/${shift.request_id}/reject`);
+    await apiPost(`/v1/shifts/requests/${shift.request_id}/reject`, {
+      reason: String(reason).trim(),
+    });
     await refresh();
   } catch (e) {
     const payload = e?.response?.data;
@@ -391,6 +409,12 @@ async function completeShift(shift) {
   } finally {
     acting.value = false;
   }
+}
+
+function messageShiftCandidate(shift) {
+  const recipientId = Number(shift?.assigned_candidate?.user_id || 0);
+  if (!recipientId) return;
+  window.location.assign(`/dashboard/messages?recipient_id=${encodeURIComponent(String(recipientId))}`);
 }
 
 function getBadgeVariant(status) {

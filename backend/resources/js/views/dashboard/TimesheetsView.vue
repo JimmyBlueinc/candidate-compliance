@@ -93,6 +93,16 @@
           <template #body="{ data }">
             <div class="flex items-center justify-end gap-1">
               <Button 
+                v-if="data.candidate?.user_id"
+                icon="pi pi-comments" 
+                severity="secondary" 
+                text 
+                rounded 
+                size="small"
+                v-tooltip.top="'Message Candidate'"
+                @click="messageCandidate(data)"
+              />
+              <Button 
                 icon="pi pi-eye" 
                 severity="secondary" 
                 text 
@@ -182,6 +192,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { apiGet, apiPost, normalizeApiList } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
+import { useRouter } from 'vue-router';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
@@ -200,6 +211,7 @@ import {
 } from 'lucide-vue-next';
 
 const brand = useBrandStore();
+const router = useRouter();
 const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
 
 const timesheets = ref([]);
@@ -244,6 +256,12 @@ async function refresh() {
 function viewDetails(ts) {
   selectedTimesheet.value = ts;
   detailsVisible.value = true;
+}
+
+function messageCandidate(ts) {
+  const recipientId = Number(ts?.candidate?.user_id || 0);
+  if (!recipientId) return;
+  router.push({ name: 'dashboard.messages', query: { recipient_id: String(recipientId) } });
 }
 
 async function approveTimesheet(ts) {
