@@ -11,23 +11,23 @@
       @tenant-signin="goToLogin"
     />
 
-    <main class="pt-24 pb-24">
-      <section class="mx-auto max-w-7xl px-6">
+    <main class="pt-20 pb-20 sm:pt-24 sm:pb-24">
+      <section class="mx-auto max-w-7xl px-4 sm:px-6">
         <div class="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_74px_rgba(15,23,42,0.12)]">
           <div class="pointer-events-none absolute -top-24 -right-20 h-72 w-72 rounded-full bg-indigo-200/45 blur-3xl" />
           <div class="pointer-events-none absolute top-24 -left-12 h-64 w-64 rounded-full bg-cyan-200/35 blur-3xl" />
 
-          <div class="relative z-10 grid items-stretch gap-8 p-8 md:p-10 lg:grid-cols-12 lg:p-12">
+          <div class="relative z-10 grid items-stretch gap-8 p-6 sm:p-8 md:p-10 lg:grid-cols-12 lg:p-12">
             <div class="lg:col-span-6">
               <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-indigo-700">
                 <span class="h-1.5 w-1.5 rounded-full bg-indigo-500" />
                 Opportunities at {{ brand.name || 'Blueinc' }}
               </span>
 
-              <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight text-slate-950 md:text-5xl">
+              <h1 class="mt-5 text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-4xl md:text-5xl">
                 {{ publicHomeContent.hero_heading }}
               </h1>
-              <p class="mt-5 max-w-xl text-lg leading-relaxed text-slate-600">
+              <p class="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
                 {{ publicHomeContent.hero_subheading }}
               </p>
 
@@ -49,7 +49,7 @@
                 </button>
               </div>
 
-              <div class="mt-8 grid gap-3 sm:grid-cols-3">
+              <div class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <article v-for="stat in heroStats" :key="stat.label" class="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
                   <p class="text-[11px] uppercase tracking-[0.13em] text-slate-500">{{ stat.label }}</p>
                   <p class="mt-1 text-xl font-semibold text-slate-900">{{ stat.value }}</p>
@@ -62,7 +62,7 @@
                 <img
                   src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80"
                   alt="Professional team collaborating in a modern workplace"
-                  class="h-[330px] w-full object-cover opacity-85"
+                  class="h-64 w-full object-cover opacity-85 sm:h-[330px]"
                   loading="lazy"
                   @error="(e) => onImageError(e, '/images/public/tenant-careers-hero.svg')"
                 />
@@ -86,7 +86,7 @@
         </div>
       </section>
 
-      <section id="job-search" class="mx-auto mt-10 max-w-7xl px-6">
+      <section id="job-search" class="mx-auto mt-10 max-w-7xl px-4 sm:px-6">
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
           <div class="flex flex-col gap-4 md:flex-row md:items-end">
             <div class="flex-1">
@@ -125,11 +125,11 @@
         </div>
       </section>
 
-      <section class="mx-auto mt-8 max-w-7xl px-6">
+      <section class="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
         <div class="flex items-end justify-between">
           <div>
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">Featured Opportunities</p>
-            <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Find roles that fit your strengths and goals.</h2>
+            <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Find roles that fit your strengths and goals.</h2>
           </div>
           <button type="button" class="hidden text-sm font-semibold text-indigo-600 hover:text-indigo-700 md:inline" @click="goToJobs">
             View full job board
@@ -174,7 +174,7 @@
         </div>
       </section>
 
-      <section class="mx-auto mt-14 max-w-7xl px-6">
+      <section class="mx-auto mt-12 max-w-7xl px-4 sm:mt-14 sm:px-6">
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <div class="grid gap-6 lg:grid-cols-12">
             <div class="lg:col-span-5">
@@ -203,7 +203,7 @@
         </div>
       </section>
 
-      <section class="mx-auto mt-10 max-w-7xl px-6">
+      <section class="mx-auto mt-10 max-w-7xl px-4 sm:px-6">
         <div class="grid gap-4 lg:grid-cols-12">
           <div class="aq-on-dark relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-6 text-white shadow-sm lg:col-span-8 md:p-8">
             <img
@@ -216,7 +216,7 @@
             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-indigo-900/65" />
             <div class="relative z-10 max-w-xl">
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-200">Join Talent Pool</p>
-              <h3 class="mt-3 text-3xl font-bold">{{ publicHomeContent.talent_pool_heading }}</h3>
+              <h3 class="mt-3 text-2xl font-bold sm:text-3xl">{{ publicHomeContent.talent_pool_heading }}</h3>
               <p class="mt-3 text-sm leading-relaxed text-slate-200">
                 {{ publicHomeContent.talent_pool_subheading }}
               </p>
@@ -238,10 +238,10 @@
         </div>
       </section>
 
-      <section class="mx-auto mt-10 max-w-7xl px-6">
+      <section class="mx-auto mt-10 max-w-7xl px-4 sm:px-6">
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <p class="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">How It Works</p>
-          <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Three steps from interest to placement</h2>
+          <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Three steps from interest to placement</h2>
           <div class="mt-6 grid gap-4 md:grid-cols-3">
             <article v-for="(step, index) in howItWorks" :key="step.title" class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
               <p class="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600">Step {{ index + 1 }}</p>
@@ -252,12 +252,12 @@
         </div>
       </section>
 
-      <section class="mx-auto mt-10 max-w-7xl px-6">
-        <div class="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 px-8 py-12 text-white shadow-[0_20px_50px_rgba(59,130,246,0.35)]">
+      <section class="mx-auto mt-10 max-w-7xl px-4 sm:px-6">
+        <div class="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 px-5 py-10 text-white shadow-[0_20px_50px_rgba(59,130,246,0.35)] sm:px-8 sm:py-12">
           <div class="max-w-2xl">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-100">Take the next step</p>
-            <h2 class="mt-3 text-4xl font-bold leading-tight">{{ publicHomeContent.final_cta_heading }}</h2>
-            <p class="mt-3 text-base text-cyan-100">{{ publicHomeContent.final_cta_subheading }}</p>
+            <h2 class="mt-3 text-3xl font-bold leading-tight sm:text-4xl">{{ publicHomeContent.final_cta_heading }}</h2>
+            <p class="mt-3 text-sm text-cyan-100 sm:text-base">{{ publicHomeContent.final_cta_subheading }}</p>
             <div class="mt-6 flex flex-wrap gap-3">
               <button type="button" class="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-100" @click="goToJobs">
                 {{ publicHomeContent.hero_primary_cta_label }}
@@ -271,7 +271,7 @@
       </section>
     </main>
 
-    <footer class="border-t border-slate-200 bg-white px-6 py-10">
+    <footer class="border-t border-slate-200 bg-white px-4 py-10 sm:px-6">
       <div class="mx-auto grid max-w-7xl gap-6 md:grid-cols-4">
         <div class="md:col-span-2">
           <p class="text-lg font-semibold text-slate-900">{{ brand.name || 'Organization' }}</p>

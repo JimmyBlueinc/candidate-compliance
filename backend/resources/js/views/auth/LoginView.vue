@@ -1,17 +1,17 @@
 <template>
   <div class="auth-shell min-h-screen text-slate-900">
-    <div class="grid min-h-screen grid-cols-1 lg:grid-cols-2">
+    <div class="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
       <AuthRotatingShowcase
         kicker="Workforce Platform"
         heading="Where great professionals meet trusted opportunities."
         subtitle="Discover roles, move through onboarding faster, and stay connected to recruiters from one premium workspace."
       />
 
-      <section class="relative flex items-center justify-center px-6 py-10">
+      <section class="relative flex items-center justify-center px-6 py-10 lg:justify-start lg:px-10 xl:px-12">
         <div class="auth-glow auth-glow-a" />
         <div class="auth-glow auth-glow-b" />
 
-        <div class="relative z-10 w-full max-w-[460px] space-y-6">
+        <div class="relative z-10 w-full max-w-[460px] space-y-6 lg:max-w-[500px]">
           <div class="space-y-3 text-center lg:text-left">
             <div class="inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl shadow-lg ring-1 ring-slate-200" :style="logoWrapStyle">
               <img v-if="brand.logoUrl" :src="brand.logoUrl" alt="Logo" class="h-8 w-8 object-contain" />

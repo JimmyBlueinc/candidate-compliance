@@ -2,9 +2,9 @@
   <div class="min-h-screen bg-[#f8fafc] text-slate-900 antialiased">
     <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primarySolid" @apex-login="handleLoginClick" />
 
-    <main class="pt-28 pb-24">
-      <section class="mx-auto max-w-7xl px-6">
-        <div class="relative overflow-hidden rounded-[2rem] border border-slate-200 shadow-[0_30px_90px_rgba(2,6,23,0.16)] min-h-[620px]">
+    <main class="pt-24 pb-20 sm:pt-28 sm:pb-24">
+      <section class="mx-auto max-w-7xl px-4 sm:px-6">
+        <div class="relative min-h-[540px] overflow-hidden rounded-[2rem] border border-slate-200 shadow-[0_30px_90px_rgba(2,6,23,0.16)] sm:min-h-[620px]">
           <img
             src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=2400&q=80"
             alt="Staffing team collaborating in a modern office"
@@ -12,15 +12,15 @@
             loading="lazy"
           />
           <div class="absolute inset-0 bg-gradient-to-r from-slate-950/88 via-slate-900/74 to-slate-900/46" />
-          <div class="relative z-10 grid h-full items-end p-8 md:p-12">
+          <div class="relative z-10 grid h-full items-end p-6 sm:p-8 md:p-12">
             <div class="max-w-3xl text-white">
               <p class="inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
                 Workforce Operating System
               </p>
-              <h1 class="mt-6 text-4xl font-bold leading-tight tracking-tight md:text-6xl" :style="heroHeadlineStyle">
+              <h1 class="mt-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-6xl" :style="heroHeadlineStyle">
                 Staffing execution, redesigned for high-growth teams.
               </h1>
-              <p class="mt-5 text-lg leading-relaxed text-white/90">
+              <p class="mt-5 text-base leading-relaxed text-white/90 sm:text-lg">
                 AgencHQ helps talent teams source, place, and retain workers faster with premium workflows, intelligent automation, and clear business visibility.
               </p>
               <div class="mt-8 flex flex-wrap gap-3">
@@ -40,7 +40,7 @@
         </div>
       </section>
 
-      <section class="mx-auto mt-12 max-w-7xl px-6">
+      <section class="mx-auto mt-10 max-w-7xl px-4 sm:mt-12 sm:px-6">
         <div class="grid gap-4 md:grid-cols-4">
           <article v-for="metric in metrics" :key="metric.label" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">{{ metric.label }}</p>
@@ -50,12 +50,12 @@
         </div>
       </section>
 
-      <section class="mx-auto mt-16 max-w-7xl px-6">
+      <section class="mx-auto mt-14 max-w-7xl px-4 sm:mt-16 sm:px-6">
         <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 p-6 shadow-[0_24px_70px_rgba(2,6,23,0.35)] md:p-8">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.28),transparent_45%)]" />
           <div class="relative z-10">
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">Dashboard Experience</p>
-            <h2 class="mt-3 text-3xl font-bold tracking-tight" :style="dashboardHeadlineStyle">A command-center view your team actually enjoys using.</h2>
+            <h2 class="mt-3 text-2xl font-bold tracking-tight sm:text-3xl" :style="dashboardHeadlineStyle">A command-center view your team actually enjoys using.</h2>
             <p class="mt-3 max-w-3xl text-sm text-white/80">
               Inspired by real operations dashboards: clean signal cards, activity context, and an executive snapshot built for staffing teams.
             </p>
@@ -102,7 +102,7 @@
         </div>
       </section>
 
-      <section class="mx-auto mt-16 max-w-7xl px-6">
+      <section class="mx-auto mt-14 max-w-7xl px-4 sm:mt-16 sm:px-6">
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <h2 class="text-3xl font-bold tracking-tight text-slate-900">Purpose-built for staffing leaders</h2>
@@ -120,7 +120,7 @@
         </div>
       </section>
 
-      <section class="mx-auto mt-16 max-w-7xl px-6">
+      <section class="mx-auto mt-14 max-w-7xl px-4 sm:mt-16 sm:px-6">
         <div class="grid gap-6 lg:grid-cols-2">
           <article v-for="section in featureNarratives" :key="section.title" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <img :src="section.image" :alt="section.alt" class="h-56 w-full rounded-2xl object-cover" loading="lazy" />
@@ -137,8 +137,8 @@
         </div>
       </section>
 
-      <section class="mx-auto mt-20 max-w-7xl px-6">
-        <div class="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 px-8 py-14 text-white md:px-12">
+      <section class="mx-auto mt-16 max-w-7xl px-4 sm:mt-20 sm:px-6">
+        <div class="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 px-6 py-10 text-white sm:px-8 sm:py-14 md:px-12">
           <img
             src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2000&q=80"
             alt="Downtown office towers representing workforce scale and growth"
@@ -148,8 +148,8 @@
           <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/88 to-slate-900/78" />
           <div class="relative z-10 max-w-2xl">
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Scale with confidence</p>
-            <h2 class="mt-4 text-4xl font-bold leading-tight" :style="ctaHeadlineStyle">One platform for every hiring and staffing outcome.</h2>
-            <p class="mt-4 text-lg text-white/85">From requisition intake to successful placement, AgencHQ gives your teams clean workflows and a modern command center experience.</p>
+            <h2 class="mt-4 text-3xl font-bold leading-tight sm:text-4xl" :style="ctaHeadlineStyle">One platform for every hiring and staffing outcome.</h2>
+            <p class="mt-4 text-base text-white/85 sm:text-lg">From requisition intake to successful placement, AgencHQ gives your teams clean workflows and a modern command center experience.</p>
             <div class="mt-7 flex flex-wrap gap-3">
               <RouterLink to="/signup" class="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-100">Get Started</RouterLink>
               <RouterLink to="/pricing" class="rounded-xl border border-white/35 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10">View Pricing</RouterLink>
