@@ -830,8 +830,9 @@ router.beforeEach(async (to, from) => {
             
             console.log('[ROUTER] apex dashboard check - brand.subdomain:', brand.subdomain);
             
-            if (brand.subdomain) {
-                const tenantUrl = `https://${brand.subdomain}.agenchq.com${to.fullPath}`;
+            const tenantSubdomain = String(auth.user?.organization?.subdomain || brand.subdomain || '').trim().toLowerCase();
+            if (tenantSubdomain) {
+                const tenantUrl = `https://${tenantSubdomain}.agenchq.com${to.fullPath}`;
                 console.log('[ROUTER] redirecting apex user to tenant subdomain:', tenantUrl);
                 window.location.href = tenantUrl;
                 return false;
@@ -897,8 +898,9 @@ router.beforeEach(async (to, from) => {
             
             console.log('[ROUTER] apex login check - brand.subdomain:', brand.subdomain, 'brand.loaded:', brand.loaded);
             
-            if (brand.subdomain) {
-                const tenantUrl = `https://${brand.subdomain}.agenchq.com/dashboard`;
+            const tenantSubdomain = String(auth.user?.organization?.subdomain || brand.subdomain || '').trim().toLowerCase();
+            if (tenantSubdomain) {
+                const tenantUrl = `https://${tenantSubdomain}.agenchq.com/dashboard`;
                 console.log('[ROUTER] authenticated org user on apex login -> tenant dashboard:', tenantUrl);
                 window.location.href = tenantUrl;
                 return false;

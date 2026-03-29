@@ -75,7 +75,7 @@ export default function DashboardSidebar({
       {
         id: 'talent',
         label: 'Talent',
-        show: isOrgSuperAdmin || isRecruiter,
+        show: isOrgSuperAdmin || isRecruiter || isScheduler || isCompliance || isFinance || isLogistics,
         items: [
           { id: 'candidates', label: 'Candidates', icon: 'person_search', routeName: 'dashboard.candidates' },
         ],
@@ -96,7 +96,7 @@ export default function DashboardSidebar({
       {
         id: 'operations',
         label: 'Operations',
-        show: isOrgSuperAdmin || isRecruiter || isScheduler || isLogistics,
+        show: isOrgSuperAdmin || isRecruiter || isScheduler || isCompliance || isFinance || isLogistics,
         items: [
           { id: 'jobs', label: 'Jobs', icon: 'work_outline', routeName: 'dashboard.job_orders', show: isOrgSuperAdmin || isRecruiter },
           { id: 'job_sources', label: 'Sources', icon: 'hub', routeName: 'dashboard.job_sources', show: isOrgSuperAdmin || isRecruiter },
@@ -104,7 +104,7 @@ export default function DashboardSidebar({
           { id: 'recruiter_tasks', label: 'Recruiter Tasks', icon: 'task_alt', routeName: 'dashboard.recruiter_tasks', show: isOrgSuperAdmin || isRecruiter },
           { id: 'shifts', label: 'Shifts', icon: 'calendar_today', routeName: 'dashboard.shifts', show: isOrgSuperAdmin || isRecruiter || isScheduler },
           { id: 'timesheets', label: 'Timesheets', icon: 'timer', routeName: 'dashboard.timesheets', show: isOrgSuperAdmin || isRecruiter },
-          { id: 'compliance', label: 'Compliance', icon: 'verified', routeName: 'dashboard.compliance', show: isOrgSuperAdmin || isRecruiter },
+          { id: 'compliance', label: 'Compliance', icon: 'verified', routeName: 'dashboard.compliance', show: isOrgSuperAdmin || isRecruiter || isCompliance },
           { id: 'logistics', label: 'Logistics', icon: 'local_shipping', routeName: 'dashboard.logistics', show: isOrgSuperAdmin || isRecruiter || isLogistics },
           { id: 'messages', label: 'Messages', icon: 'chat_bubble', routeName: 'dashboard.messages' },
           { id: 'drive', label: 'My Drive', icon: 'folder', routeName: 'dashboard.drive' },

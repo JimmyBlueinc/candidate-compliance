@@ -444,6 +444,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     Route::get('/candidate/me', [\App\Http\Controllers\Api\CandidatePortalController::class, 'me']);
     Route::get('/org/recruiters', [\App\Http\Controllers\Api\OrgController::class, 'recruiters']);
+    Route::get('/org/chat-users', [\App\Http\Controllers\Api\OrgController::class, 'chatUsers']);
     Route::get('/org/candidate-users', [\App\Http\Controllers\Api\OrgController::class, 'candidateUsers']);
     Route::get('/org/staff-chat-users', [\App\Http\Controllers\Api\OrgController::class, 'staffUsersForCandidateChat']);
 

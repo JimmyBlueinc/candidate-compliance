@@ -180,10 +180,11 @@ async function redirectAfterAuth() {
 
   const currentHost = window.location.hostname;
   const isOnApex = currentHost === 'agenchq.com' || currentHost === 'www.agenchq.com';
-  const hasTenantSubdomain = brand.subdomain && brand.subdomain !== '';
+  const tenantSubdomain = String(auth.user?.organization?.subdomain || brand.subdomain || '').trim().toLowerCase();
+  const hasTenantSubdomain = tenantSubdomain !== '';
 
   if (isOnApex && hasTenantSubdomain) {
-    window.location.href = `https://${brand.subdomain}.agenchq.com/dashboard`;
+    window.location.href = `https://${tenantSubdomain}.agenchq.com/dashboard`;
     return;
   }
 

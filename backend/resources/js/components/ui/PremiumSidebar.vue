@@ -325,7 +325,7 @@ const groups = computed(() => {
     {
       id: 'talent',
       label: 'Talent Network',
-      show: isOrgSuperAdmin.value || isRecruiter.value,
+      show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isCompliance.value || isFinance.value || isLogistics.value,
       items: [
         { id: 'candidates', label: 'Candidates', icon: 'search', routeName: 'dashboard.candidates' },
       ],
@@ -346,7 +346,7 @@ const groups = computed(() => {
     {
       id: 'operations',
       label: 'Operations',
-      show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isLogistics.value,
+      show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isCompliance.value || isFinance.value || isLogistics.value,
       items: [
         { id: 'jobs', label: 'Job Orders', icon: 'briefcase', routeName: 'dashboard.job_orders', show: isOrgSuperAdmin.value || isRecruiter.value },
         { id: 'job_sources', label: 'Job Sources', icon: 'activity', routeName: 'dashboard.job_sources', show: isOrgSuperAdmin.value || isRecruiter.value },
@@ -354,7 +354,7 @@ const groups = computed(() => {
         { id: 'recruiter_tasks', label: 'Recruiter Tasks', icon: 'checklist', routeName: 'dashboard.recruiter_tasks', show: isOrgSuperAdmin.value || isRecruiter.value },
         { id: 'shifts', label: 'Shifts', icon: 'calendar', routeName: 'dashboard.shifts', show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value },
         { id: 'timesheets', label: 'Timesheets', icon: 'timer', routeName: 'dashboard.timesheets', show: isOrgSuperAdmin.value || isRecruiter.value },
-        { id: 'compliance', label: 'Compliance', icon: 'shield', routeName: 'dashboard.compliance', show: isOrgSuperAdmin.value || isRecruiter.value },
+        { id: 'compliance', label: 'Compliance', icon: 'shield', routeName: 'dashboard.compliance', show: isOrgSuperAdmin.value || isRecruiter.value || isCompliance.value },
         { id: 'logistics', label: 'Logistics', icon: 'truck', routeName: 'dashboard.logistics', show: isOrgSuperAdmin.value || isRecruiter.value || isLogistics.value },
         { id: 'messages', label: 'Messages', icon: 'messages', routeName: 'dashboard.messages' },
         { id: 'drive', label: 'My Drive', icon: 'folder', routeName: 'dashboard.drive' },

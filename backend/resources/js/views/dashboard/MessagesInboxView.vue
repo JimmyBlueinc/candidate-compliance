@@ -23,7 +23,7 @@
 
     <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-5">
       <aside class="lg:col-span-4 xl:col-span-3 flex flex-col min-h-0">
-        <UiCard class="flex flex-col h-full" title="Candidate Inbox">
+        <UiCard class="flex flex-col h-full" title="Conversations">
           <template #header-right>
             <div v-if="loading" class="flex items-center gap-2">
               <RefreshCw class="w-3.5 h-3.5 text-[color:var(--aq-muted)] animate-spin" />
@@ -37,7 +37,7 @@
               <InputText
                 v-model="query"
                 class="w-full pl-10"
-                placeholder="Search candidate by name or email"
+                placeholder="Search by name or email"
                 @keydown.enter.prevent="runSearch"
               />
             </div>
@@ -49,19 +49,22 @@
 
           <div class="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2 space-y-1">
             <button
-              v-for="c in candidates"
+              v-for="c in recipients"
               :key="c.id"
               type="button"
               class="candidate-item"
               :class="selectedRecipientId === c.id ? 'candidate-item-active' : ''"
-              @click="selectCandidate(c)"
+              @click="selectRecipient(c)"
             >
               <div class="relative">
                 <div class="w-10 h-10 rounded-full bg-[color:var(--aq-surface-2)] border border-[color:var(--aq-border)] flex items-center justify-center text-[color:var(--aq-fg)] font-bold text-sm overflow-hidden">
                   <span v-if="!c.avatar">{{ c.name?.charAt(0) || 'C' }}</span>
                   <img v-else :src="c.avatar" class="w-full h-full object-cover" />
                 </div>
-                <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[color:var(--aq-surface-card)] bg-emerald-500 pulsing-dot" />
+                <div
+                  class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[color:var(--aq-surface-card)]"
+                  :class="c.is_online ? 'bg-emerald-500 pulsing-dot' : 'bg-slate-500/70'"
+                />
               </div>
 
               <div class="min-w-0 flex-1 text-left">
@@ -70,9 +73,9 @@
               </div>
             </button>
 
-            <div v-if="!loading && candidates.length === 0" class="flex flex-col items-center justify-center py-12 text-center px-4">
+            <div v-if="!loading && recipients.length === 0" class="flex flex-col items-center justify-center py-12 text-center px-4">
               <Users class="w-8 h-8 text-[color:var(--aq-muted)] mb-2" />
-              <div class="text-xs text-[color:var(--aq-muted)]">No candidates found.</div>
+              <div class="text-xs text-[color:var(--aq-muted)]">No users found.</div>
             </div>
           </div>
         </UiCard>
@@ -123,13 +126,13 @@ const brand = useBrandStore();
 const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
 
 const query = ref('');
-const candidates = ref([]);
+const recipients = ref([]);
 const loading = ref(false);
 const error = ref('');
 
 const selectedRecipientId = ref(null);
 const selectedLabel = computed(() => {
-  const row = candidates.value.find((c) => Number(c.id) === Number(selectedRecipientId.value));
+  const row = recipients.value.find((c) => Number(c.id) === Number(selectedRecipientId.value));
   return row?.name ? `Chat with ${row.name}` : 'Messages';
 });
 const heroBgStyle = {
@@ -141,18 +144,18 @@ async function runSearch() {
     loading.value = true;
     error.value = '';
     const activeId = Number(selectedRecipientId.value || 0);
-    const res = await apiGet('/org/candidate-users', {
+    const res = await apiGet('/org/chat-users', {
       params: { q: query.value || '' },
       timeout: 20000,
     });
     const next = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
-    candidates.value = next;
+    recipients.value = next;
     if (activeId > 0 && !next.some((c) => Number(c.id) === activeId)) {
       selectedRecipientId.value = null;
     }
   } catch (e) {
-    error.value = e?.response?.data?.message || e?.message || 'Failed to load candidates.';
-    candidates.value = [];
+    error.value = e?.response?.data?.message || e?.message || 'Failed to load chat users.';
+    recipients.value = [];
   } finally {
     loading.value = false;
   }
@@ -175,11 +178,11 @@ onBeforeUnmount(() => {
 
 function clearSearch() {
   query.value = '';
-  candidates.value = [];
+  recipients.value = [];
   selectedRecipientId.value = null;
 }
 
-function selectCandidate(c) {
+function selectRecipient(c) {
   selectedRecipientId.value = Number(c.id);
 }
 </script>

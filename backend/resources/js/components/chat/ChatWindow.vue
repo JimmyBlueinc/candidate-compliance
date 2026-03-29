@@ -62,6 +62,21 @@
     <!-- Input Area -->
     <div class="p-4 border-t border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)]/55">
       <form @submit.prevent="sendMessage" class="flex gap-2">
+        <input
+          ref="attachmentInput"
+          type="file"
+          class="hidden"
+          @change="onAttachmentSelected"
+        />
+        <Button
+          type="button"
+          icon="pi pi-paperclip"
+          rounded
+          severity="secondary"
+          text
+          :disabled="sending"
+          @click="openAttachmentPicker"
+        />
         <InputText v-model="newMessage" 
                   placeholder="Type a message..." 
                   class="flex-1 !bg-[color:var(--aq-surface-card)] !border-[color:var(--aq-border)] !rounded-full !px-4 text-sm"
@@ -69,9 +84,12 @@
         <Button type="submit" 
                 icon="pi pi-send" 
                 rounded 
-                :loading="sending" 
-                :disabled="!newMessage.trim()" />
+                :loading="sending || uploadingAttachment" 
+                :disabled="!newMessage.trim() && !selectedAttachment" />
       </form>
+      <div v-if="selectedAttachment" class="mt-2 text-[11px] text-[color:var(--aq-muted)] truncate">
+        Ready to send: {{ selectedAttachment.name }}
+      </div>
 
       <Message
         v-if="sendError"
@@ -110,6 +128,9 @@ const sendError = ref('');
 const messageContainer = ref(null);
 const hasLoadedOnce = ref(false);
 const lastLoadedMessageId = ref(0);
+const attachmentInput = ref(null);
+const selectedAttachment = ref(null);
+const uploadingAttachment = ref(false);
 
 async function loadMessages({ incremental = false } = {}) {
   if (loading.value) return;
@@ -163,7 +184,7 @@ async function loadMessages({ incremental = false } = {}) {
 }
 
 async function sendMessage() {
-  if (!newMessage.value.trim() || sending.value) return;
+  if ((!newMessage.value.trim() && !selectedAttachment.value) || sending.value) return;
 
   if (!props.jobOrderId && !props.submissionId && !props.placementId && !props.recipientId) {
     sendError.value = 'Select a conversation before sending a message.';
@@ -173,7 +194,23 @@ async function sendMessage() {
   sending.value = true;
   sendError.value = '';
   try {
-    const payload = { body: newMessage.value };
+    let attachmentSnippet = '';
+    if (selectedAttachment.value) {
+      uploadingAttachment.value = true;
+      const formData = new FormData();
+      formData.append('file', selectedAttachment.value);
+      const uploadRes = await apiPost('/drive/files', formData, { timeout: 180000 });
+      const uploadPayload = uploadRes?.data || uploadRes || {};
+      const uploaded = uploadPayload?.file || uploadPayload;
+      if (uploaded?.download_url) {
+        attachmentSnippet = `Attachment: ${uploaded.name || 'file'}\n${uploaded.download_url}`;
+      }
+    }
+
+    const messageBody = [newMessage.value.trim(), attachmentSnippet].filter(Boolean).join('\n\n');
+    if (!messageBody) return;
+
+    const payload = { body: messageBody };
     if (props.jobOrderId) payload.job_order_id = props.jobOrderId;
     else if (props.submissionId) payload.submission_id = props.submissionId;
     else if (props.placementId) payload.placement_id = props.placementId;
@@ -185,9 +222,13 @@ async function sendMessage() {
       messages.value.push(msg);
       lastLoadedMessageId.value = Math.max(lastLoadedMessageId.value, Number(msg.id || 0));
       newMessage.value = '';
+      selectedAttachment.value = null;
+      if (attachmentInput.value) attachmentInput.value.value = '';
       await scrollToBottom();
     } else {
       newMessage.value = '';
+      selectedAttachment.value = null;
+      if (attachmentInput.value) attachmentInput.value.value = '';
       await loadMessages({ incremental: true });
     }
   } catch (e) {
@@ -195,6 +236,7 @@ async function sendMessage() {
     sendError.value = e?.response?.data?.message || e?.message || 'Failed to send message.';
   } finally {
     sending.value = false;
+    uploadingAttachment.value = false;
   }
 }
 
@@ -223,6 +265,16 @@ function resetConversation() {
   hasLoadedOnce.value = false;
   lastLoadedMessageId.value = 0;
   sendError.value = '';
+  selectedAttachment.value = null;
+  if (attachmentInput.value) attachmentInput.value.value = '';
+}
+
+function onAttachmentSelected(event) {
+  selectedAttachment.value = event?.target?.files?.[0] || null;
+}
+
+function openAttachmentPicker() {
+  attachmentInput.value?.click();
 }
 
 let pollInterval = null;

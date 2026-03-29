@@ -23,7 +23,7 @@ const selectedUser = computed(() => {
 
 async function loadStaff() {
   try {
-    const res = await apiGet('/org/staff-chat-users');
+    const res = await apiGet('/org/chat-users');
     const rows = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
     staff.value = rows;
     if (rows.length > 0) {
