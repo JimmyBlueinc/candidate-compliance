@@ -6,6 +6,12 @@
       :breadcrumb="{ label: 'Integrations', to: { name: 'dashboard.integrations' } }"
     >
       <template #actions>
+        <span
+          class="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]"
+          :class="envModeClass"
+        >
+          {{ envModeLabel }}
+        </span>
         <AppButton variant="secondary" size="sm" @click="reload" :loading="loading">Refresh</AppButton>
         <AppButton size="sm" @click="runTest" :loading="testing">Test Connection</AppButton>
       </template>
@@ -127,7 +133,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { apiGet, apiPost, apiPut } from '../../lib/api';
 import AppPageHeader from '../../components/ui/AppPageHeader.vue';
@@ -145,6 +151,12 @@ const error = ref('');
 const integration = ref(null);
 const loadNotFound = ref(false);
 const usingSettingsFallback = ref(false);
+const envModeLabel = computed(() => (usingSettingsFallback.value ? 'Compatibility Mode' : 'Native API Mode'));
+const envModeClass = computed(() =>
+  usingSettingsFallback.value
+    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+    : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+);
 
 const form = reactive({
   enabled: false,

@@ -5,6 +5,12 @@
       subtitle="Configure and monitor organization-wide integrations for storage, communication, scheduling, and finance."
     >
       <template #actions>
+        <span
+          class="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]"
+          :class="envModeClass"
+        >
+          {{ envModeLabel }}
+        </span>
         <AppButton variant="secondary" size="sm" :loading="loading" @click="reload">
           <RefreshCw class="w-4 h-4" />
           Refresh
@@ -128,6 +134,12 @@ const automationEnabledCount = computed(() => {
   const map = Object.fromEntries(integrationCards.value.map((x) => [x.key, x.enabled]));
   return keys.filter((k) => map[k] === true).length;
 });
+const envModeLabel = computed(() => (supportsIntegrationApi.value ? 'Native API Mode' : 'Compatibility Mode'));
+const envModeClass = computed(() =>
+  supportsIntegrationApi.value
+    ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+    : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+);
 
 const cardStyle = {
   background: 'color-mix(in srgb, var(--aq-surface-card) 96%, transparent)',
