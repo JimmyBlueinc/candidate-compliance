@@ -17,7 +17,7 @@ class EnsureUserIsAdmin
     {
         $user = $request->user();
         // Allow tenant admin and tenant owner
-        if (!$user || !in_array($user->role, ['admin', 'org_super_admin', 'platform_admin', 'recruiter', 'compliance', 'finance', 'logistics'], true)) {
+        if (!$user || !in_array($user->role, ['admin', 'org_super_admin', 'platform_admin', 'recruiter', 'scheduler', 'compliance', 'finance', 'logistics'], true)) {
             return response()->json([
                 'message' => 'Unauthorized. Admin access required.',
             ], 403);

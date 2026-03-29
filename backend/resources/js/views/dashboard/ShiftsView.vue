@@ -175,6 +175,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { apiGet, apiPost, normalizeApiList } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
+import { useRouter } from 'vue-router';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Message from 'primevue/message';
@@ -196,6 +197,7 @@ import {
 } from 'lucide-vue-next';
 
 const shifts = ref([]);
+const router = useRouter();
 const loading = ref(false);
 const acting = ref(false);
 const showCreateModal = ref(false);
@@ -414,7 +416,7 @@ async function completeShift(shift) {
 function messageShiftCandidate(shift) {
   const recipientId = Number(shift?.assigned_candidate?.user_id || 0);
   if (!recipientId) return;
-  window.location.assign(`/dashboard/messages?recipient_id=${encodeURIComponent(String(recipientId))}`);
+  router.push({ name: 'dashboard.messages', query: { recipient_id: String(recipientId) } });
 }
 
 function getBadgeVariant(status) {

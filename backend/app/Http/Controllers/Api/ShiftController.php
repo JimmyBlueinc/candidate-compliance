@@ -38,6 +38,11 @@ class ShiftController extends Controller
                 ->with([
                     'facility:id,name',
                     'template:id,name,role,facility_id',
+                    'assignment:id,tenant_id,candidate_id,facility_name',
+                    'assignment.candidate:id,user_id,name,specialty',
+                    'shiftAssignments:id,tenant_id,shift_id,candidate_id,status,approved_at',
+                    'shiftAssignments.candidate:id,user_id,name,specialty',
+                    'requests:id,tenant_id,shift_id,candidate_id,status,requested_at',
                 ])
                 ->where('tenant_id', $orgId);
 
@@ -60,7 +65,42 @@ class ShiftController extends Controller
             ], 500);
         }
 
-        return response()->api($rows);
+        $data = $rows->map(function (Shift $shift) {
+            $tz = (string) ($shift->timezone ?: $shift->template?->timezone ?: 'UTC');
+            $starts = $shift->starts_at ? Carbon::parse($shift->starts_at)->timezone($tz) : null;
+            $ends = $shift->ends_at ? Carbon::parse($shift->ends_at)->timezone($tz) : null;
+
+            $pendingRequest = $shift->requests
+                ? $shift->requests->firstWhere('status', 'pending')
+                : null;
+
+            $approvedAssignment = $shift->shiftAssignments
+                ? $shift->shiftAssignments
+                    ->whereIn('status', ['approved', 'completed'])
+                    ->sortByDesc('approved_at')
+                    ->first()
+                : null;
+
+            $candidate = $approvedAssignment?->candidate ?: $shift->assignment?->candidate;
+
+            return [
+                'id' => $shift->id,
+                'facility' => (string) ($shift->facility?->name ?? $shift->assignment?->facility_name ?? ''),
+                'date' => $starts?->format('Y-m-d'),
+                'start_time' => $starts?->format('H:i'),
+                'end_time' => $ends?->format('H:i'),
+                'status' => (string) $shift->status,
+                'request_id' => $pendingRequest?->id,
+                'assigned_candidate' => $candidate ? [
+                    'id' => (int) $candidate->id,
+                    'user_id' => (int) ($candidate->user_id ?? 0),
+                    'name' => (string) ($candidate->name ?? 'Candidate'),
+                    'specialty' => (string) ($candidate->specialty ?? ''),
+                ] : null,
+            ];
+        })->values();
+
+        return response()->api($data);
     }
 
     public function templates(Request $request): JsonResponse
