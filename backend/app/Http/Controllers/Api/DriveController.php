@@ -147,8 +147,8 @@ class DriveController extends Controller
         ]);
 
         $file = $validated['file'];
-        $primaryDisk = $this->resolveDriveDisk();
-        $candidateDisks = array_values(array_unique([$primaryDisk, 'local']));
+        $candidateDisks = $this->resolveDriveDiskCandidates();
+        $primaryDisk = $candidateDisks[0] ?? $this->resolveDriveDisk();
         $record = null;
         $lastError = null;
 
@@ -348,6 +348,7 @@ class DriveController extends Controller
         return [
             'id' => (int) $file->id,
             'name' => (string) $file->name,
+            'storage_disk' => (string) ($file->storage_disk ?? ''),
             'mime_type' => (string) ($file->mime_type ?? ''),
             'size_bytes' => (int) ($file->size_bytes ?? 0),
             'extension' => (string) ($file->extension ?? ''),
@@ -439,24 +440,42 @@ class DriveController extends Controller
     private function resolveDriveDisk(): string
     {
         $preferred = (string) (config('filesystems.drive_disk') ?: config('filesystems.default') ?: 'local');
-        $disks = (array) config('filesystems.disks', []);
-
-        if (!array_key_exists($preferred, $disks)) {
-            return 'local';
+        if ($this->isDiskUsable($preferred)) {
+            return $preferred;
         }
 
-        $driver = (string) ($disks[$preferred]['driver'] ?? '');
-        if ($driver === 's3') {
-            $bucket = (string) ($disks[$preferred]['bucket'] ?? '');
-            if (trim($bucket) === '') {
-                Log::warning('Drive disk bucket missing; using local fallback', [
-                    'preferred_disk' => $preferred,
-                ]);
-                return 'local';
+        // Mirror logo-branding reliability: prefer S3 disks before local fallback.
+        foreach (['private_assets', 'public_assets', 'local'] as $fallback) {
+            if ($this->isDiskUsable($fallback)) {
+                return $fallback;
             }
         }
 
-        return $preferred;
+        return 'local';
+    }
+
+    private function resolveDriveDiskCandidates(): array
+    {
+        $preferred = $this->resolveDriveDisk();
+        $candidates = [$preferred, 'private_assets', 'public_assets', 'local'];
+
+        return array_values(array_filter(array_unique($candidates), fn ($disk) => $this->isDiskUsable((string) $disk)));
+    }
+
+    private function isDiskUsable(string $disk): bool
+    {
+        $disks = (array) config('filesystems.disks', []);
+        if (!array_key_exists($disk, $disks)) {
+            return false;
+        }
+
+        $driver = (string) ($disks[$disk]['driver'] ?? '');
+        if ($driver !== 's3') {
+            return true;
+        }
+
+        $bucket = trim((string) ($disks[$disk]['bucket'] ?? ''));
+        return $bucket !== '';
     }
 
     private function resolveFileDisk(UserDriveFile $file): string
