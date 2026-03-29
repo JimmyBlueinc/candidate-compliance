@@ -1,7 +1,22 @@
 <template>
-  <div class="min-h-screen bg-white text-slate-900">
+  <div class="min-h-screen bg-[#f8fafc] text-slate-900">
     <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primaryColor" @apex-login="goLogin" />
-    <div class="max-w-7xl mx-auto px-6 pt-28 pb-10">
+    <div class="max-w-7xl mx-auto px-6 pt-28 pb-12">
+      <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-7 md:p-10">
+        <img
+          src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=2000&q=80"
+          alt="Staffing professionals discussing career opportunities"
+          class="absolute inset-0 h-full w-full object-cover opacity-25"
+          loading="lazy"
+        />
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/92 via-slate-900/85 to-slate-900/70" />
+        <div class="relative z-10 max-w-3xl">
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">Open Roles</p>
+          <h1 class="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">Find your next staffing opportunity</h1>
+          <p class="mt-3 text-base text-white/85">Explore high-quality roles, filter quickly, and apply in minutes from a modern hiring experience.</p>
+        </div>
+      </section>
+
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-600">

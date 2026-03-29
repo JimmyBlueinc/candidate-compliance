@@ -1,31 +1,32 @@
 <template>
-  <div class="min-h-screen bg-white text-slate-900">
+  <div class="min-h-screen bg-[#f8fafc] text-slate-900">
     <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primarySolid" @apex-login="goLogin" />
-    <div class="max-w-6xl mx-auto px-6 pt-28 pb-14">
-
-      <section class="rounded-3xl border border-slate-200 p-8 md:p-12 bg-gradient-to-br from-slate-50 to-white">
-        <h1 class="text-4xl md:text-5xl font-bold tracking-tight">Solutions for healthcare staffing operations</h1>
-        <p class="mt-4 text-slate-600 max-w-3xl">
-          Built to unify compliance, recruiting, scheduling, finance, and facility workflows in one operating system.
+    <div class="max-w-7xl mx-auto px-6 pt-28 pb-16">
+      <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm md:p-12">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight">Solutions for every staffing growth stage</h1>
+        <p class="mt-4 max-w-3xl text-slate-600">
+          Whether you are scaling a recruiting desk or running multi-team workforce operations, AgencHQ gives you modern workflows and clear execution control.
         </p>
       </section>
 
-      <section class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-5">
-        <article class="rounded-2xl border border-slate-200 p-6">
-          <div class="h-24 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 mb-4" />
-          <h2 class="font-semibold text-lg">Recruiting Velocity</h2>
-          <p class="mt-2 text-sm text-slate-600">Source candidates, track pipeline stages, and reduce placement time.</p>
+      <section class="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <article v-for="item in solutionCards" :key="item.title" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <img :src="item.image" :alt="item.alt" class="h-44 w-full object-cover" loading="lazy" />
+          <div class="p-5">
+            <h2 class="text-lg font-semibold">{{ item.title }}</h2>
+            <p class="mt-2 text-sm text-slate-600">{{ item.description }}</p>
+          </div>
         </article>
-        <article class="rounded-2xl border border-slate-200 p-6">
-          <div class="h-24 rounded-xl bg-gradient-to-br from-emerald-100 to-cyan-100 mb-4" />
-          <h2 class="font-semibold text-lg">Compliance Confidence</h2>
-          <p class="mt-2 text-sm text-slate-600">Automate credential visibility, expirations, and review workflows.</p>
-        </article>
-        <article class="rounded-2xl border border-slate-200 p-6">
-          <div class="h-24 rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-100 mb-4" />
-          <h2 class="font-semibold text-lg">Finance Intelligence</h2>
-          <p class="mt-2 text-sm text-slate-600">Track margin by facility, export reports, and streamline invoicing.</p>
-        </article>
+      </section>
+
+      <section class="mt-12 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+        <h2 class="text-2xl font-bold tracking-tight text-slate-900">Outcome-focused solution pillars</h2>
+        <div class="mt-6 grid gap-4 md:grid-cols-2">
+          <article v-for="pillar in pillars" :key="pillar.title" class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <h3 class="text-lg font-semibold text-slate-900">{{ pillar.title }}</h3>
+            <p class="mt-2 text-sm text-slate-600">{{ pillar.description }}</p>
+          </article>
+        </div>
       </section>
     </div>
   </div>
@@ -40,6 +41,32 @@ import PublicSiteHeader from '../../components/public/PublicSiteHeader.vue';
 const router = useRouter();
 const brand = useBrandStore();
 const primarySolid = computed(() => brand.primaryColor || '#2563eb');
+const solutionCards = [
+  {
+    title: 'High-volume recruiting',
+    description: 'Keep hiring teams aligned with shared pipelines, scorecards, and recruiter workflows.',
+    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=80',
+    alt: 'Recruiting team collaborating in office',
+  },
+  {
+    title: 'Distributed workforce operations',
+    description: 'Coordinate assignment readiness, handoffs, and team communication from one dashboard.',
+    image: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1400&q=80',
+    alt: 'Workforce leaders discussing operations',
+  },
+  {
+    title: 'Staffing performance visibility',
+    description: 'Track productivity and business outcomes with role-specific analytics and clean reporting.',
+    image: 'https://images.unsplash.com/photo-1462899006636-339e08d1844e?auto=format&fit=crop&w=1400&q=80',
+    alt: 'Team reviewing staffing analytics',
+  },
+];
+const pillars = [
+  { title: 'Recruiter productivity', description: 'Reduce manual admin and increase time spent on candidate relationships and placements.' },
+  { title: 'Manager oversight', description: 'Gain clarity on pipeline health, assignment risk, and execution bottlenecks instantly.' },
+  { title: 'Cross-team collaboration', description: 'Align operations, finance, and talent teams through shared records and status updates.' },
+  { title: 'Scalable process design', description: 'Standardize workflows so your team can scale headcount and volume without chaos.' },
+];
 
 function goLogin() {
   router.push({ name: 'login' });

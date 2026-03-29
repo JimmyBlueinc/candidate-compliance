@@ -1,45 +1,23 @@
 <template>
-  <div class="min-h-screen bg-white text-slate-900">
+  <div class="min-h-screen bg-[#f8fafc] text-slate-900">
     <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primarySolid" @apex-login="goLogin" />
-    <div class="max-w-6xl mx-auto px-6 pt-28 pb-14">
-
-      <section class="rounded-3xl border border-slate-200 p-8 md:p-12 bg-gradient-to-br from-violet-50/55 to-white">
-        <h1 class="text-4xl md:text-5xl font-bold tracking-tight">Pricing built for agency growth</h1>
-        <p class="mt-4 text-slate-600 max-w-3xl">
-          Start with core operations and scale modules as your staffing footprint grows.
-        </p>
+    <div class="max-w-7xl mx-auto px-6 pt-28 pb-16">
+      <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm md:p-12">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight">Pricing designed for staffing scale</h1>
+        <p class="mt-4 max-w-3xl text-slate-600">Start lean, then expand features as your team, candidate volume, and client demand grow.</p>
       </section>
 
-      <section class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-5">
-        <article class="rounded-2xl border border-slate-200 p-6">
-          <div class="h-2 w-16 rounded-full bg-slate-300 mb-4" />
-          <div class="text-xs uppercase tracking-wider font-semibold text-slate-500">Starter</div>
-          <div class="mt-3 text-3xl font-bold">$299<span class="text-base font-medium text-slate-500">/mo</span></div>
-          <ul class="mt-4 space-y-2 text-sm text-slate-600">
-            <li>Recruiting + candidate pipeline</li>
-            <li>Basic credential tracking</li>
-            <li>Core reporting</li>
+      <section class="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <article v-for="plan in plans" :key="plan.name" class="rounded-2xl border p-6 shadow-sm" :class="plan.featured ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white'">
+          <p class="text-xs uppercase tracking-wider font-semibold" :class="plan.featured ? 'text-white/70' : 'text-slate-500'">{{ plan.name }}</p>
+          <p class="mt-3 text-3xl font-bold">{{ plan.price }}<span class="text-base font-medium" :class="plan.featured ? 'text-white/70' : 'text-slate-500'">{{ plan.period }}</span></p>
+          <p class="mt-3 text-sm" :class="plan.featured ? 'text-white/85' : 'text-slate-600'">{{ plan.description }}</p>
+          <ul class="mt-5 space-y-2 text-sm" :class="plan.featured ? 'text-white/85' : 'text-slate-600'">
+            <li v-for="feature in plan.features" :key="feature">- {{ feature }}</li>
           </ul>
-        </article>
-        <article class="rounded-2xl border-2 border-slate-900 p-6">
-          <div class="h-2 w-16 rounded-full bg-slate-900 mb-4" />
-          <div class="text-xs uppercase tracking-wider font-semibold text-slate-500">Growth</div>
-          <div class="mt-3 text-3xl font-bold">$699<span class="text-base font-medium text-slate-500">/mo</span></div>
-          <ul class="mt-4 space-y-2 text-sm text-slate-600">
-            <li>Everything in Starter</li>
-            <li>Advanced dashboards + exports</li>
-            <li>Facilities contracts workflows</li>
-          </ul>
-        </article>
-        <article class="rounded-2xl border border-slate-200 p-6">
-          <div class="h-2 w-16 rounded-full bg-slate-300 mb-4" />
-          <div class="text-xs uppercase tracking-wider font-semibold text-slate-500">Enterprise</div>
-          <div class="mt-3 text-3xl font-bold">Custom</div>
-          <ul class="mt-4 space-y-2 text-sm text-slate-600">
-            <li>Org-wide integrations hub</li>
-            <li>Priority support + onboarding</li>
-            <li>Custom security/governance</li>
-          </ul>
+          <button type="button" class="mt-6 w-full rounded-xl px-4 py-2 text-sm font-semibold" :class="plan.featured ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'">
+            {{ plan.cta }}
+          </button>
         </article>
       </section>
     </div>
@@ -55,6 +33,35 @@ import PublicSiteHeader from '../../components/public/PublicSiteHeader.vue';
 const router = useRouter();
 const brand = useBrandStore();
 const primarySolid = computed(() => brand.primaryColor || '#2563eb');
+const plans = [
+  {
+    name: 'Starter',
+    price: '$299',
+    period: '/mo',
+    description: 'For focused recruiting teams launching a clean staffing workflow.',
+    features: ['Candidate pipeline and search', 'Core messaging and alerts', 'Basic reporting and dashboards'],
+    cta: 'Start Starter',
+    featured: false,
+  },
+  {
+    name: 'Growth',
+    price: '$699',
+    period: '/mo',
+    description: 'For scaling operations that need deeper automation and team visibility.',
+    features: ['Everything in Starter', 'Advanced analytics and workforce intelligence', 'Integrations and automation controls'],
+    cta: 'Book Growth Demo',
+    featured: true,
+  },
+  {
+    name: 'Enterprise',
+    price: 'Custom',
+    period: '',
+    description: 'For high-volume operators with custom governance and rollout needs.',
+    features: ['Dedicated onboarding support', 'Custom security and controls', 'Enterprise service and success plan'],
+    cta: 'Talk to Sales',
+    featured: false,
+  },
+];
 
 function goLogin() {
   router.push({ name: 'login' });

@@ -5,7 +5,7 @@
     <header class="relative z-10 max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
       <RouterLink to="/" class="flex items-center gap-3">
         <div class="w-10 h-10 bg-gradient-to-br from-primary to-accent-blue rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-          <span class="material-symbols-outlined text-white text-xl">health_metrics</span>
+          <span class="material-symbols-outlined text-white text-xl">groups</span>
         </div>
         <span class="font-display text-xl tracking-tight">AgencHQ</span>
       </RouterLink>
