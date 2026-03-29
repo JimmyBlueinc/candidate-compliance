@@ -88,13 +88,13 @@
         </Column>
         <Column header="Candidate">
           <template #body="{ data }">
-            <div v-if="data.assigned_candidate" class="flex items-center gap-2">
+            <div v-if="data.assigned_candidate || data.request_candidate" class="flex items-center gap-2">
               <div class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                 <User class="w-4 h-4 text-slate-400" />
               </div>
               <div class="flex flex-col min-w-0">
-                <span class="text-white text-sm font-medium truncate">{{ data.assigned_candidate.name }}</span>
-                <span class="text-[10px] text-slate-500 truncate">{{ data.assigned_candidate.specialty }}</span>
+                <span class="text-white text-sm font-medium truncate">{{ resolveCandidate(data)?.name }}</span>
+                <span class="text-[10px] text-slate-500 truncate">{{ resolveCandidate(data)?.specialty }}</span>
               </div>
             </div>
             <span v-else class="text-xs italic text-slate-500">Unassigned</span>
@@ -104,7 +104,7 @@
           <template #body="{ data }">
             <div class="flex items-center justify-end gap-1">
               <Button
-                v-if="data.assigned_candidate?.user_id"
+                v-if="resolveCandidate(data)?.user_id"
                 icon="pi pi-comments"
                 severity="secondary"
                 text
@@ -414,9 +414,13 @@ async function completeShift(shift) {
 }
 
 function messageShiftCandidate(shift) {
-  const recipientId = Number(shift?.assigned_candidate?.user_id || 0);
+  const recipientId = Number(resolveCandidate(shift)?.user_id || 0);
   if (!recipientId) return;
   router.push({ name: 'dashboard.messages', query: { recipient_id: String(recipientId) } });
+}
+
+function resolveCandidate(shift) {
+  return shift?.assigned_candidate || shift?.request_candidate || null;
 }
 
 function getBadgeVariant(status) {

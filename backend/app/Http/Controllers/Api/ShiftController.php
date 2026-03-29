@@ -43,6 +43,7 @@ class ShiftController extends Controller
                     'shiftAssignments:id,tenant_id,shift_id,candidate_id,status,approved_at',
                     'shiftAssignments.candidate:id,user_id,name,specialty',
                     'requests:id,tenant_id,shift_id,candidate_id,status,requested_at',
+                    'requests.candidate:id,user_id,name,specialty',
                 ])
                 ->where('tenant_id', $orgId);
 
@@ -81,7 +82,8 @@ class ShiftController extends Controller
                     ->first()
                 : null;
 
-            $candidate = $approvedAssignment?->candidate ?: $shift->assignment?->candidate;
+            $requestCandidate = $pendingRequest?->candidate;
+            $candidate = $approvedAssignment?->candidate ?: $shift->assignment?->candidate ?: $requestCandidate;
 
             return [
                 'id' => $shift->id,
@@ -91,6 +93,12 @@ class ShiftController extends Controller
                 'end_time' => $ends?->format('H:i'),
                 'status' => (string) $shift->status,
                 'request_id' => $pendingRequest?->id,
+                'request_candidate' => $requestCandidate ? [
+                    'id' => (int) $requestCandidate->id,
+                    'user_id' => (int) ($requestCandidate->user_id ?? 0),
+                    'name' => (string) ($requestCandidate->name ?? 'Candidate'),
+                    'specialty' => (string) ($requestCandidate->specialty ?? ''),
+                ] : null,
                 'assigned_candidate' => $candidate ? [
                     'id' => (int) $candidate->id,
                     'user_id' => (int) ($candidate->user_id ?? 0),
