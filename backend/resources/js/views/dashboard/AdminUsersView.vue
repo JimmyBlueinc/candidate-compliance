@@ -155,6 +155,17 @@ const credentialsDialogOpen = computed({
     },
 });
 
+function extractApiError(e, fallback) {
+    const data = e?.response?.data || {};
+    const validation = data?.errors;
+    if (validation && typeof validation === 'object') {
+        const firstField = Object.keys(validation)[0];
+        const firstMessage = firstField ? validation[firstField]?.[0] : null;
+        if (firstMessage) return String(firstMessage);
+    }
+    return data?.message || e?.message || fallback;
+}
+
 async function load() {
     try {
         loading.value = true;
@@ -168,7 +179,7 @@ async function load() {
     } catch (e) {
         users.value = [];
         organizations.value = [];
-        error.value = e?.response?.data?.message || e?.message || 'Failed to load users';
+        error.value = extractApiError(e, 'Failed to load users');
     } finally {
         loading.value = false;
     }
@@ -193,7 +204,7 @@ async function deleteUser(user) {
         await apiDelete(`/admin/users/${user.id}`);
         await load();
     } catch (e) {
-        error.value = e?.response?.data?.message || e?.message || 'Failed to delete user';
+        error.value = extractApiError(e, 'Failed to delete user');
     } finally {
         deletingId.value = null;
     }
@@ -208,8 +219,8 @@ async function createOrgAdmin() {
 
         const res = await apiPost('/admin/users', {
             organization_id: organizationId.value,
-            name: name.value,
-            email: email.value,
+            name: String(name.value || '').trim(),
+            email: String(email.value || '').trim().toLowerCase(),
             role: 'org_super_admin',
         });
 
@@ -224,7 +235,7 @@ async function createOrgAdmin() {
         email.value = '';
         await load();
     } catch (e) {
-        error.value = e?.response?.data?.message || e?.message || 'Failed to create org admin';
+        error.value = extractApiError(e, 'Failed to create org admin');
     } finally {
         creating.value = false;
     }

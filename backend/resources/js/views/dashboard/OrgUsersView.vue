@@ -325,6 +325,17 @@ const credentialsDialogOpen = computed({
   },
 });
 
+function extractApiError(e, fallback) {
+  const data = e?.response?.data || {};
+  const validation = data?.errors;
+  if (validation && typeof validation === 'object') {
+    const firstField = Object.keys(validation)[0];
+    const firstMessage = firstField ? validation[firstField]?.[0] : null;
+    if (firstMessage) return String(firstMessage);
+  }
+  return data?.message || e?.message || fallback;
+}
+
 function formatRole(r) {
   if (!r) return '—';
   const roleMap = {
@@ -385,9 +396,9 @@ async function createUser() {
     error.value = '';
 
     const res = await apiPost('/admin/users', {
-      name: name.value,
-      email: email.value,
-      role: role.value,
+      name: String(name.value || '').trim(),
+      email: String(email.value || '').trim().toLowerCase(),
+      role: String(role.value || '').trim().toLowerCase(),
     });
 
     const payload = res?.data || res;
@@ -404,7 +415,7 @@ async function createUser() {
     email.value = '';
     await load();
   } catch (e) {
-    error.value = e?.response?.data?.message || e?.message || 'Failed to create user';
+    error.value = extractApiError(e, 'Failed to create user');
   } finally {
     creating.value = false;
   }
@@ -436,9 +447,9 @@ async function submitEdit() {
     error.value = '';
 
     const payload = {
-      name: editName.value,
-      email: editEmail.value,
-      role: editRole.value,
+      name: String(editName.value || '').trim(),
+      email: String(editEmail.value || '').trim().toLowerCase(),
+      role: String(editRole.value || '').trim().toLowerCase(),
     };
 
     if (editPassword.value) {
@@ -451,7 +462,7 @@ async function submitEdit() {
     isEditOpen.value = false;
     await load();
   } catch (e) {
-    error.value = e?.response?.data?.message || e?.message || 'Failed to update user';
+    error.value = extractApiError(e, 'Failed to update user');
   } finally {
     savingEdit.value = false;
   }
