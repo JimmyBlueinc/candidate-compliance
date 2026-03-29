@@ -215,7 +215,7 @@
             </div>
           </div>
           <div class="mt-6">
-            <AppButton variant="secondary" class="w-full">
+            <AppButton variant="secondary" class="w-full" :loading="generatingRiskReport" @click="generateRiskReport">
               <FileText class="w-4 h-4" />
               Generate Risk Report
             </AppButton>
@@ -275,6 +275,7 @@ const unreadNotifications = ref(0);
 const mode = ref('by_status');
 const analytics = ref(null);
 const analyticsLoading = ref(false);
+const generatingRiskReport = ref(false);
 const dragSourceKey = ref('');
 const dragOverKey = ref('');
 
@@ -511,6 +512,37 @@ function goNotifications() {
 
 function exportFacilities() {
   window.open('/api/v1/facilities/export', '_blank');
+}
+
+async function generateRiskReport() {
+  if (generatingRiskReport.value) return;
+  generatingRiskReport.value = true;
+  try {
+    if (!analytics.value) {
+      await loadAnalytics();
+    }
+
+    const report = {
+      generated_at: new Date().toISOString(),
+      organization: brand.name || 'AgencHQ',
+      mode: mode.value,
+      totals: totals.value,
+      risk_metrics: riskMetrics.map((m) => ({ label: m.label, risk_percent: m.value })),
+      compliance_analytics: analytics.value || {},
+    };
+
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `risk-report-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } finally {
+    generatingRiskReport.value = false;
+  }
 }
 
 refresh();

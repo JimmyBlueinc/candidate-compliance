@@ -17,6 +17,7 @@
       </div>
 
       <div v-if="loading" class="mt-6 text-sm text-[color:var(--p-text-muted-color)]">Loading...</div>
+      <div v-else-if="error" class="mt-6 text-sm text-rose-400">{{ error }}</div>
       <div v-else-if="items.length === 0" class="mt-6 text-sm text-[color:var(--p-text-muted-color)]">No arrivals pending.</div>
 
       <div v-else class="mt-6 space-y-3">
@@ -68,12 +69,17 @@ const primarySoftBorder = computed(() => `color-mix(in srgb, ${primaryColor.valu
 
 const items = ref([]);
 const loading = ref(false);
+const error = ref('');
 
 async function refresh() {
     loading.value = true;
+    error.value = '';
     try {
         const res = await apiGet('/v1/logistics/needs-arrival');
         items.value = normalizeApiList(res);
+    } catch (e) {
+        items.value = [];
+        error.value = e?.response?.data?.message || e?.message || 'Failed to load logistics data.';
     } finally {
         loading.value = false;
     }

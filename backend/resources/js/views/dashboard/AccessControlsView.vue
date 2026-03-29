@@ -102,7 +102,7 @@ const error = ref('');
 const tab = ref('admins');
 
 const tabOptions = computed(() => {
-    const options = [{ label: `Admins (${admins.value.length})`, value: 'admins' }];
+    const options = [{ label: `Team Members (${teamMembers.value.length})`, value: 'admins' }];
     if (auth.user?.role === 'org_super_admin' || auth.user?.role === 'platform_admin') {
         options.push({ label: `Candidates (${candidates.value.length})`, value: 'candidates' });
     }
@@ -111,8 +111,9 @@ const tabOptions = computed(() => {
 
 const canManage = computed(() => auth.user?.role === 'org_super_admin' || auth.user?.role === 'platform_admin');
 
-const admins = computed(() => {
-    const base = rows.value.filter((r) => r.role === 'admin' || r.role === 'org_super_admin');
+const teamMembers = computed(() => {
+    const staffRoles = ['platform_admin', 'org_super_admin', 'admin', 'recruiter', 'scheduler', 'compliance', 'finance', 'logistics'];
+    const base = rows.value.filter((r) => staffRoles.includes(String(r.role || '').toLowerCase()));
     if (auth.user?.role === 'org_super_admin') {
         return base.filter((r) => Number(r.id) !== Number(auth.user.id));
     }
@@ -121,7 +122,7 @@ const admins = computed(() => {
 
 const candidates = computed(() => rows.value.filter((r) => r.role === 'candidate'));
 
-const activeRows = computed(() => (tab.value === 'admins' ? admins.value : candidates.value));
+const activeRows = computed(() => (tab.value === 'admins' ? teamMembers.value : candidates.value));
 
 function accessSeverity(status) {
     const value = String(status || 'active');
