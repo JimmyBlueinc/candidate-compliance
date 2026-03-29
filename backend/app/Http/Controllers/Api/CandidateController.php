@@ -15,9 +15,13 @@ use App\Models\Document;
 use App\Models\JobOrder;
 use App\Models\OrganizationSetting;
 use App\Models\Scopes\TenantScope;
+use App\Models\User;
 use App\Support\Org;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class CandidateController extends Controller
@@ -484,7 +488,55 @@ class CandidateController extends Controller
             ->where('tenant_id', $orgId)
             ->findOrFail($id);
 
-        $candidate->delete();
+        $linkedUserId = (int) ($candidate->user_id ?? 0);
+
+        try {
+            DB::transaction(function () use ($candidate, $orgId, $linkedUserId): void {
+                $candidate->delete();
+
+                if ($linkedUserId <= 0) {
+                    return;
+                }
+
+                $linkedUser = User::query()
+                    ->where('organization_id', $orgId)
+                    ->whereKey($linkedUserId)
+                    ->where('role', 'candidate')
+                    ->first();
+
+                if (!$linkedUser) {
+                    return;
+                }
+
+                // Remove restrictive user-linked rows before deleting the account.
+                DB::table('messages')
+                    ->where('user_id', $linkedUser->id)
+                    ->orWhere('recipient_id', $linkedUser->id)
+                    ->delete();
+
+                DB::table('notifications')
+                    ->where('user_id', $linkedUser->id)
+                    ->delete();
+
+                DB::table('personal_access_tokens')
+                    ->where('tokenable_type', User::class)
+                    ->where('tokenable_id', $linkedUser->id)
+                    ->delete();
+
+                $linkedUser->delete();
+            });
+        } catch (QueryException $e) {
+            Log::error('Failed deleting candidate and linked account', [
+                'candidate_id' => $candidate->id,
+                'linked_user_id' => $linkedUserId > 0 ? $linkedUserId : null,
+                'organization_id' => $orgId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Unable to fully delete this candidate due to related records.',
+            ], 422);
+        }
 
         return response()->api([
             'deleted' => true,

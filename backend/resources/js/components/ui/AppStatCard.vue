@@ -3,7 +3,7 @@
     :class="cn(
       'app-stat-card relative overflow-hidden',
       'rounded-[var(--radius-xl)] border p-5 transition-all duration-[var(--transition-base)]',
-      'bg-[color:var(--aq-surface-card)] border-[color:var(--aq-border)]',
+      cardToneClass,
       interactive && 'hover:shadow-[var(--shadow-lg)] hover:border-[color:var(--aq-primary)]/20 hover:-translate-y-0.5 cursor-pointer',
       props.class
     )"
@@ -21,14 +21,14 @@
           <component :is="icon" v-if="icon" class="w-4 h-4" :class="iconClass" />
         </slot>
       </div>
-      <span class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--aq-muted)]">
+      <span :class="cn('text-[11px] font-semibold uppercase tracking-wider', labelClass)">
         {{ label }}
       </span>
     </div>
     
     <!-- Value -->
     <div class="flex items-baseline gap-2">
-      <span class="text-2xl sm:text-3xl font-bold tracking-tight text-[color:var(--aq-fg)]">
+      <span :class="cn('text-2xl sm:text-3xl font-bold tracking-tight', valueClass)">
         {{ formattedValue }}
       </span>
       <span
@@ -97,6 +97,42 @@ const formattedValue = computed(() => {
     return Number(v).toLocaleString();
   }
   return v;
+});
+
+const cardToneClass = computed(() => {
+  const toneMap = {
+    primary: 'bg-[color:var(--aq-primary)]/14 border-[color:var(--aq-primary)]/35',
+    emerald: 'bg-emerald-500/14 border-emerald-400/35',
+    violet: 'bg-violet-500/14 border-violet-400/35',
+    cyan: 'bg-cyan-500/14 border-cyan-400/35',
+    rose: 'bg-rose-500/14 border-rose-400/35',
+    amber: 'bg-amber-500/14 border-amber-400/35',
+  };
+  return toneMap[props.color] || toneMap.primary;
+});
+
+const labelClass = computed(() => {
+  const toneMap = {
+    primary: 'text-[color:var(--aq-primary)]',
+    emerald: 'text-emerald-300',
+    violet: 'text-violet-300',
+    cyan: 'text-cyan-300',
+    rose: 'text-rose-300',
+    amber: 'text-amber-300',
+  };
+  return toneMap[props.color] || toneMap.primary;
+});
+
+const valueClass = computed(() => {
+  const toneMap = {
+    primary: 'text-[color:var(--aq-fg)]',
+    emerald: 'text-emerald-50',
+    violet: 'text-violet-50',
+    cyan: 'text-cyan-50',
+    rose: 'text-rose-50',
+    amber: 'text-amber-50',
+  };
+  return toneMap[props.color] || toneMap.primary;
 });
 
 const iconBgClass = computed(() => {

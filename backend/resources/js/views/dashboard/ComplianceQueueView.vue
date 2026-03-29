@@ -36,21 +36,25 @@
           label="Pending" 
           :value="metrics.pending" 
           :icon="Clock"
+          color="amber"
         />
         <UiStatCard 
           label="Current Candidate" 
           :value="metrics.selectedName" 
           :icon="User"
+          color="cyan"
         />
         <UiStatCard 
           label="Credential" 
           :value="metrics.selectedCredential" 
           :icon="FileText"
+          color="violet"
         />
         <UiStatCard 
           label="Status" 
           :value="metrics.selectedStatus" 
           :icon="Shield"
+          color="emerald"
         />
       </div>
 
