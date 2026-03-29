@@ -109,7 +109,8 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { apiGet } from '../../lib/api';
 import ChatWindow from '../../components/chat/ChatWindow.vue';
 import Button from 'primevue/button';
@@ -126,6 +127,7 @@ import {
 } from 'lucide-vue-next';
 
 const brand = useBrandStore();
+const route = useRoute();
 const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
 
 const query = ref('');
@@ -153,6 +155,10 @@ async function runSearch() {
     });
     const next = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
     recipients.value = next;
+    const preselectedRecipientId = Number(route.query?.recipient_id || 0);
+    if (preselectedRecipientId > 0 && next.some((c) => Number(c.id) === preselectedRecipientId)) {
+      selectedRecipientId.value = preselectedRecipientId;
+    }
     if (activeId > 0 && !next.some((c) => Number(c.id) === activeId)) {
       selectedRecipientId.value = null;
     }
@@ -188,6 +194,19 @@ function clearSearch() {
 function selectRecipient(c) {
   selectedRecipientId.value = Number(c.id);
 }
+
+watch(
+  () => route.query?.recipient_id,
+  (value) => {
+    const id = Number(value || 0);
+    if (!id) return;
+    if (recipients.value.some((c) => Number(c.id) === id)) {
+      selectedRecipientId.value = id;
+      return;
+    }
+    runSearch();
+  }
+);
 </script>
 
 <style scoped>

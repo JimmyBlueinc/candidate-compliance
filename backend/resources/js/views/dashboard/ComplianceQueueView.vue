@@ -114,6 +114,24 @@
             <template #header-right>
               <div v-if="selected" class="flex items-center gap-2">
                 <Button
+                  v-if="previewUrl"
+                  label="Open Document"
+                  icon="pi pi-external-link"
+                  severity="secondary"
+                  size="small"
+                  outlined
+                  @click="openPreview"
+                />
+                <Button
+                  v-if="selected?.candidate?.user_id"
+                  label="Message Candidate"
+                  icon="pi pi-comments"
+                  severity="secondary"
+                  size="small"
+                  outlined
+                  @click="messageCandidate(selected)"
+                />
+                <Button
                   label="Approve"
                   icon="pi pi-check"
                   severity="success"
@@ -194,6 +212,7 @@
 
 <script setup>
 import { computed, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { apiGet, apiPost, normalizeApiList } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import UiPageHeader from '../../components/ui/UiPageHeader.vue';
@@ -215,6 +234,7 @@ import {
 } from 'lucide-vue-next';
 
 const brand = useBrandStore();
+const router = useRouter();
 
 const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
 const primarySoftBg = computed(() => `color-mix(in srgb, ${primaryColor.value} 14%, transparent)`);
@@ -284,6 +304,17 @@ onMounted(() => {
 function selectRow(row) {
     selectedId.value = row?.id || null;
     cancelReject();
+}
+
+function openPreview() {
+    if (!previewUrl.value) return;
+    window.open(previewUrl.value, '_blank', 'noopener,noreferrer');
+}
+
+function messageCandidate(row) {
+    const recipientId = Number(row?.candidate?.user_id || 0);
+    if (!recipientId) return;
+    router.push({ name: 'dashboard.messages', query: { recipient_id: String(recipientId) } });
 }
 
 async function approve(row) {

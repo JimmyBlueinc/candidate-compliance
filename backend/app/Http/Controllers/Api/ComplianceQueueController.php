@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\CandidateCredential;
+use App\Models\Notification;
+use App\Models\User;
 use App\Services\CredentialService;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
@@ -25,7 +27,7 @@ class ComplianceQueueController extends Controller
             ->where('tenant_id', $orgId)
             ->where('status', 'pending')
             ->with([
-                'candidate:id,name,first_name,last_name,email',
+                'candidate:id,user_id,name,first_name,last_name,email',
                 'credentialType:id,name,category',
             ])
             ->orderBy('created_at')
@@ -43,6 +45,7 @@ class ComplianceQueueController extends Controller
                     'id' => $cred->id,
                     'candidate' => $cred->candidate ? [
                         'id' => $cred->candidate->id,
+                        'user_id' => $cred->candidate->user_id,
                         'name' => $candidateName,
                         'email' => $cred->candidate->email,
                     ] : null,
@@ -98,6 +101,14 @@ class ComplianceQueueController extends Controller
             ],
         ]);
 
+        $this->notifyComplianceDecision(
+            orgId: (int) $orgId,
+            actorId: (int) ($user?->id ?? 0),
+            credential: $credential,
+            decision: 'approved',
+            reason: null
+        );
+
         return response()->api(null, 200, [], 'Verified.');
     }
 
@@ -140,6 +151,63 @@ class ComplianceQueueController extends Controller
             ],
         ]);
 
+        $this->notifyComplianceDecision(
+            orgId: (int) $orgId,
+            actorId: (int) ($user?->id ?? 0),
+            credential: $credential,
+            decision: 'rejected',
+            reason: (string) $validated['reason']
+        );
+
         return response()->api(null, 200, [], 'Rejected.');
+    }
+
+    private function notifyComplianceDecision(int $orgId, int $actorId, CandidateCredential $credential, string $decision, ?string $reason): void
+    {
+        $credentialName = (string) ($credential->credentialType?->name ?? 'Credential');
+        $candidateName = (string) ($credential->candidate?->name ?? 'Candidate');
+        $candidateUserId = (int) ($credential->candidate?->user_id ?? 0);
+
+        $recipientIds = [];
+        if ($candidateUserId > 0) {
+            $recipientIds[] = $candidateUserId;
+        }
+
+        $staffRecipients = User::query()
+            ->where('organization_id', $orgId)
+            ->whereIn('role', ['org_super_admin', 'admin', 'recruiter', 'compliance'])
+            ->limit(100)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $recipientIds = array_values(array_unique(array_filter(array_merge($recipientIds, $staffRecipients), fn ($id) => $id > 0 && $id !== $actorId)));
+        if (count($recipientIds) === 0) {
+            return;
+        }
+
+        $type = $decision === 'approved' ? 'compliance_approved' : 'compliance_rejected';
+        $message = $decision === 'approved'
+            ? "{$candidateName}'s {$credentialName} was approved."
+            : "{$candidateName}'s {$credentialName} was rejected.";
+
+        foreach ($recipientIds as $recipientId) {
+            Notification::create([
+                'tenant_id' => $orgId,
+                'user_id' => $recipientId,
+                'type' => $type,
+                'entity_type' => 'candidate_credential',
+                'entity_id' => (int) $credential->id,
+                'data' => [
+                    'message' => $message,
+                    'candidate_id' => (int) $credential->candidate_id,
+                    'candidate_name' => $candidateName,
+                    'credential_name' => $credentialName,
+                    'decision' => $decision,
+                    'reason' => $reason,
+                ],
+                'created_at' => now(),
+            ]);
+        }
     }
 }
