@@ -10,6 +10,7 @@ use App\Support\Org;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -306,7 +307,36 @@ class AdminController extends Controller
             ]);
         }
 
-        $user->delete();
+        try {
+            DB::transaction(function () use ($user): void {
+                // Remove related rows that still use restrictive foreign keys to users.
+                DB::table('messages')
+                    ->where('user_id', $user->id)
+                    ->orWhere('recipient_id', $user->id)
+                    ->delete();
+
+                DB::table('notifications')
+                    ->where('user_id', $user->id)
+                    ->delete();
+
+                DB::table('personal_access_tokens')
+                    ->where('tokenable_type', User::class)
+                    ->where('tokenable_id', $user->id)
+                    ->delete();
+
+                $user->delete();
+            });
+        } catch (QueryException $e) {
+            Log::error('Failed deleting user', [
+                'target_user_id' => $user->id,
+                'current_user_id' => $currentUser->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Unable to fully delete this user due to related records.',
+            ], 422);
+        }
 
         return response()->api(null, 200, [], 'User deleted successfully');
     }
