@@ -1,5 +1,7 @@
 <?php
 
+$credentialsDriver = env('CREDENTIALS_FILESYSTEM_DISK', 'local');
+
 return [
 
     /*
@@ -30,6 +32,17 @@ return [
     |
     */
     'drive_disk' => env('DRIVE_FILESYSTEM_DISK', env('FILESYSTEM_DISK', 'local')),
+
+    /*
+    |--------------------------------------------------------------------------
+    | General Uploads Disk
+    |--------------------------------------------------------------------------
+    |
+    | This disk is used by document/avatar upload flows that previously
+    | depended on the global default disk. Set to private_assets in prod.
+    |
+    */
+    'uploads_disk' => env('UPLOADS_FILESYSTEM_DISK', env('FILESYSTEM_DISK', 'local')),
 
     /*
     |--------------------------------------------------------------------------
@@ -84,7 +97,17 @@ return [
         | For storing sensitive credential documents (licenses, certifications).
         | These should NEVER be publicly accessible.
         */
-        'credentials' => [
+        'credentials' => $credentialsDriver === 's3' ? [
+            'driver' => 's3',
+            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+            'bucket' => env('AWS_PRIVATE_BUCKET'),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+            'options' => [
+                'ACL' => null,
+            ],
+        ] : [
             'driver' => 'local',
             'root' => storage_path('app/credentials'),
             'serve' => false,

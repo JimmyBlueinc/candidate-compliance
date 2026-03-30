@@ -46,7 +46,7 @@ class TrainingRecord extends Model
             return null;
         }
         
-        return \Illuminate\Support\Facades\Storage::disk(config('filesystems.default'))->url($this->document_path);
+        return \Illuminate\Support\Facades\Storage::disk(config('filesystems.uploads_disk', config('filesystems.default')))->url($this->document_path);
     }
 }
 

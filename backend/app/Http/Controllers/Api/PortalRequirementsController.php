@@ -7,11 +7,13 @@ use App\Models\Candidate;
 use App\Models\CandidateCredential;
 use App\Models\CredentialType;
 use App\Models\Organization;
+use App\Models\Scopes\TenantScope;
 use App\Models\Template;
 use App\Services\DefaultComplianceCatalogService;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PortalRequirementsController extends Controller
 {
@@ -24,16 +26,24 @@ class PortalRequirementsController extends Controller
             ], 403);
         }
 
-        $orgId = Org::id($request);
+        $orgId = $this->resolveOrgId($request);
         if (!$orgId) {
             return response()->json([
                 'message' => 'Organization context missing.',
             ], 400);
         }
 
-        app(DefaultComplianceCatalogService::class)->ensureForOrganization((int) $orgId);
+        try {
+            app(DefaultComplianceCatalogService::class)->ensureForOrganization((int) $orgId);
+        } catch (\Throwable $e) {
+            Log::warning('PortalRequirementsController index: default compliance seeding skipped after error.', [
+                'org_id' => $orgId,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         $candidate = Candidate::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where('tenant_id', $orgId)
             ->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
@@ -66,11 +76,13 @@ class PortalRequirementsController extends Controller
         }
 
         $types = CredentialType::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where('tenant_id', $orgId)
             ->get()
             ->keyBy(fn (CredentialType $t) => strtolower(trim((string) $t->name)));
 
         $credentials = CandidateCredential::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where('tenant_id', $orgId)
             ->where('candidate_id', $candidate->id)
             ->with([
@@ -141,5 +153,36 @@ class PortalRequirementsController extends Controller
             'total' => $total,
             'approved' => $approved,
         ]);
+    }
+
+    private function resolveOrgId(Request $request): int
+    {
+        $user = $request->user();
+        $headerOrgId = (int) ($request->header('X-Tenant-Id') ?: 0);
+        if ($headerOrgId > 0) {
+            return $headerOrgId;
+        }
+
+        $userOrgId = (int) ($user?->organization_id ?? 0);
+        if ($userOrgId > 0) {
+            return $userOrgId;
+        }
+
+        if ($user) {
+            $candidateOrgId = (int) (Candidate::query()
+                ->withoutGlobalScope(TenantScope::class)
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->orWhere('email', $user->email);
+                })
+                ->orderByDesc('id')
+                ->value('tenant_id') ?? 0);
+
+            if ($candidateOrgId > 0) {
+                return $candidateOrgId;
+            }
+        }
+
+        return (int) (Org::id($request) ?: 0);
     }
 }

@@ -10,6 +10,9 @@ use App\Models\Scopes\TenantScope;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class PortalJobsController extends Controller
 {
@@ -20,41 +23,94 @@ class PortalJobsController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
-        $orgId = $this->resolveOrgId($request);
-        if (!$orgId) {
-            return response()->api([]);
-        }
+        try {
+            $orgId = $this->resolveOrgId($request);
+            if (!$orgId) {
+                return response()->api([]);
+            }
 
-        $candidate = $this->resolveCandidateForOrg($orgId, $user);
+            $candidate = $this->resolveCandidateForOrg($orgId, $user);
 
-        $jobs = JobOrder::query()
-            ->withoutGlobalScope(TenantScope::class)
-            ->where('tenant_id', $orgId)
-            ->where('published', true)
-            ->orderByDesc('created_at')
-            ->limit(100)
-            ->get();
-
-        $bookmarkIds = [];
-        if ($candidate) {
-            $bookmarkIds = CandidateJobBookmark::query()
+            $jobsQuery = JobOrder::query()
                 ->withoutGlobalScope(TenantScope::class)
+                ->where('tenant_id', $orgId);
+
+            $this->applyPublishedFilter($jobsQuery);
+
+            $jobs = $jobsQuery
+                ->orderByDesc('created_at')
+                ->limit(100)
+                ->get();
+
+            $bookmarkIds = [];
+            if ($candidate && Schema::hasTable('candidate_job_bookmarks')) {
+                $bookmarkIds = CandidateJobBookmark::query()
+                    ->withoutGlobalScope(TenantScope::class)
+                    ->where('tenant_id', $orgId)
+                    ->where('candidate_id', $candidate->id)
+                    ->pluck('job_order_id')
+                    ->map(fn ($id) => (int) $id)
+                    ->all();
+            }
+
+            $bookmarkedLookup = array_flip($bookmarkIds);
+
+            $jobs = $jobs->map(function (JobOrder $job) use ($bookmarkedLookup) {
+                $row = $job->toArray();
+                $row['is_bookmarked'] = isset($bookmarkedLookup[(int) $job->id]);
+                return $row;
+            })->values();
+
+            return response()->api($jobs);
+        } catch (\Throwable $e) {
+            Log::error('PortalJobsController index failed, using DB fallback.', [
+                'error' => $e->getMessage(),
+            ]);
+
+            $orgId = $this->resolveOrgId($request);
+            if (!$orgId) {
+                return response()->api([]);
+            }
+
+            $candidateId = (int) (DB::table('candidates')
                 ->where('tenant_id', $orgId)
-                ->where('candidate_id', $candidate->id)
-                ->pluck('job_order_id')
-                ->map(fn ($id) => (int) $id)
-                ->all();
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->orWhere('email', $user->email);
+                })
+                ->orderByDesc('id')
+                ->value('id') ?? 0);
+
+            $bookmarkIds = [];
+            if ($candidateId > 0 && Schema::hasTable('candidate_job_bookmarks')) {
+                $bookmarkIds = DB::table('candidate_job_bookmarks')
+                    ->where('tenant_id', $orgId)
+                    ->where('candidate_id', $candidateId)
+                    ->pluck('job_order_id')
+                    ->map(fn ($id) => (int) $id)
+                    ->all();
+            }
+
+            $bookmarkedLookup = array_flip($bookmarkIds);
+            $rows = DB::table('job_orders')
+                ->where('tenant_id', $orgId)
+                ->orderByDesc('created_at')
+                ->limit(100)
+                ->when(
+                    Schema::hasColumn('job_orders', 'published'),
+                    fn ($q) => $q->where('published', true),
+                    fn ($q) => $q->where('status', 'open')
+                )
+                ->get()
+                ->map(function ($job) use ($bookmarkedLookup) {
+                    $row = (array) $job;
+                    $row['is_bookmarked'] = isset($bookmarkedLookup[(int) ($row['id'] ?? 0)]);
+                    return $row;
+                })
+                ->values();
+
+            return response()->api($rows);
         }
-
-        $bookmarkedLookup = array_flip($bookmarkIds);
-
-        $jobs = $jobs->map(function (JobOrder $job) use ($bookmarkedLookup) {
-            $row = $job->toArray();
-            $row['is_bookmarked'] = isset($bookmarkedLookup[(int) $job->id]);
-            return $row;
-        })->values();
-
-        return response()->api($jobs);
     }
 
     public function show(Request $request, int $id): JsonResponse
@@ -71,11 +127,13 @@ class PortalJobsController extends Controller
 
         $candidate = $this->resolveCandidateForOrg($orgId, $user);
 
-        $job = JobOrder::query()
+        $jobQuery = JobOrder::query()
             ->withoutGlobalScope(TenantScope::class)
-            ->where('tenant_id', $orgId)
-            ->where('published', true)
-            ->findOrFail($id);
+            ->where('tenant_id', $orgId);
+
+        $this->applyPublishedFilter($jobQuery);
+
+        $job = $jobQuery->findOrFail($id);
 
         $isBookmarked = false;
         if ($candidate) {
@@ -102,6 +160,10 @@ class PortalJobsController extends Controller
 
         $orgId = $context['org_id'];
         $candidate = $context['candidate'];
+
+        if (!Schema::hasTable('candidate_job_bookmarks')) {
+            return response()->api([]);
+        }
 
         $bookmarks = CandidateJobBookmark::query()
             ->withoutGlobalScope(TenantScope::class)
@@ -134,11 +196,17 @@ class PortalJobsController extends Controller
         $orgId = $context['org_id'];
         $candidate = $context['candidate'];
 
-        $job = JobOrder::query()
+        $jobQuery = JobOrder::query()
             ->withoutGlobalScope(TenantScope::class)
-            ->where('tenant_id', $orgId)
-            ->where('published', true)
-            ->findOrFail($jobOrderId);
+            ->where('tenant_id', $orgId);
+
+        $this->applyPublishedFilter($jobQuery);
+
+        $job = $jobQuery->findOrFail($jobOrderId);
+
+        if (!Schema::hasTable('candidate_job_bookmarks')) {
+            return response()->api(['bookmarked' => false], 200, [], 'Bookmarks unavailable until database migration is applied.');
+        }
 
         CandidateJobBookmark::query()->withoutGlobalScope(TenantScope::class)->firstOrCreate([
             'tenant_id' => $orgId,
@@ -158,6 +226,10 @@ class PortalJobsController extends Controller
 
         $orgId = $context['org_id'];
         $candidate = $context['candidate'];
+
+        if (!Schema::hasTable('candidate_job_bookmarks')) {
+            return response()->api(['bookmarked' => false], 200, [], 'Bookmarks unavailable until database migration is applied.');
+        }
 
         CandidateJobBookmark::query()
             ->withoutGlobalScope(TenantScope::class)
@@ -254,5 +326,15 @@ class PortalJobsController extends Controller
             })
             ->orderByDesc('id')
             ->first();
+    }
+
+    private function applyPublishedFilter($query): void
+    {
+        if (Schema::hasColumn('job_orders', 'published')) {
+            $query->where('published', true);
+            return;
+        }
+
+        $query->where('status', 'open');
     }
 }

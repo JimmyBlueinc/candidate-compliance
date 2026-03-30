@@ -51,7 +51,7 @@ class IntakeController extends Controller
 
         $resumePath = null;
         if ($request->hasFile('resume')) {
-            $resumePath = $request->file('resume')->store('tenants/' . $orgId . '/intake_resumes', config('filesystems.default'));
+            $resumePath = $request->file('resume')->store('tenants/' . $orgId . '/intake_resumes', config('filesystems.uploads_disk', config('filesystems.default')));
         }
 
         if ($candidate) {

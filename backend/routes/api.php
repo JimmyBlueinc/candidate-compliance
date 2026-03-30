@@ -228,6 +228,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             Route::post('/{id}/documents', [\App\Http\Controllers\Api\CandidateController::class, 'uploadDocuments'])->where('id', '[0-9]+')->middleware('role.candidate_manage');
             Route::delete('/documents/{documentId}', [\App\Http\Controllers\Api\CandidateController::class, 'deleteDocument'])->middleware('role.candidate_manage');
         });
+        Route::get('/candidate/interviews', [\App\Http\Controllers\Api\CandidateInterviewsController::class, 'myInterviews'])->middleware('role.candidate');
 
         // Candidate Pipeline (recruiter-only)
         Route::prefix('candidate-pipeline')->middleware('role.recruiter')->group(function () {

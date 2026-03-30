@@ -116,7 +116,7 @@ class BackgroundCheckController extends Controller
         // Handle document upload
         if ($request->hasFile('document')) {
             $file = $request->file('document');
-            $path = $file->store('background_checks', config('filesystems.default'));
+            $path = $file->store('background_checks', config('filesystems.uploads_disk', config('filesystems.default')));
             $data['document_path'] = $path;
         }
 
@@ -191,10 +191,10 @@ class BackgroundCheckController extends Controller
         if ($request->hasFile('document')) {
             // Delete old document if exists
             if ($backgroundCheck->document_path) {
-                Storage::disk(config('filesystems.default'))->delete($backgroundCheck->document_path);
+                Storage::disk(config('filesystems.uploads_disk', config('filesystems.default')))->delete($backgroundCheck->document_path);
             }
             $file = $request->file('document');
-            $path = $file->store('background_checks', config('filesystems.default'));
+            $path = $file->store('background_checks', config('filesystems.uploads_disk', config('filesystems.default')));
             $data['document_path'] = $path;
         }
 
@@ -235,7 +235,7 @@ class BackgroundCheckController extends Controller
 
         // Delete document if exists
         if ($backgroundCheck->document_path) {
-            Storage::disk(config('filesystems.default'))->delete($backgroundCheck->document_path);
+            Storage::disk(config('filesystems.uploads_disk', config('filesystems.default')))->delete($backgroundCheck->document_path);
         }
 
         $backgroundCheck->delete();

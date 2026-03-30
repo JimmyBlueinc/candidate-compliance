@@ -564,7 +564,7 @@ class CandidateController extends Controller
             ->get()
             ->map(function (Document $d) {
                 $url = $d->file_path
-                    ? Storage::disk(config('filesystems.default'))->url($d->file_path)
+                    ? Storage::disk(config('filesystems.uploads_disk', config('filesystems.default')))->url($d->file_path)
                     : null;
 
                 return [

@@ -229,7 +229,7 @@ class PortalProfileController extends Controller
 
         $kind = strtolower(trim((string) $validated['kind']));
         $file = $validated['file'];
-        $path = $file->store('tenants/' . $orgId . '/candidate_docs', config('filesystems.default'));
+        $path = $file->store('tenants/' . $orgId . '/candidate_docs', config('filesystems.uploads_disk', config('filesystems.default')));
 
         $label = match ($kind) {
             'resume' => 'Resume',

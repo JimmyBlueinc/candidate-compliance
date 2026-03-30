@@ -64,8 +64,7 @@ class CandidateCredential extends Model
     public function latestRejectedVerification(): HasOne
     {
         return $this->hasOne(CredentialVerification::class, 'credential_id')
-            ->ofMany('created_at', 'max', function ($query) {
-                $query->where('status', 'rejected');
-            });
+            ->where('status', 'rejected')
+            ->latest('created_at');
     }
 }

@@ -6,15 +6,56 @@ use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Models\CandidateInterview;
 use App\Models\Notification;
+use App\Models\Scopes\TenantScope;
 use App\Models\User;
 use App\Support\Org;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Schema;
 
 class CandidateInterviewsController extends Controller
 {
+    public function myInterviews(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user || (string) ($user->role ?? '') !== 'candidate') {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $orgId = (int) (Org::id($request) ?: $user->organization_id ?: 0);
+
+        $candidate = Candidate::query()
+            ->withoutGlobalScope(TenantScope::class)
+            ->when($orgId > 0, fn ($q) => $q->where('tenant_id', $orgId))
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhere('email', $user->email);
+            })
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$candidate) {
+            return response()->api([]);
+        }
+
+        if (!Schema::hasTable('candidate_interviews')) {
+            return response()->api([]);
+        }
+
+        $rows = CandidateInterview::query()
+            ->withoutGlobalScope(TenantScope::class)
+            ->where('tenant_id', (int) $candidate->tenant_id)
+            ->where('candidate_id', (int) $candidate->id)
+            ->with('scheduler:id,name,role')
+            ->orderBy('starts_at')
+            ->limit(200)
+            ->get();
+
+        return response()->api($rows);
+    }
+
     public function index(Request $request, int $candidateId): JsonResponse
     {
         $orgId = Org::id($request);

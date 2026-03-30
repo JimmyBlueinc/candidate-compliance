@@ -70,7 +70,7 @@ class User extends Authenticatable implements CanResetPassword
         }
         
         // Use Storage::url() which handles S3 automatically
-        $url = \Illuminate\Support\Facades\Storage::disk(config('filesystems.default'))->url($this->avatar_path);
+        $url = \Illuminate\Support\Facades\Storage::disk(config('filesystems.uploads_disk', config('filesystems.default')))->url($this->avatar_path);
         
         // Add cache-busting parameter using updated_at timestamp
         if ($this->updated_at) {

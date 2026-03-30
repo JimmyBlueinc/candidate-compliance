@@ -183,7 +183,7 @@ class CredentialController extends Controller
 
         // Handle document upload
         if ($request->hasFile('document')) {
-            $path = $request->file('document')->store('credentials', config('filesystems.default'));
+            $path = $request->file('document')->store('credentials', config('filesystems.uploads_disk', config('filesystems.default')));
             $credential->document_path = $path;
             $credential->save();
         }
@@ -330,7 +330,7 @@ class CredentialController extends Controller
 
         // Handle document upload replace (optional)
         if ($request->hasFile('document')) {
-            $path = $request->file('document')->store('credentials', config('filesystems.default'));
+            $path = $request->file('document')->store('credentials', config('filesystems.uploads_disk', config('filesystems.default')));
             $validated['document_path'] = $path;
         }
 

@@ -114,7 +114,7 @@ class WorkAuthorizationController extends Controller
         // Handle document upload
         if ($request->hasFile('document')) {
             $file = $request->file('document');
-            $path = $file->store('work_authorizations', config('filesystems.default'));
+            $path = $file->store('work_authorizations', config('filesystems.uploads_disk', config('filesystems.default')));
             $data['document_path'] = $path;
         }
 
@@ -184,10 +184,10 @@ class WorkAuthorizationController extends Controller
         if ($request->hasFile('document')) {
             // Delete old document if exists
             if ($workAuthorization->document_path) {
-                Storage::disk(config('filesystems.default'))->delete($workAuthorization->document_path);
+                Storage::disk(config('filesystems.uploads_disk', config('filesystems.default')))->delete($workAuthorization->document_path);
             }
             $file = $request->file('document');
-            $path = $file->store('work_authorizations', config('filesystems.default'));
+            $path = $file->store('work_authorizations', config('filesystems.uploads_disk', config('filesystems.default')));
             $data['document_path'] = $path;
         }
 
@@ -225,7 +225,7 @@ class WorkAuthorizationController extends Controller
 
         // Delete document if exists
         if ($workAuthorization->document_path) {
-            Storage::disk(config('filesystems.default'))->delete($workAuthorization->document_path);
+            Storage::disk(config('filesystems.uploads_disk', config('filesystems.default')))->delete($workAuthorization->document_path);
         }
 
         $workAuthorization->delete();

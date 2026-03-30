@@ -119,7 +119,7 @@ class HealthRecordController extends Controller
         // Handle document upload
         if ($request->hasFile('document')) {
             $file = $request->file('document');
-            $path = $file->store('health_records', config('filesystems.default'));
+            $path = $file->store('health_records', config('filesystems.uploads_disk', config('filesystems.default')));
             $data['document_path'] = $path;
         }
 
@@ -199,10 +199,10 @@ class HealthRecordController extends Controller
         if ($request->hasFile('document')) {
             // Delete old document if exists
             if ($healthRecord->document_path) {
-                Storage::disk(config('filesystems.default'))->delete($healthRecord->document_path);
+                Storage::disk(config('filesystems.uploads_disk', config('filesystems.default')))->delete($healthRecord->document_path);
             }
             $file = $request->file('document');
-            $path = $file->store('health_records', config('filesystems.default'));
+            $path = $file->store('health_records', config('filesystems.uploads_disk', config('filesystems.default')));
             $data['document_path'] = $path;
         }
 
@@ -234,7 +234,7 @@ class HealthRecordController extends Controller
 
         // Delete document if exists
         if ($healthRecord->document_path) {
-            Storage::disk(config('filesystems.default'))->delete($healthRecord->document_path);
+            Storage::disk(config('filesystems.uploads_disk', config('filesystems.default')))->delete($healthRecord->document_path);
         }
 
         $healthRecord->delete();

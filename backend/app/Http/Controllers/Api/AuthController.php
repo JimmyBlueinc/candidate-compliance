@@ -60,7 +60,7 @@ class AuthController extends Controller
         ]);
 
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', config('filesystems.default'));
+            $path = $request->file('avatar')->store('avatars', config('filesystems.uploads_disk', config('filesystems.default')));
             // Use direct DB update to ensure it's saved
             DB::table('users')->where('id', $user->id)->update([
                 'avatar_path' => $path,
@@ -469,10 +469,10 @@ class AuthController extends Controller
             
             // Delete old avatar if exists
             if ($user->avatar_path) {
-                \Illuminate\Support\Facades\Storage::disk(config('filesystems.default'))->delete($user->avatar_path);
+                \Illuminate\Support\Facades\Storage::disk(config('filesystems.uploads_disk', config('filesystems.default')))->delete($user->avatar_path);
             }
             
-            $path = $file->store('avatars', config('filesystems.default'));
+            $path = $file->store('avatars', config('filesystems.uploads_disk', config('filesystems.default')));
             Log::info('Avatar file stored', [
                 'user_id' => $user->id,
                 'stored_path' => $path,
