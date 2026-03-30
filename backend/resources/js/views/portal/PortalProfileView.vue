@@ -35,7 +35,7 @@
             </span>
           </div>
           <div v-if="!onboarding.phase1_complete && onboarding.phase1_missing?.length" class="mt-2 text-xs text-[color:var(--p-text-muted-color)]">
-            Missing fields: <span class="text-slate-200">{{ onboarding.phase1_missing.join(', ') }}</span>
+            Missing fields: <span class="text-slate-200">Please complete your personal profile details.</span>
           </div>
         </div>
 

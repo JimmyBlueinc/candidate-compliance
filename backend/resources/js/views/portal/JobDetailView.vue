@@ -127,7 +127,7 @@
           </template>
         </div>
         <div class="text-xs text-[color:var(--p-text-muted-color)]" v-if="requiresPhase1">
-          Phase 1 missing fields: {{ (onboarding?.phase1_missing || []).join(', ') || 'profile details' }}
+          Phase 1 missing fields: complete your personal profile details.
         </div>
         <div class="text-xs text-[color:var(--p-text-muted-color)]" v-else>
           Go to Credentials to upload required files and complete document checks.

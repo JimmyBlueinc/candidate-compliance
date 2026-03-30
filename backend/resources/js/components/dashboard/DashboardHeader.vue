@@ -80,15 +80,34 @@ const brandLogo = computed(() => (isApexHost.value ? null : brand.logoUrl));
 const userMenuItems = computed(() => {
     const role = String(auth.user?.role || '');
     const isCandidate = role === 'candidate';
+    const isFacility = role === 'facility';
     const isStaff = ['platform_admin', 'org_super_admin', 'admin', 'recruiter', 'compliance', 'scheduler', 'finance', 'logistics'].includes(role);
-    const items = [
-        { label: 'Profile', icon: 'pi pi-user', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.profile' }) },
-        { label: 'Profile Settings', icon: 'pi pi-id-card', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.profile_settings' }) },
-        { label: 'Account Settings', icon: 'pi pi-cog', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.account_settings' }) },
-        { label: 'Notifications', icon: 'pi pi-bell', command: () => router.push({ name: isCandidate ? 'portal.messages' : 'dashboard.notifications_settings' }) },
-        { label: 'Security', icon: 'pi pi-shield', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.security_settings' }) },
-        { label: 'Preferences', icon: 'pi pi-sliders-h', command: () => router.push({ name: isCandidate ? 'portal.profile' : 'dashboard.preferences_settings' }) },
-    ];
+    const items = [];
+
+    if (isCandidate) {
+        items.push(
+            { label: 'Profile', icon: 'pi pi-user', command: () => router.push({ name: 'portal.profile' }) },
+            { label: 'Credentials', icon: 'pi pi-verified', command: () => router.push({ name: 'portal.credentials' }) },
+            { label: 'Applications', icon: 'pi pi-send', command: () => router.push({ name: 'portal.jobs' }) },
+            { label: 'Messages', icon: 'pi pi-comment', command: () => router.push({ name: 'portal.messages' }) },
+        );
+    } else if (isFacility) {
+        items.push(
+            { label: 'Dashboard', icon: 'pi pi-home', command: () => router.push({ name: 'facility.dashboard' }) },
+            { label: 'Workers', icon: 'pi pi-users', command: () => router.push({ name: 'facility.workers' }) },
+            { label: 'Timesheets', icon: 'pi pi-receipt', command: () => router.push({ name: 'facility.timesheets' }) },
+            { label: 'Invoices', icon: 'pi pi-file', command: () => router.push({ name: 'facility.invoices' }) },
+        );
+    } else {
+        items.push(
+            { label: 'Profile', icon: 'pi pi-user', command: () => router.push({ name: 'dashboard.profile' }) },
+            { label: 'Profile Settings', icon: 'pi pi-id-card', command: () => router.push({ name: 'dashboard.profile_settings' }) },
+            { label: 'Account Settings', icon: 'pi pi-cog', command: () => router.push({ name: 'dashboard.account_settings' }) },
+            { label: 'Notifications', icon: 'pi pi-bell', command: () => router.push({ name: 'dashboard.notifications_settings' }) },
+            { label: 'Security', icon: 'pi pi-shield', command: () => router.push({ name: 'dashboard.security_settings' }) },
+            { label: 'Preferences', icon: 'pi pi-sliders-h', command: () => router.push({ name: 'dashboard.preferences_settings' }) },
+        );
+    }
 
     if (isCandidate) {
         items.push(

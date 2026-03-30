@@ -2,7 +2,8 @@
   <div class="flex h-screen overflow-hidden bg-[var(--app-bg)] text-[var(--app-fg)]">
     <aside class="w-[280px] shrink-0 border-r border-[color:var(--p-surface-border)] glass-dark flex flex-col h-full overflow-hidden">
       <div class="p-6 shrink-0">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
           <div class="w-10 h-10 rounded-2xl overflow-hidden bg-white/10 border border-white/10 flex items-center justify-center">
             <img v-if="brand.logoUrl" :src="brand.logoUrl" alt="Logo" class="w-full h-full object-contain p-2" />
             <span v-else class="material-symbols-outlined text-white text-[22px]">shield_person</span>
@@ -11,6 +12,17 @@
             <div class="text-[10px] font-black tracking-[0.28em] uppercase text-[color:var(--p-text-muted-color)]">Candidate Portal</div>
             <div class="font-display text-lg leading-tight truncate text-white">{{ brand.name || 'Workspace' }}</div>
           </div>
+        </div>
+          <button
+            type="button"
+            class="flex items-center gap-2 p-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-colors shrink-0"
+            @click="toggleUserMenu"
+          >
+            <div class="w-8 h-8 rounded-full overflow-hidden border border-white/15">
+              <img alt="User" class="w-full h-full object-cover" :src="profileImage" />
+            </div>
+          </button>
+          <Menu ref="userMenuRef" :model="userMenuItems" :popup="true" />
         </div>
       </div>
 
@@ -193,6 +205,7 @@ import ForcePasswordChangeModal from '../auth/ForcePasswordChangeModal.vue';
 import DashboardIntelligencePanel from '../dashboard/DashboardIntelligencePanel.vue';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
+import Menu from 'primevue/menu';
 
 const route = useRoute();
 const router = useRouter();
@@ -244,6 +257,7 @@ const onboarding = ref(null);
 const onboardingGateOpen = ref(false);
 const onboardingGateTargetLabel = ref('this page');
 const profilePromptOpen = ref(false);
+const userMenuRef = ref(null);
 let profilePromptInterval = null;
 
 const showOnboardingHint = computed(() => {
@@ -289,6 +303,18 @@ const applicationProgressHint = computed(() => {
     }
     return 'Finish phase 2 credentials/documents to continue.';
 });
+const profileImage = computed(() => {
+    const avatar = String(auth.user?.avatar_url || auth.user?.avatar_path || '').trim();
+    if (avatar) return avatar;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user?.name || 'User')}&background=8B5CF6&color=fff`;
+});
+const userMenuItems = computed(() => ([
+    { label: 'My Profile', icon: 'pi pi-user', command: () => router.push({ name: 'portal.profile' }) },
+    { label: 'Credentials', icon: 'pi pi-verified', command: () => router.push({ name: 'portal.credentials' }) },
+    { label: 'Availability', icon: 'pi pi-calendar', command: () => router.push({ name: 'portal.availability' }) },
+    { separator: true },
+    { label: 'Logout', icon: 'pi pi-sign-out', command: async () => { await logout(); } },
+]));
 
 function isLocked(routeName) {
     const phase1Complete = Boolean(onboarding.value?.phase1_complete);
@@ -377,6 +403,10 @@ function goToProfileForOnboarding() {
 function goToProfileFromPrompt() {
     profilePromptOpen.value = false;
     router.push({ name: 'portal.profile' });
+}
+
+function toggleUserMenu(event) {
+    userMenuRef.value?.toggle(event);
 }
 
 function startProfilePromptInterval() {
