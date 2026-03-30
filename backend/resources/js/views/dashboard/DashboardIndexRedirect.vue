@@ -29,6 +29,11 @@ onMounted(async () => {
             return;
         }
 
+        if (role === 'org_super_admin') {
+            await router.replace({ name: 'dashboard.finance' });
+            return;
+        }
+
         if (role === 'compliance') {
             await router.replace({ name: 'dashboard.compliance' });
             return;

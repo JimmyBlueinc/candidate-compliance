@@ -455,7 +455,7 @@ const router = createRouter({
                     path: 'finance',
                     name: 'dashboard.finance',
                     component: FinancialOverview,
-                    meta: { allowedRoles: [ROLE_FINANCE] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_FINANCE] },
                 },
 
                 {

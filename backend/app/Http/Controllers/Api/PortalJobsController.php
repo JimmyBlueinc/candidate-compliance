@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Models\CandidateJobBookmark;
 use App\Models\JobOrder;
+use App\Models\Scopes\TenantScope;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class PortalJobsController extends Controller
         $candidate = $this->resolveCandidateForOrg($orgId, $user);
 
         $jobs = JobOrder::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where('tenant_id', $orgId)
             ->where('published', true)
             ->orderByDesc('created_at')
@@ -36,6 +38,7 @@ class PortalJobsController extends Controller
         $bookmarkIds = [];
         if ($candidate) {
             $bookmarkIds = CandidateJobBookmark::query()
+                ->withoutGlobalScope(TenantScope::class)
                 ->where('tenant_id', $orgId)
                 ->where('candidate_id', $candidate->id)
                 ->pluck('job_order_id')
@@ -69,6 +72,7 @@ class PortalJobsController extends Controller
         $candidate = $this->resolveCandidateForOrg($orgId, $user);
 
         $job = JobOrder::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where('tenant_id', $orgId)
             ->where('published', true)
             ->findOrFail($id);
@@ -76,6 +80,7 @@ class PortalJobsController extends Controller
         $isBookmarked = false;
         if ($candidate) {
             $isBookmarked = CandidateJobBookmark::query()
+                ->withoutGlobalScope(TenantScope::class)
                 ->where('tenant_id', $orgId)
                 ->where('candidate_id', $candidate->id)
                 ->where('job_order_id', $job->id)
@@ -99,6 +104,7 @@ class PortalJobsController extends Controller
         $candidate = $context['candidate'];
 
         $bookmarks = CandidateJobBookmark::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where('tenant_id', $orgId)
             ->where('candidate_id', $candidate->id)
             ->with('jobOrder')
@@ -129,11 +135,12 @@ class PortalJobsController extends Controller
         $candidate = $context['candidate'];
 
         $job = JobOrder::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where('tenant_id', $orgId)
             ->where('published', true)
             ->findOrFail($jobOrderId);
 
-        CandidateJobBookmark::query()->firstOrCreate([
+        CandidateJobBookmark::query()->withoutGlobalScope(TenantScope::class)->firstOrCreate([
             'tenant_id' => $orgId,
             'candidate_id' => $candidate->id,
             'job_order_id' => $job->id,
@@ -153,6 +160,7 @@ class PortalJobsController extends Controller
         $candidate = $context['candidate'];
 
         CandidateJobBookmark::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where('tenant_id', $orgId)
             ->where('candidate_id', $candidate->id)
             ->where('job_order_id', $jobOrderId)
@@ -199,23 +207,30 @@ class PortalJobsController extends Controller
             return $headerOrgId;
         }
 
-        $orgId = (int) (Org::id($request) ?: 0);
-        if ($orgId > 0) {
-            return $orgId;
-        }
-
         $userOrgId = (int) ($user?->organization_id ?? 0);
         if ($userOrgId > 0) {
             return $userOrgId;
         }
 
         $candidate = $this->resolveCandidateForAnyOrg($user);
-        return (int) ($candidate?->tenant_id ?? 0);
+        $candidateOrgId = (int) ($candidate?->tenant_id ?? 0);
+        if ($candidateOrgId > 0) {
+            return $candidateOrgId;
+        }
+
+        // Keep host/domain org resolution as a final fallback only.
+        $orgId = (int) (Org::id($request) ?: 0);
+        if ($orgId > 0) {
+            return $orgId;
+        }
+
+        return 0;
     }
 
     private function resolveCandidateForOrg(int $orgId, $user): ?Candidate
     {
         return Candidate::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where('tenant_id', $orgId)
             ->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
@@ -232,6 +247,7 @@ class PortalJobsController extends Controller
         }
 
         return Candidate::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                     ->orWhere('email', $user->email);

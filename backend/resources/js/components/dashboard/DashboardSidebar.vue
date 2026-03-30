@@ -166,7 +166,7 @@ const groups = computed(() => {
             label: 'Admin',
             show: isOrgSuperAdmin.value,
             items: [
-                { id: 'dashboard', label: 'Dashboard', icon: 'grid_view', routeName: 'dashboard.placements' },
+                { id: 'dashboard', label: 'Dashboard', icon: 'grid_view', routeName: 'dashboard.finance' },
                 { id: 'org_home', label: 'Organization Home', icon: 'home', tenantHome: true },
                 { id: 'msa_dashboard', label: 'MSA Dashboard', icon: 'description', routeName: 'dashboard.facilities' },
                 { id: 'invoices', label: 'Invoices', icon: 'request_quote', routeName: 'dashboard.invoices' },

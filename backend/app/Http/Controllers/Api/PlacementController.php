@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Models\Document;
 use App\Models\JobOrder;
 use App\Models\Placement;
+use App\Models\Scopes\TenantScope;
 use App\Services\OperationalPlacementService;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
@@ -192,6 +193,7 @@ class PlacementController extends Controller
         $candidate = null;
         if ($orgId > 0) {
             $candidate = Candidate::query()
+                ->withoutGlobalScope(TenantScope::class)
                 ->where('tenant_id', $orgId)
                 ->where(function ($q) use ($user) {
                     $q->where('user_id', $user->id)
@@ -202,6 +204,7 @@ class PlacementController extends Controller
 
         if (!$candidate) {
             $candidate = Candidate::query()
+                ->withoutGlobalScope(TenantScope::class)
                 ->where(function ($q) use ($user) {
                     $q->where('user_id', $user->id)
                         ->orWhere('email', $user->email);
@@ -224,6 +227,7 @@ class PlacementController extends Controller
         }
 
         $job = JobOrder::query()
+            ->withoutGlobalScope(TenantScope::class)
             ->where('tenant_id', $orgId)
             ->where('status', 'open')
             ->findOrFail($jobOrderId);
@@ -239,7 +243,7 @@ class PlacementController extends Controller
             ], 422);
         }
 
-        $placement = Placement::firstOrCreate([
+        $placement = Placement::query()->withoutGlobalScope(TenantScope::class)->firstOrCreate([
             'tenant_id' => $orgId,
             'candidate_id' => $candidate->id,
             'job_order_id' => $job->id,

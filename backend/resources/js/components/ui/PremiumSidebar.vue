@@ -285,7 +285,7 @@ const groups = computed(() => {
       label: 'Administration',
       show: isOrgSuperAdmin.value,
       items: [
-        { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', routeName: 'dashboard.placements' },
+        { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', routeName: 'dashboard.finance' },
         { id: 'org_home', label: 'Organization Home', icon: 'home', tenantHome: true },
         {
           id: 'facilities_menu',

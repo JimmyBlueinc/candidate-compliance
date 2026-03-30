@@ -54,7 +54,7 @@ export default function DashboardSidebar({
         label: 'Admin',
         show: isOrgSuperAdmin,
         items: [
-          { id: 'dashboard', label: 'Dashboard', icon: 'grid_view', routeName: 'dashboard.placements' },
+          { id: 'dashboard', label: 'Dashboard', icon: 'grid_view', routeName: 'dashboard.finance' },
           { id: 'invoices', label: 'Invoices', icon: 'request_quote', routeName: 'dashboard.invoices' },
           { id: 'accounts_receivable', label: 'Accounts Receivable', icon: 'account_balance_wallet', routeName: 'dashboard.accounts_receivable' },
           { id: 'org_users', label: 'Organization Users', icon: 'group', routeName: 'dashboard.org_users' },
