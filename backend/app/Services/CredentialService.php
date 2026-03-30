@@ -8,6 +8,7 @@ use App\Events\CredentialVerified;
 use App\Models\CandidateCredential;
 use App\Models\CredentialVerification;
 use App\Models\User;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 
@@ -50,9 +51,16 @@ class CredentialService
         }
 
         $path = ltrim((string) $credential->document_path, '/');
+        $disk = Storage::disk('credentials');
+
+        // Production path: let S3 own access control via pre-signed object URLs.
+        if (Config::get('filesystems.disks.credentials.driver') === 's3') {
+            return $disk->temporaryUrl($path, now()->addMinutes($minutes));
+        }
+
+        // Local/dev path (no S3): app-signed route.
         $expires = now()->addMinutes($minutes)->timestamp;
         $signature = hash_hmac('sha256', $path . '|' . $expires, (string) config('app.key'));
-
         return url('/api/credentials/documents/' . $path) . '?expires=' . $expires . '&signature=' . $signature;
     }
 

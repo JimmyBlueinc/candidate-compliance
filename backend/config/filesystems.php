@@ -1,6 +1,6 @@
 <?php
 
-$credentialsDriver = env('CREDENTIALS_FILESYSTEM_DISK', 'local');
+$credentialsDriver = env('CREDENTIALS_FILESYSTEM_DISK', env('APP_ENV') === 'production' ? 's3' : 'local');
 
 return [
 
