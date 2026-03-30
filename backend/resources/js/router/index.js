@@ -64,7 +64,6 @@ import PricingView from '../views/public/PricingView.vue';
 import IntakeFeedView from '../views/dashboard/IntakeFeedView.vue';
 import OrganizationSignupView from '../views/public/OrganizationSignupView.vue';
 import OnboardingView from '../views/dashboard/OnboardingView.vue';
-import PublicJobBoardView from '../views/public/PublicJobBoardView.vue';
 import PublicJobDetailView from '../views/public/PublicJobDetailView.vue';
 import PublicJobApplyView from '../views/public/PublicJobApplyView.vue';
 import PublicOrgJobBoardView from '../views/public/PublicOrgJobBoardView.vue';
@@ -184,28 +183,26 @@ const router = createRouter({
             component: PricingView,
             meta: { publicPage: true },
         },
-        {
-            path: '/jobs',
-            name: 'public.jobs',
-            component: PublicJobBoardView,
-            meta: { publicPage: true },
-        },
-        {
-            path: '/jobs/:id',
-            name: 'public.jobs.detail',
-            component: PublicJobDetailView,
-            meta: { publicPage: true },
-        },
-        {
-            path: '/jobs/:id/apply',
-            name: 'public.jobs.apply',
-            component: PublicJobApplyView,
-            meta: { publicPage: true },
-        },
+        // Apex must not expose a generic jobs board
+        { path: '/jobs', redirect: { name: 'landing' }, meta: { publicPage: true } },
+        { path: '/jobs/:id', redirect: { name: 'landing' }, meta: { publicPage: true } },
+        { path: '/jobs/:id/apply', redirect: { name: 'landing' }, meta: { publicPage: true } },
         {
             path: '/contact',
             name: 'public.contact',
             component: ContactView,
+            meta: { publicPage: true },
+        },
+        {
+            path: '/:orgSlug/jobs/:id',
+            name: 'public.org.jobs.detail',
+            component: PublicJobDetailView,
+            meta: { publicPage: true },
+        },
+        {
+            path: '/:orgSlug/jobs/:id/apply',
+            name: 'public.org.jobs.apply',
+            component: PublicJobApplyView,
             meta: { publicPage: true },
         },
         {
@@ -803,6 +800,10 @@ router.beforeEach(async (to, from) => {
     if (to.meta?.tenantPublic && isOnTenantSubdomain) {
         console.log('[ROUTER] tenant public route on tenant subdomain - allow navigation');
         return true;
+    }
+    if (to.meta?.tenantPublic && !isOnTenantSubdomain) {
+        console.log('[ROUTER] tenant public route outside tenant subdomain -> landing');
+        return { name: 'landing' };
     }
 
     // 2. NEEDS_ONBOARDING - highest priority for authenticated users

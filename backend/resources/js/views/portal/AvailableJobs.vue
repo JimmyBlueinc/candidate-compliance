@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiDelete, apiGet, apiPost, apiPut, normalizeApiList } from '../../lib/api';
 import UiCard from '../../components/ui/UiCard.vue';
@@ -110,6 +110,7 @@ const actingId = ref(null);
 const bookmarkActingId = ref(null);
 const message = ref('');
 const activeFilter = ref('all');
+let refreshTimer = null;
 
 const filteredItems = computed(() => {
     if (activeFilter.value === 'bookmarked') {
@@ -172,5 +173,18 @@ function toggleFilter() {
     activeFilter.value = activeFilter.value === 'all' ? 'bookmarked' : 'all';
 }
 
-refresh();
+onMounted(() => {
+    refresh();
+    // Keep candidate job list up to date with newly posted org jobs.
+    refreshTimer = setInterval(() => {
+        refresh();
+    }, 45000);
+});
+
+onUnmounted(() => {
+    if (refreshTimer) {
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+    }
+});
 </script>

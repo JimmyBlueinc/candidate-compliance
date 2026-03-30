@@ -1,6 +1,17 @@
 <template>
   <div class="min-h-screen bg-[#f8fafc] text-slate-900">
-    <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primaryColor" @apex-login="goLogin" />
+    <PublicSiteHeader
+      :mode="headerMode"
+      :brand-name="headerBrandName"
+      :primary-color="primaryColor"
+      :show-dashboard-button="false"
+      :show-sign-in-button="!auth.isAuthenticated"
+      :current-role="auth.user?.role || ''"
+      @apex-login="goLogin"
+      @tenant-jobs="goToJobs"
+      @tenant-dashboard="goToDashboard"
+      @tenant-signin="goLogin"
+    />
     <div class="max-w-7xl mx-auto px-6 pt-28 pb-16">
       <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-7 md:p-10">
         <img
@@ -15,7 +26,7 @@
           <h1 class="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl" style="text-shadow: 0 10px 24px rgba(2, 6, 23, 0.55);">{{ job?.title || 'Loading...' }}</h1>
           <p v-if="job" class="mt-3 text-sm text-white/85">{{ job.organization_name }} - {{ job.facility_name }}</p>
           <RouterLink
-            :to="{ name: 'public.jobs.detail', params: { id: route.params.id } }"
+            :to="jobDetailRoute"
             class="mt-5 inline-flex rounded-xl border border-white/25 bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
           >
             Back to role details
@@ -110,7 +121,7 @@
             <li>- You are redirected to your candidate portal after apply</li>
             <li>- Continue profile updates and messaging in one place</li>
           </ul>
-          <RouterLink class="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" to="/jobs">
+          <RouterLink class="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" :to="jobsBackRoute">
             Browse more jobs
           </RouterLink>
         </aside>
@@ -144,6 +155,21 @@ const submitting = ref(false);
 const error = ref('');
 const success = ref('');
 const tempCredentialInfo = ref(null);
+const isTenantRoute = computed(() => String(route.name || '').startsWith('tenant.'));
+const isOrgSlugRoute = computed(() => Boolean(route.params?.orgSlug));
+const headerMode = computed(() => ((isTenantRoute.value || isOrgSlugRoute.value) ? 'tenant' : 'apex'));
+const headerBrandName = computed(() => String(job.value?.organization_name || brand.name || 'Organization'));
+const jobsBackRoute = computed(() => {
+  if (isTenantRoute.value) return { name: 'tenant.jobs' };
+  if (isOrgSlugRoute.value) return { name: 'public.org-home', params: { orgSlug: String(route.params.orgSlug) } };
+  return { name: 'landing' };
+});
+const jobDetailRoute = computed(() => {
+  const id = route.params.id;
+  if (isTenantRoute.value) return { name: 'tenant.job-detail', params: { id } };
+  if (isOrgSlugRoute.value) return { name: 'public.org.jobs.detail', params: { orgSlug: String(route.params.orgSlug), id } };
+  return { name: 'landing' };
+});
 
 const form = ref({
   first_name: '',
@@ -221,11 +247,24 @@ function goToLoginForExistingAccount() {
       job_id: String(route.params.id || ''),
       continue_application: '1',
       email: form.value.email || '',
+      org_slug: isOrgSlugRoute.value ? String(route.params.orgSlug) : '',
     },
   });
 }
 
 function goLogin() {
+  router.push({ name: 'login' });
+}
+
+function goToJobs() {
+  router.push(jobsBackRoute.value);
+}
+
+function goToDashboard() {
+  if (auth.isAuthenticated) {
+    router.push({ name: 'dashboard.index' });
+    return;
+  }
   router.push({ name: 'login' });
 }
 

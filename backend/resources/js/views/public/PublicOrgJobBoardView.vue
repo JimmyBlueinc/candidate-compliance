@@ -300,7 +300,7 @@ function scrollToJobs() {
 }
 
 function applyToJob(jobId) {
-  router.push({ name: 'public.jobs.apply', params: { id: jobId } });
+  router.push({ name: 'public.org.jobs.apply', params: { orgSlug, id: jobId } });
 }
 
 async function fetchData() {
@@ -308,8 +308,8 @@ async function fetchData() {
   error.value = null;
 
   try {
-    // Fetch jobs for this organization
-    const res = await axios.get(`/api/public/jobs`, {
+    // Fetch jobs for this organization on public job-board endpoint
+    const res = await axios.get(`/api/public/job-board`, {
       params: { org: orgSlug }
     });
 

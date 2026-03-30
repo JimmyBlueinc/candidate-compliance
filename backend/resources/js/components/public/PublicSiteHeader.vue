@@ -15,7 +15,6 @@
         <RouterLink to="/customers" class="hover:text-slate-900">Customers</RouterLink>
         <RouterLink to="/pricing" class="hover:text-slate-900">Pricing</RouterLink>
         <RouterLink to="/contact" class="hover:text-slate-900">Contact</RouterLink>
-        <RouterLink to="/jobs" class="hover:text-slate-900">Jobs</RouterLink>
       </nav>
 
       <div class="flex items-center gap-2">

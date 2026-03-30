@@ -1,6 +1,17 @@
 <template>
   <div class="min-h-screen bg-[#f8fafc] text-slate-900">
-    <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primaryColor" @apex-login="goLogin" />
+    <PublicSiteHeader
+      :mode="headerMode"
+      :brand-name="headerBrandName"
+      :primary-color="primaryColor"
+      :show-dashboard-button="false"
+      :show-sign-in-button="!auth.isAuthenticated"
+      :current-role="auth.user?.role || ''"
+      @apex-login="goLogin"
+      @tenant-jobs="goToJobs"
+      @tenant-dashboard="goToDashboard"
+      @tenant-signin="goLogin"
+    />
     <div class="max-w-7xl mx-auto px-6 pt-28 pb-16">
       <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-7 md:p-10">
         <img
@@ -25,8 +36,8 @@
             <span class="px-3 py-1 rounded-full text-xs font-semibold border border-white/20 bg-white/10 text-white">Starts: {{ formatDate(job?.start_date) }}</span>
           </div>
           <div class="mt-6 flex flex-wrap gap-2">
-            <RouterLink :to="{ name: 'public.jobs' }" class="px-4 py-2 rounded-xl text-sm font-semibold border border-white/25 bg-white/10 text-white hover:bg-white/20">Back to jobs</RouterLink>
-            <RouterLink v-if="job?.id" :to="{ name: 'public.jobs.apply', params: { id: job.id } }" class="px-4 py-2 rounded-xl text-sm font-semibold text-white" :style="{ backgroundColor: primaryColor }">Apply now</RouterLink>
+            <RouterLink :to="jobsBackRoute" class="px-4 py-2 rounded-xl text-sm font-semibold border border-white/25 bg-white/10 text-white hover:bg-white/20">Back to jobs</RouterLink>
+            <RouterLink v-if="job?.id" :to="applyRoute" class="px-4 py-2 rounded-xl text-sm font-semibold text-white" :style="{ backgroundColor: primaryColor }">Apply now</RouterLink>
           </div>
         </div>
       </section>
@@ -47,7 +58,7 @@
               <li>- Messaging and updates happen in one place after submission</li>
             </ul>
             <RouterLink
-              :to="{ name: 'public.jobs.apply', params: { id: job.id } }"
+              :to="applyRoute"
               class="mt-5 inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white"
               :style="{ backgroundColor: primaryColor }"
             >
@@ -77,11 +88,13 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { apiGet } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
+import { useAuthStore } from '../../stores/auth';
 import PublicSiteHeader from '../../components/public/PublicSiteHeader.vue';
 
 const route = useRoute();
 const router = useRouter();
 const brand = useBrandStore();
+const auth = useAuthStore();
 
 const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
 const primarySoftBg = computed(() => `color-mix(in srgb, ${primaryColor.value} 14%, transparent)`);
@@ -90,6 +103,21 @@ const primarySoftBorder = computed(() => `color-mix(in srgb, ${primaryColor.valu
 const loading = ref(false);
 const error = ref('');
 const job = ref(null);
+const isTenantRoute = computed(() => String(route.name || '').startsWith('tenant.'));
+const isOrgSlugRoute = computed(() => Boolean(route.params?.orgSlug));
+const headerMode = computed(() => ((isTenantRoute.value || isOrgSlugRoute.value) ? 'tenant' : 'apex'));
+const headerBrandName = computed(() => String(job.value?.organization_name || brand.name || 'Organization'));
+const jobsBackRoute = computed(() => {
+  if (isTenantRoute.value) return { name: 'tenant.jobs' };
+  if (isOrgSlugRoute.value) return { name: 'public.org-home', params: { orgSlug: String(route.params.orgSlug) } };
+  return { name: 'landing' };
+});
+const applyRoute = computed(() => {
+  const id = job.value?.id || route.params.id;
+  if (isTenantRoute.value) return { name: 'tenant.job-apply', params: { id } };
+  if (isOrgSlugRoute.value) return { name: 'public.org.jobs.apply', params: { orgSlug: String(route.params.orgSlug), id } };
+  return { name: 'landing' };
+});
 
 function money(v) {
   if (v === null || v === undefined || v === '') return '—';
@@ -113,6 +141,18 @@ function formatWorkMode(v) {
 }
 
 function goLogin() {
+  router.push({ name: 'login' });
+}
+
+function goToJobs() {
+  router.push(jobsBackRoute.value);
+}
+
+function goToDashboard() {
+  if (auth.isAuthenticated) {
+    router.push({ name: 'dashboard.index' });
+    return;
+  }
   router.push({ name: 'login' });
 }
 
