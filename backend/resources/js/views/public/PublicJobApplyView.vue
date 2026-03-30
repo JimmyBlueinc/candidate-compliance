@@ -31,7 +31,7 @@
           <div>
             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Step 1 of 1</p>
             <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900">Create or verify your account</h2>
-            <p class="mt-2 text-sm text-slate-600">Submit your details to apply for this role. If you already have an account, use your existing email and password.</p>
+            <p class="mt-2 text-sm text-slate-600">Submit your basic details to create access. You will continue phase 1 and phase 2 in your candidate dashboard before final application completion.</p>
           </div>
 
           <form class="mt-7 space-y-5" @submit.prevent="submit">
@@ -40,6 +40,11 @@
             </div>
             <div v-if="error" class="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm font-semibold text-red-700">
               {{ error }}
+            </div>
+            <div v-if="tempCredentialInfo" class="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+              <p class="font-semibold">Temporary password created.</p>
+              <p class="mt-1">An email was sent to <span class="font-semibold">{{ form.email }}</span> with your temporary password.</p>
+              <p v-if="tempCredentialInfo.tempPassword" class="mt-2">Temp password: <span class="font-mono font-semibold">{{ tempCredentialInfo.tempPassword }}</span></p>
             </div>
 
             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -61,17 +66,16 @@
             </div>
 
             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Account security</h3>
-              <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="ml-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Password</label>
-                  <input v-model="form.password" type="password" required class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-slate-500" placeholder="********" :disabled="submitting" />
-                </div>
-                <div>
-                  <label class="ml-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Confirm password</label>
-                  <input v-model="form.password_confirmation" type="password" required class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-slate-500" placeholder="********" :disabled="submitting" />
-                </div>
-              </div>
+              <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Already have an account?</h3>
+              <p class="mt-2 text-sm text-slate-600">Login to your portal and continue your application from your jobs page.</p>
+              <button
+                type="button"
+                class="mt-4 inline-flex rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                :disabled="submitting"
+                @click="goToLoginForExistingAccount"
+              >
+                Login to existing account
+              </button>
             </div>
 
             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -139,13 +143,12 @@ const job = ref(null);
 const submitting = ref(false);
 const error = ref('');
 const success = ref('');
+const tempCredentialInfo = ref(null);
 
 const form = ref({
   first_name: '',
   last_name: '',
   email: '',
-  password: '',
-  password_confirmation: '',
   phone: '',
   specialty: '',
 });
@@ -175,6 +178,7 @@ async function submit() {
 
   error.value = '';
   success.value = '';
+  tempCredentialInfo.value = null;
   submitting.value = true;
 
   try {
@@ -184,15 +188,41 @@ async function submit() {
     auth.setSession({ token: res?.token, user: res?.user });
     auth.setTenantId(res?.user?.organization_id || null);
 
-    success.value = res?.message || 'Application submitted.';
+    tempCredentialInfo.value = {
+      tempPassword: res?.credentials?.temp_password || '',
+      emailSent: Boolean(res?.email_sent),
+    };
+    success.value = res?.message || 'Account created. Continue in dashboard.';
 
-    await router.push({ name: 'portal.jobs' });
+    await router.push({
+      name: 'portal.dashboard',
+      query: {
+        continue_application: '1',
+        job_id: String(route.params.id || ''),
+      },
+    });
   } catch (e) {
-    const msg = e?.response?.data?.message;
+    const payload = e?.response?.data || {};
+    if (payload?.requires_login) {
+      error.value = payload?.message || 'Account already exists. Please login to continue.';
+      return;
+    }
+    const msg = payload?.message;
     error.value = msg || 'Application failed.';
   } finally {
     submitting.value = false;
   }
+}
+
+function goToLoginForExistingAccount() {
+  router.push({
+    name: 'login',
+    query: {
+      job_id: String(route.params.id || ''),
+      continue_application: '1',
+      email: form.value.email || '',
+    },
+  });
 }
 
 function goLogin() {

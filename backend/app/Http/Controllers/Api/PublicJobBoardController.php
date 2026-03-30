@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Models\JobOrder;
-use App\Models\Placement;
+use App\Models\Organization;
 use App\Models\User;
+use App\Mail\TalentNetworkWelcomeMail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class PublicJobBoardController extends Controller
 {
@@ -129,9 +131,10 @@ class PublicJobBoardController extends Controller
     }
 
     /**
-     * Apply-first flow:
-     * - Candidate signs up scoped to the org that posted this job
-     * - Enforces onboarding_stage check before allowing application
+     * Public apply entrypoint (phase-gated):
+     * - New users: create candidate account + send temporary password by email.
+     * - Existing users: prompt login first to continue in their portal.
+     * - Everyone is routed into portal to complete phase 1/2 before final apply.
      */
     public function apply(Request $request, int $id): JsonResponse
     {
@@ -149,7 +152,6 @@ class PublicJobBoardController extends Controller
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:255'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
             'phone' => ['nullable', 'string', 'max:50'],
             'specialty' => ['nullable', 'string', 'max:255'],
         ]);
@@ -161,20 +163,33 @@ class PublicJobBoardController extends Controller
             ->where('email', $email)
             ->first();
 
-        if ($existingUser && !Hash::check((string) $request->input('password'), (string) $existingUser->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+        if ($existingUser && (string) ($existingUser->role ?? '') !== 'candidate') {
+            return response()->json([
+                'requires_login' => false,
+                'message' => 'This email already exists as a staff account in this organization.',
+            ], 409);
         }
 
-        $user = $existingUser ?: User::create([
+        if ($existingUser) {
+            $organization = Organization::query()->find($job->tenant_id);
+            return response()->json([
+                'requires_login' => true,
+                'job_id' => (int) $job->id,
+                'job_title' => (string) $job->title,
+                'organization_slug' => (string) ($organization?->slug ?? ''),
+                'message' => 'Account already exists. Please login to continue your application from your candidate portal.',
+            ], 409);
+        }
+
+        $tempPassword = Str::password(12, true, true, false, false);
+        $user = User::create([
             'organization_id' => $job->tenant_id,
             'name' => trim((string) $request->input('first_name') . ' ' . (string) $request->input('last_name')),
             'email' => $email,
-            'password' => Hash::make((string) $request->input('password')),
+            'password' => Hash::make($tempPassword),
             'role' => 'candidate',
             'access_status' => 'active',
-            'must_change_password' => false,
+            'must_change_password' => true,
         ]);
 
         if ((string) ($user->role ?? '') !== 'candidate') {
@@ -189,30 +204,7 @@ class PublicJobBoardController extends Controller
             ->where('email', $email)
             ->first();
 
-        // Check if candidate has completed Phase 2 (documents) for job application
-        if ($candidate) {
-            $phase2Complete = $this->checkPhase2Complete($job->tenant_id, $candidate);
-            
-            if (!$phase2Complete) {
-                $expiresAt = now()->addHours(24);
-                $token = $user->createToken('candidate-portal', ['portal'], $expiresAt)->plainTextToken;
-
-                return response()->json([
-                    'requires_onboarding' => true,
-                    'requires_phase2' => true,
-                    'candidate' => [
-                        'id' => $candidate->id,
-                        'name' => $candidate->name,
-                        'email' => $candidate->email,
-                    ],
-                    'token' => $token,
-                    'expires_at' => $expiresAt->toIso8601String(),
-                    'message' => 'Please upload your documents in My Profile to apply for jobs.',
-                ], 403);
-            }
-        }
-
-        // Create candidate if not exists (Phase 1 complete from apply)
+        // Create candidate if not exists (new account path)
         if (!$candidate) {
             $candidate = Candidate::query()->withoutGlobalScopes()->create([
                 'tenant_id' => $job->tenant_id,
@@ -227,23 +219,6 @@ class PublicJobBoardController extends Controller
                 'onboarding_stage' => 'basic_complete',
                 'last_applied_at' => now(),
             ]);
-
-            // New candidates need to complete Phase 2 (documents) to apply
-            $expiresAt = now()->addHours(24);
-            $token = $user->createToken('candidate-portal', ['portal'], $expiresAt)->plainTextToken;
-
-            return response()->json([
-                'requires_onboarding' => true,
-                'requires_phase2' => true,
-                'candidate' => [
-                    'id' => $candidate->id,
-                    'name' => $candidate->name,
-                    'email' => $candidate->email,
-                ],
-                'token' => $token,
-                'expires_at' => $expiresAt->toIso8601String(),
-                'message' => 'Please upload your documents in My Profile to apply for jobs.',
-            ], 403);
         }
 
         if (!$candidate->user_id) {
@@ -253,19 +228,44 @@ class PublicJobBoardController extends Controller
         $candidate->last_applied_at = now();
         $candidate->save();
 
-        $placement = Placement::query()->withoutGlobalScopes()->firstOrCreate([
-            'tenant_id' => $job->tenant_id,
-            'candidate_id' => $candidate->id,
-            'job_order_id' => $job->id,
-        ], [
-            'stage' => 'applied',
-        ]);
+        $organization = Organization::query()->find($job->tenant_id);
+        $emailSent = false;
+        try {
+            $profileUrl = $organization?->subdomain
+                ? "https://{$organization->subdomain}.agenchq.com/portal/profile"
+                : 'https://agenchq.com/portal/profile';
+            $loginUrl = $organization?->subdomain
+                ? "https://{$organization->subdomain}.agenchq.com/login"
+                : 'https://agenchq.com/login';
+
+            Mail::to($candidate->email)->send(new TalentNetworkWelcomeMail(
+                organizationName: (string) ($organization?->name ?? 'AgencHQ'),
+                profileUrl: $profileUrl,
+                name: $candidate->first_name,
+                tempPassword: $tempPassword,
+                loginUrl: $loginUrl,
+            ));
+            $emailSent = true;
+        } catch (\Throwable $e) {
+            \Log::warning('Public apply welcome email failed', [
+                'candidate_id' => $candidate->id,
+                'user_id' => $user->id,
+                'job_id' => $job->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         $expiresAt = now()->addHours(24);
         $token = $user->createToken('candidate-portal', ['portal'], $expiresAt)->plainTextToken;
 
+        $phase1Missing = $this->phase1Missing($candidate);
+        $phase2Complete = $this->checkPhase2Complete($job->tenant_id, $candidate);
+
         return response()->json([
-            'requires_onboarding' => false,
+            'requires_onboarding' => true,
+            'requires_phase1' => count($phase1Missing) > 0,
+            'requires_phase2' => !$phase2Complete,
+            'phase1_missing' => $phase1Missing,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -275,12 +275,40 @@ class PublicJobBoardController extends Controller
             ],
             'token' => $token,
             'expires_at' => $expiresAt->toIso8601String(),
-            'placement' => [
-                'id' => $placement->id,
-                'stage' => $placement->stage,
+            'job' => [
+                'id' => (int) $job->id,
+                'title' => (string) $job->title,
             ],
-            'message' => 'Application submitted.',
+            'credentials' => [
+                'email' => $candidate->email,
+                'temp_password' => $tempPassword,
+            ],
+            'email_sent' => $emailSent,
+            'message' => 'Account created. Continue in your dashboard to complete phase 1 and phase 2 before final job application.',
         ], 201);
+    }
+
+    private function phase1Missing(Candidate $candidate): array
+    {
+        $fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'address_line1',
+            'city',
+            'state',
+            'postal_code',
+            'country',
+        ];
+        $missing = [];
+        foreach ($fields as $key) {
+            $v = $candidate->{$key} ?? null;
+            if ($v === null || (is_string($v) && trim($v) === '')) {
+                $missing[] = $key;
+            }
+        }
+        return $missing;
     }
 
     /**

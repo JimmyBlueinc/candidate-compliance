@@ -30,6 +30,26 @@
       </div>
     </section>
 
+    <section
+      v-if="showApplicationPrompt"
+      class="rounded-2xl border border-amber-300 bg-amber-50 p-5 shadow-sm reveal-up"
+    >
+      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">Continue Application</p>
+      <h2 class="mt-2 text-lg font-bold text-amber-900">Your application is not complete yet.</h2>
+      <p class="mt-2 text-sm text-amber-800">{{ applicationPromptText }}</p>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <RouterLink :to="{ name: 'portal.profile' }" class="rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700">Complete Phase 1</RouterLink>
+        <RouterLink :to="{ name: 'portal.credentials' }" class="rounded-xl border border-amber-400 bg-white px-4 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100">Complete Phase 2</RouterLink>
+        <RouterLink
+          v-if="pendingJobId"
+          :to="{ name: 'portal.jobs.detail', params: { id: pendingJobId } }"
+          class="rounded-xl border border-amber-400 bg-white px-4 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100"
+        >
+          Continue for selected job
+        </RouterLink>
+      </div>
+    </section>
+
     <section id="recommended-jobs" class="space-y-4 reveal-up">
       <div class="section-head">
         <h2>Recommended jobs</h2>
@@ -121,12 +141,14 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { apiGet } from '../../lib/api';
 import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
 
 const auth = useAuthStore();
 const brand = useBrandStore();
+const route = useRoute();
 const primaryColor = computed(() => brand.primaryColor || 'var(--brand-primary, var(--p-primary-color))');
 
 const me = ref(null);
@@ -135,7 +157,12 @@ const unreadMessages = ref(0);
 const interviewRows = ref([]);
 const credentialsCount = ref(0);
 const approvedCredentialsCount = ref(0);
+const onboardingStatus = ref(null);
 const heroImage = ref('https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1800&q=80');
+const pendingJobId = computed(() => {
+    const v = String(route.query?.job_id || '').trim();
+    return v || '';
+});
 
 const avatarUrl = computed(() => auth.user?.avatar_url || auth.user?.avatar_path || '');
 const greetingName = computed(() => {
@@ -186,6 +213,28 @@ const upcomingInterviews = computed(() => {
     }).length;
 });
 
+const showApplicationPrompt = computed(() => {
+    const requested = String(route.query?.continue_application || '') === '1';
+    const phase1Complete = Boolean(onboardingStatus.value?.phase1_complete);
+    const phase2Complete = Boolean(onboardingStatus.value?.phase2_complete);
+    return requested || !phase1Complete || !phase2Complete;
+});
+
+const applicationPromptText = computed(() => {
+    const phase1Complete = Boolean(onboardingStatus.value?.phase1_complete);
+    const phase2Complete = Boolean(onboardingStatus.value?.phase2_complete);
+    if (!phase1Complete && !phase2Complete) {
+        return 'Finish your personal profile (phase 1), then upload credentials/documents (phase 2) before your job application can be fully submitted.';
+    }
+    if (!phase1Complete) {
+        return 'Finish phase 1 personal profile details to continue your application.';
+    }
+    if (!phase2Complete) {
+        return 'Phase 1 is complete. Upload and complete phase 2 credentials/documents to finalize your application.';
+    }
+    return 'Your profile is complete. Open your selected job and submit final interest.';
+});
+
 function onHeroImageError() {
     heroImage.value = '/images/public/tenant-careers-hero.svg';
 }
@@ -211,6 +260,16 @@ async function loadMe() {
         approvedCredentialsCount.value = Number(me.value?.approved_credentials_count || 0);
     } catch (e) {
         console.error('Failed to load candidate profile', e);
+    }
+}
+
+async function loadOnboardingStatus() {
+    try {
+        const response = await apiGet('/v1/portal/profile');
+        const payload = response?.data || response;
+        onboardingStatus.value = payload?.onboarding || null;
+    } catch {
+        onboardingStatus.value = null;
     }
 }
 
@@ -249,6 +308,7 @@ onMounted(async () => {
         await brand.load();
     }
     await loadMe();
+    await loadOnboardingStatus();
     await loadJobs();
     await loadMessageCount();
     await loadInterviews();

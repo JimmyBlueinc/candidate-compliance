@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
+use App\Models\Document;
 use App\Models\JobOrder;
 use App\Models\Placement;
 use App\Services\OperationalPlacementService;
@@ -212,6 +213,18 @@ class PlacementController extends Controller
             ->where('status', 'open')
             ->findOrFail($jobOrderId);
 
+        $phase1Missing = $this->phase1Missing($candidate);
+        $phase2Complete = $this->phase2Complete($orgId, $candidate);
+        if (count($phase1Missing) > 0 || !$phase2Complete) {
+            return response()->json([
+                'message' => 'Complete your profile and credentials before final application.',
+                'requires_onboarding' => true,
+                'requires_phase1' => count($phase1Missing) > 0,
+                'requires_phase2' => !$phase2Complete,
+                'phase1_missing' => $phase1Missing,
+            ], 422);
+        }
+
         $placement = Placement::firstOrCreate([
             'tenant_id' => $orgId,
             'candidate_id' => $candidate->id,
@@ -224,5 +237,70 @@ class PlacementController extends Controller
             'id' => $placement->id,
             'stage' => $placement->stage,
         ], 201, [], 'Interest recorded.');
+    }
+
+    private function phase1Missing(Candidate $candidate): array
+    {
+        $fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'address_line1',
+            'city',
+            'state',
+            'postal_code',
+            'country',
+        ];
+        $missing = [];
+        foreach ($fields as $key) {
+            $v = $candidate->{$key} ?? null;
+            if ($v === null || (is_string($v) && trim($v) === '')) {
+                $missing[] = $key;
+            }
+        }
+        return $missing;
+    }
+
+    private function phase2Complete(int $orgId, Candidate $candidate): bool
+    {
+        $phase2Fields = [
+            'specialty',
+            'license_type',
+            'years_experience',
+            'work_authorization',
+            'drug_screen',
+            'vaccination',
+        ];
+        foreach ($phase2Fields as $key) {
+            $v = $candidate->{$key} ?? null;
+            if (in_array($key, ['work_authorization', 'drug_screen', 'vaccination'], true)) {
+                $raw = $candidate->getRawOriginal($key);
+                if ($raw === null) return false;
+                continue;
+            }
+            if ($v === null || (is_string($v) && trim($v) === '')) {
+                return false;
+            }
+        }
+
+        $uploadedKinds = Document::query()
+            ->where('tenant_id', $orgId)
+            ->where('candidate_id', $candidate->id)
+            ->where('type', 'onboarding')
+            ->get()
+            ->map(fn (Document $d) => strtolower(trim((string) ($d->meta['kind'] ?? ''))))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        foreach (['resume', 'government_id', 'license'] as $kind) {
+            if (!in_array($kind, $uploadedKinds, true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

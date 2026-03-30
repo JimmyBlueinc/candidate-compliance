@@ -106,7 +106,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useBrandStore } from '../../stores/brand';
 import { apiPost } from '../../lib/api';
@@ -114,6 +114,7 @@ import { renderGoogleButton } from '../../lib/googleIdentity';
 import AuthRotatingShowcase from '../../components/auth/AuthRotatingShowcase.vue';
 
 const router = useRouter();
+const route = useRoute();
 const auth = useAuthStore();
 const brand = useBrandStore();
 
@@ -194,6 +195,12 @@ async function redirectAfterAuth() {
   }
 
   if (auth.user?.role === 'candidate') {
+    const continueApplication = String(route.query?.continue_application || '') === '1';
+    const jobId = String(route.query?.job_id || '').trim();
+    if (continueApplication && jobId) {
+      await router.push({ name: 'portal.jobs.detail', params: { id: jobId } });
+      return;
+    }
     await router.push({ name: 'portal.dashboard' });
     return;
   }
@@ -241,6 +248,10 @@ async function initGoogleButton() {
 }
 
 onMounted(async () => {
+  const qEmail = String(route.query?.email || '').trim();
+  if (qEmail) {
+    email.value = qEmail;
+  }
   if (!brand.loaded && !brand.loading) {
     await brand.load();
   }
