@@ -551,10 +551,6 @@
 }
 
 @layer utilities {
-    html.theme-light .text-white {
-        color: #0f172a !important;
-    }
-
     html.theme-light .text-slate-100,
     html.theme-light .text-slate-200,
     html.theme-light .text-slate-300,

@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-[#f8fafc] text-slate-900">
     <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primarySolid" @apex-login="goLogin" />
     <div class="max-w-7xl mx-auto px-6 pt-28 pb-20">
-      <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 p-8 shadow-lg md:p-12">
+      <section class="aq-on-dark relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 p-8 shadow-lg md:p-12">
         <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1800&q=80" alt="Business leaders reviewing staffing results" class="absolute inset-0 h-full w-full object-cover opacity-30" loading="lazy" />
         <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/85 to-slate-900/65" />
         <div class="relative z-10">

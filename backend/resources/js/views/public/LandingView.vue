@@ -4,7 +4,7 @@
 
     <main class="pt-24 pb-20 sm:pt-28 sm:pb-24">
       <section class="mx-auto max-w-7xl px-4 sm:px-6">
-        <div class="relative min-h-[540px] overflow-hidden rounded-[2rem] border border-slate-200 shadow-[0_30px_90px_rgba(2,6,23,0.16)] sm:min-h-[620px]">
+        <div class="aq-on-dark relative min-h-[540px] overflow-hidden rounded-[2rem] border border-slate-200 shadow-[0_30px_90px_rgba(2,6,23,0.16)] sm:min-h-[620px]">
           <img
             src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=2400&q=80"
             alt="Staffing team collaborating in a modern office"
@@ -51,7 +51,7 @@
       </section>
 
       <section class="mx-auto mt-14 max-w-7xl px-4 sm:mt-16 sm:px-6">
-        <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 p-6 shadow-[0_24px_70px_rgba(2,6,23,0.35)] md:p-8">
+        <div class="aq-on-dark relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 p-6 shadow-[0_24px_70px_rgba(2,6,23,0.35)] md:p-8">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.28),transparent_45%)]" />
           <div class="relative z-10">
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">Dashboard Experience</p>
@@ -138,7 +138,7 @@
       </section>
 
       <section class="mx-auto mt-16 max-w-7xl px-4 sm:mt-20 sm:px-6">
-        <div class="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 px-6 py-10 text-white sm:px-8 sm:py-14 md:px-12">
+        <div class="aq-on-dark relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 px-6 py-10 text-white sm:px-8 sm:py-14 md:px-12">
           <img
             src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2000&q=80"
             alt="Downtown office towers representing workforce scale and growth"

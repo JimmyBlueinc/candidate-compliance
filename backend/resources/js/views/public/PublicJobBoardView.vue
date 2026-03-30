@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-[#f8fafc] text-slate-900">
     <PublicSiteHeader mode="apex" brand-name="AgencHQ" :primary-color="primaryColor" @apex-login="goLogin" />
     <div class="max-w-7xl mx-auto px-6 pt-28 pb-12">
-      <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-7 md:p-10">
+      <section class="aq-on-dark relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-7 md:p-10">
         <img
           src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=2000&q=80"
           alt="Staffing professionals discussing career opportunities"

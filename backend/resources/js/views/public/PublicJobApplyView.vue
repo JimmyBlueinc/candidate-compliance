@@ -13,7 +13,7 @@
       @tenant-signin="goLogin"
     />
     <div class="max-w-7xl mx-auto px-6 pt-28 pb-16">
-      <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-7 md:p-10">
+      <section class="aq-on-dark relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-7 md:p-10">
         <img
           src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1800&q=80"
           alt="Candidate application process"
