@@ -643,6 +643,10 @@
     html.theme-light .aq-on-dark .text-slate-700 {
         color: rgba(226, 232, 240, 0.9) !important;
     }
+
+    html.theme-light .aq-on-dark .aq-force-black {
+        color: #0f172a !important;
+    }
 }
 
 @keyframes fadeInUp {

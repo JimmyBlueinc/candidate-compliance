@@ -187,20 +187,35 @@ class PlacementController extends Controller
             ], 403);
         }
 
-        $orgId = Org::id($request);
+        $orgId = (int) (Org::id($request) ?: ($request->header('X-Tenant-Id') ?: ($user->organization_id ?? 0)));
+
+        $candidate = null;
+        if ($orgId > 0) {
+            $candidate = Candidate::query()
+                ->where('tenant_id', $orgId)
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->orWhere('email', $user->email);
+                })
+                ->first();
+        }
+
+        if (!$candidate) {
+            $candidate = Candidate::query()
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->orWhere('email', $user->email);
+                })
+                ->orderByDesc('id')
+                ->first();
+            $orgId = (int) ($candidate?->tenant_id ?? $orgId);
+        }
+
         if (!$orgId) {
             return response()->json([
                 'message' => 'Organization context missing.',
             ], 400);
         }
-
-        $candidate = Candidate::query()
-            ->where('tenant_id', $orgId)
-            ->where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhere('email', $user->email);
-            })
-            ->first();
 
         if (!$candidate) {
             return response()->json([
@@ -213,15 +228,14 @@ class PlacementController extends Controller
             ->where('status', 'open')
             ->findOrFail($jobOrderId);
 
-        $phase1Missing = $this->phase1Missing($candidate);
         $phase2Complete = $this->phase2Complete($orgId, $candidate);
-        if (count($phase1Missing) > 0 || !$phase2Complete) {
+        if (!$phase2Complete) {
             return response()->json([
-                'message' => 'Complete your profile and credentials before final application.',
+                'message' => 'Complete your credentials/documents before final application.',
                 'requires_onboarding' => true,
-                'requires_phase1' => count($phase1Missing) > 0,
+                'requires_phase1' => false,
                 'requires_phase2' => !$phase2Complete,
-                'phase1_missing' => $phase1Missing,
+                'phase1_missing' => [],
             ], 422);
         }
 

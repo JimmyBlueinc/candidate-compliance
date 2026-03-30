@@ -19,18 +19,12 @@ class PortalJobsController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
-        $orgId = Org::id($request) ?: (int) ($user->organization_id ?? 0);
+        $orgId = $this->resolveOrgId($request);
         if (!$orgId) {
-            return response()->json(['message' => 'Organization context missing.'], 400);
+            return response()->api([]);
         }
 
-        $candidate = Candidate::query()
-            ->where('tenant_id', $orgId)
-            ->where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhere('email', $user->email);
-            })
-            ->first();
+        $candidate = $this->resolveCandidateForOrg($orgId, $user);
 
         $jobs = JobOrder::query()
             ->where('tenant_id', $orgId)
@@ -67,18 +61,12 @@ class PortalJobsController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
-        $orgId = Org::id($request) ?: (int) ($user->organization_id ?? 0);
+        $orgId = $this->resolveOrgId($request);
         if (!$orgId) {
             return response()->json(['message' => 'Organization context missing.'], 400);
         }
 
-        $candidate = Candidate::query()
-            ->where('tenant_id', $orgId)
-            ->where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhere('email', $user->email);
-            })
-            ->first();
+        $candidate = $this->resolveCandidateForOrg($orgId, $user);
 
         $job = JobOrder::query()
             ->where('tenant_id', $orgId)
@@ -180,18 +168,18 @@ class PortalJobsController extends Controller
             return ['error' => response()->json(['message' => 'Unauthorized.'], 403)];
         }
 
-        $orgId = Org::id($request);
+        $orgId = $this->resolveOrgId($request);
         if (!$orgId) {
             return ['error' => response()->json(['message' => 'Organization context missing.'], 400)];
         }
 
-        $candidate = Candidate::query()
-            ->where('tenant_id', $orgId)
-            ->where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhere('email', $user->email);
-            })
-            ->first();
+        $candidate = $this->resolveCandidateForOrg($orgId, $user);
+        if (!$candidate) {
+            $candidate = $this->resolveCandidateForAnyOrg($user);
+            if ($candidate) {
+                $orgId = (int) $candidate->tenant_id;
+            }
+        }
 
         if (!$candidate) {
             return ['error' => response()->json(['message' => 'Candidate profile not found.'], 404)];
@@ -201,5 +189,54 @@ class PortalJobsController extends Controller
             'org_id' => $orgId,
             'candidate' => $candidate,
         ];
+    }
+
+    private function resolveOrgId(Request $request): int
+    {
+        $user = $request->user();
+        $headerOrgId = (int) ($request->header('X-Tenant-Id') ?: 0);
+        if ($headerOrgId > 0) {
+            return $headerOrgId;
+        }
+
+        $orgId = (int) (Org::id($request) ?: 0);
+        if ($orgId > 0) {
+            return $orgId;
+        }
+
+        $userOrgId = (int) ($user?->organization_id ?? 0);
+        if ($userOrgId > 0) {
+            return $userOrgId;
+        }
+
+        $candidate = $this->resolveCandidateForAnyOrg($user);
+        return (int) ($candidate?->tenant_id ?? 0);
+    }
+
+    private function resolveCandidateForOrg(int $orgId, $user): ?Candidate
+    {
+        return Candidate::query()
+            ->where('tenant_id', $orgId)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhere('email', $user->email);
+            })
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    private function resolveCandidateForAnyOrg($user): ?Candidate
+    {
+        if (!$user) {
+            return null;
+        }
+
+        return Candidate::query()
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhere('email', $user->email);
+            })
+            ->orderByDesc('id')
+            ->first();
     }
 }

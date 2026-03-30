@@ -14,7 +14,7 @@
           <div class="absolute inset-0 bg-gradient-to-r from-slate-950/88 via-slate-900/74 to-slate-900/46" />
           <div class="relative z-10 grid h-full items-end p-6 sm:p-8 md:p-12">
             <div class="max-w-3xl text-white">
-              <p class="inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
+              <p class="aq-force-black inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-black">
                 Workforce Operating System
               </p>
               <h1 class="mt-6 text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl md:text-6xl" :style="heroHeadlineStyle">
@@ -31,7 +31,7 @@
                 >
                   Book Demo
                 </RouterLink>
-                <RouterLink to="/features" class="rounded-xl border border-white/35 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
+                <RouterLink to="/features" class="aq-force-black rounded-xl border border-white/35 bg-white/10 px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/20">
                   Explore Platform
                 </RouterLink>
               </div>
@@ -82,8 +82,8 @@
 
               <div class="mt-4 grid gap-3 md:grid-cols-4">
                 <article v-for="kpi in dashboardPreviewKpis" :key="kpi.label" class="rounded-xl border border-white/10 bg-white/5 p-4">
-                  <p class="text-[10px] uppercase tracking-[0.14em] text-white/60">{{ kpi.label }}</p>
-                  <p class="mt-2 text-2xl font-bold text-white">{{ kpi.value }}</p>
+                  <p class="aq-force-black text-[10px] uppercase tracking-[0.14em] text-black/80">{{ kpi.label }}</p>
+                  <p class="aq-force-black mt-2 text-2xl font-bold text-black">{{ kpi.value }}</p>
                 </article>
               </div>
 
@@ -151,7 +151,7 @@
             <h2 class="mt-4 text-3xl font-bold leading-tight text-white sm:text-4xl" :style="ctaHeadlineStyle">One platform for every hiring and staffing outcome.</h2>
             <p class="mt-4 text-base text-white/85 sm:text-lg">From requisition intake to successful placement, AgencHQ gives your teams clean workflows and a modern command center experience.</p>
             <div class="mt-7 flex flex-wrap gap-3">
-              <RouterLink to="/signup" class="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-100">Get Started</RouterLink>
+              <RouterLink to="/signup" class="aq-force-black rounded-xl bg-white px-6 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-100">Get Started</RouterLink>
               <RouterLink to="/pricing" class="rounded-xl border border-white/35 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10">View Pricing</RouterLink>
             </div>
           </div>

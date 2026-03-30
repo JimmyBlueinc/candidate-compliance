@@ -113,34 +113,18 @@
       </div>
     </div>
 
-    <Dialog v-model:visible="credentialsDialogOpen" modal header="Complete Your Application Steps" :style="{ width: 'min(520px, 95vw)' }">
+    <Dialog v-model:visible="credentialsDialogOpen" modal header="Complete Your Credentials" :style="{ width: 'min(520px, 95vw)' }">
       <div class="space-y-4">
         <div class="text-sm text-[color:var(--p-text-color)]">
-          <template v-if="requiresPhase1 && requiresPhase2">
-            Complete <span class="font-semibold">phase 1 profile details</span> and <span class="font-semibold">phase 2 credentials/documents</span> before final application.
-          </template>
-          <template v-else-if="requiresPhase1">
-            Complete your <span class="font-semibold">phase 1 profile details</span> before final application.
-          </template>
-          <template v-else>
-            Complete your <span class="font-semibold">phase 2 credentials/documents</span> before final application.
-          </template>
+          Complete your <span class="font-semibold">phase 2 credentials/documents</span> before final application.
         </div>
-        <div class="text-xs text-[color:var(--p-text-muted-color)]" v-if="requiresPhase1">
-          Phase 1 missing fields: complete your personal profile details.
-        </div>
-        <div class="text-xs text-[color:var(--p-text-muted-color)]" v-else>
+        <div class="text-xs text-[color:var(--p-text-muted-color)]">
           Go to Credentials to upload required files and complete document checks.
         </div>
 
         <div class="flex gap-2 justify-end pt-2">
           <Button type="button" label="Later" severity="secondary" outlined size="small" @click="credentialsDialogOpen = false" />
-          <Button
-            type="button"
-            :label="requiresPhase1 ? 'Go to Profile' : 'Go to Credentials'"
-            size="small"
-            @click="requiresPhase1 ? goToProfile() : goToCredentials()"
-          />
+          <Button type="button" label="Go to Credentials" size="small" @click="goToCredentials()" />
         </div>
       </div>
     </Dialog>
@@ -171,7 +155,6 @@ const bookmarking = ref(false);
 const message = ref('');
 const onboarding = ref(null);
 const credentialsDialogOpen = ref(false);
-const requiresPhase1 = ref(false);
 const requiresPhase2 = ref(true);
 
 const estimatedWeeklyTakeHome = computed(() => {
@@ -233,11 +216,9 @@ async function refresh() {
 async function expressInterest() {
     if (!job.value?.id) return;
 
-    // Check onboarding completion before final application
-    const phase1Complete = Boolean(onboarding.value?.phase1_complete);
+    // Check credentials completion before final application.
     const phase2Complete = Boolean(onboarding.value?.phase2_complete);
-    if (!phase1Complete || !phase2Complete) {
-        requiresPhase1.value = !phase1Complete;
+    if (!phase2Complete) {
         requiresPhase2.value = !phase2Complete;
         credentialsDialogOpen.value = true;
         return;
@@ -251,10 +232,9 @@ async function expressInterest() {
     } catch (e) {
         const payload = e?.response?.data || {};
         if (payload?.requires_onboarding) {
-            requiresPhase1.value = Boolean(payload?.requires_phase1);
             requiresPhase2.value = Boolean(payload?.requires_phase2);
             credentialsDialogOpen.value = true;
-            message.value = payload?.message || 'Complete onboarding before final application.';
+            message.value = payload?.message || 'Complete credentials before final application.';
             return;
         }
         message.value = e?.message || 'Failed to submit interest.';
@@ -286,11 +266,6 @@ async function toggleBookmark() {
 function goToCredentials() {
     credentialsDialogOpen.value = false;
     router.push({ name: 'portal.credentials' });
-}
-
-function goToProfile() {
-    credentialsDialogOpen.value = false;
-    router.push({ name: 'portal.profile' });
 }
 
 watch(
