@@ -22,7 +22,7 @@
             :alt="organization.name"
             class="w-20 h-20 rounded-2xl object-cover shadow-lg mx-auto mb-6"
           />
-          <h1 class="text-4xl font-display font-bold mb-3 text-white drop-shadow-[0_10px_24px_rgba(2,6,23,0.55)]">
+          <h1 class="text-4xl font-display font-bold mb-3 text-[color:var(--aq-fg)]">
             {{ organization?.name || 'Welcome' }}
           </h1>
           <p class="text-lg text-[color:var(--p-text-muted-color)] max-w-2xl mx-auto">

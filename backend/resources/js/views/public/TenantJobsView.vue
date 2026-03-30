@@ -12,7 +12,7 @@
             <span v-else class="text-white font-bold text-lg">{{ brand.name?.charAt(0) || 'A' }}</span>
           </div>
           <div>
-            <h1 class="font-display text-lg font-semibold text-white drop-shadow-[0_8px_20px_rgba(2,6,23,0.5)]">{{ brand.name || 'Organization' }}</h1>
+            <h1 class="font-display text-lg font-semibold text-[color:var(--aq-fg)]">{{ brand.name || 'Organization' }}</h1>
             <p class="text-xs text-[color:var(--p-text-muted-color)]">Open Positions</p>
           </div>
         </div>
@@ -26,7 +26,7 @@
     <!-- Jobs List -->
     <section class="py-8 px-6">
       <div class="max-w-4xl mx-auto">
-        <h2 class="text-2xl font-display font-bold mb-6 text-white drop-shadow-[0_10px_24px_rgba(2,6,23,0.55)]">Open Positions</h2>
+        <h2 class="text-2xl font-display font-bold mb-6 text-[color:var(--aq-fg)]">Open Positions</h2>
 
         <!-- Loading -->
         <div v-if="loading" class="flex items-center justify-center py-20">

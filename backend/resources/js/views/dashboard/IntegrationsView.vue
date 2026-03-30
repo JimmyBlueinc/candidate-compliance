@@ -44,12 +44,23 @@
           :style="item.enabled ? cardEnabledStyle : cardStyle"
         >
           <div class="flex items-start justify-between gap-3">
-            <div>
+            <div class="flex min-w-0 items-start gap-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[color:var(--aq-border)] bg-[color:var(--aq-surface-2)]">
+                <img
+                  :src="integrationLogo(item.key)"
+                  :alt="`${item.label} logo`"
+                  class="h-6 w-6 object-contain"
+                  loading="lazy"
+                  @error="onLogoError"
+                />
+              </div>
+              <div class="min-w-0">
               <div class="text-sm font-semibold text-[color:var(--aq-fg)]">{{ item.label }}</div>
               <div class="text-xs text-[color:var(--aq-muted)] mt-1 leading-relaxed">{{ item.description }}</div>
               <div class="mt-2 flex items-center gap-2 text-[11px] text-[color:var(--aq-muted)]">
                 <span class="rounded-full bg-[color:var(--aq-surface-2)] px-2 py-0.5 uppercase tracking-[0.12em]">{{ item.category }}</span>
-                <span class="rounded-full bg-[color:var(--aq-surface-2)] px-2 py-0.5 uppercase tracking-[0.12em]">{{ formatAuthMethod(item.auth_method) }}</span>
+                <span class="rounded-full bg-[color:var(--aq-surface-2)] px-2 py-0.5 uppercase tracking-[0.12em]">Connect</span>
+              </div>
               </div>
             </div>
             <span class="text-[10px] font-semibold px-2 py-1 rounded-full"
@@ -77,7 +88,7 @@
               :to="{ name: 'dashboard.integrations.detail', params: { key: item.key } }"
               class="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--aq-border)] px-3 py-2 text-xs font-semibold text-[color:var(--aq-fg)] hover:bg-[color:var(--aq-surface-2)] transition"
             >
-              Manage
+              {{ item.enabled ? 'Manage' : 'Connect' }}
             </RouterLink>
             <a
               v-if="item.docs_url"
@@ -147,6 +158,15 @@ const cardStyle = {
 const cardEnabledStyle = {
   background:
     'linear-gradient(160deg, color-mix(in srgb, var(--aq-primary) 14%, var(--aq-surface-card)), color-mix(in srgb, var(--aq-accent-2) 10%, var(--aq-surface-card)))',
+};
+
+const INTEGRATION_LOGO_MAP = {
+  google_drive: 'https://cdn.simpleicons.org/googledrive',
+  google_calendar: 'https://cdn.simpleicons.org/googlecalendar',
+  slack: 'https://cdn.simpleicons.org/slack',
+  dropbox: 'https://cdn.simpleicons.org/dropbox',
+  quickbooks: 'https://cdn.simpleicons.org/intuitquickbooks',
+  zapier: 'https://cdn.simpleicons.org/zapier',
 };
 
 function unwrap(res) {
@@ -245,14 +265,17 @@ async function toggleIntegration(key, enabled) {
   }
 }
 
-function formatAuthMethod(value) {
-  const map = {
-    oauth2: 'OAuth',
-    oauth2_or_webhook: 'OAuth/Webhook',
-    api_key_or_webhook: 'API Key/Webhook',
-  };
-  const key = String(value || '').toLowerCase();
-  return map[key] || 'API';
+function integrationLogo(key) {
+  return INTEGRATION_LOGO_MAP[String(key || '').toLowerCase()] || 'https://cdn.simpleicons.org/link';
+}
+
+function onLogoError(event) {
+  const img = event?.target;
+  if (img?.dataset?.fallback === '1') return;
+  if (img) {
+    img.dataset.fallback = '1';
+    img.src = 'https://cdn.simpleicons.org/link';
+  }
 }
 
 function formatDate(value) {

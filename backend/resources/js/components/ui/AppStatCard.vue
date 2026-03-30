@@ -101,12 +101,12 @@ const formattedValue = computed(() => {
 
 const cardToneClass = computed(() => {
   const toneMap = {
-    primary: 'bg-[color:var(--aq-primary)]/32 border-[color:var(--aq-primary)]/55',
-    emerald: 'bg-emerald-600/32 border-emerald-300/45',
-    violet: 'bg-violet-600/32 border-violet-300/45',
-    cyan: 'bg-cyan-600/32 border-cyan-300/45',
-    rose: 'bg-rose-600/32 border-rose-300/45',
-    amber: 'bg-amber-600/34 border-amber-300/50',
+    primary: 'bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-600 border-indigo-200/45',
+    emerald: 'bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-500 border-emerald-200/45',
+    violet: 'bg-gradient-to-br from-violet-700 via-violet-600 to-purple-500 border-violet-200/45',
+    cyan: 'bg-gradient-to-br from-cyan-700 via-cyan-600 to-sky-500 border-cyan-200/45',
+    rose: 'bg-gradient-to-br from-rose-700 via-rose-600 to-pink-500 border-rose-200/45',
+    amber: 'bg-gradient-to-br from-amber-700 via-orange-600 to-amber-500 border-amber-200/45',
   };
   return toneMap[props.color] || toneMap.primary;
 });
