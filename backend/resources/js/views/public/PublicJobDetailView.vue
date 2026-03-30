@@ -12,7 +12,7 @@
         <div class="absolute inset-0 bg-gradient-to-r from-slate-950/92 via-slate-900/85 to-slate-900/70" />
         <div class="relative z-10">
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">Job Detail</p>
-          <h1 class="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">{{ job?.title || 'Loading...' }}</h1>
+          <h1 class="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl" style="text-shadow: 0 10px 24px rgba(2, 6, 23, 0.55);">{{ job?.title || 'Loading...' }}</h1>
           <p v-if="job" class="mt-3 text-sm text-white/85">
             {{ job.organization_name }} - {{ job.facility_name || 'Facility' }}
             <template v-if="job.facility_city || job.facility_state">

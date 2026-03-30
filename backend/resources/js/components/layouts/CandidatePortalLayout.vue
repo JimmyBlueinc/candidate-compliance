@@ -51,6 +51,58 @@
             <div class="mt-3 text-xs text-[color:var(--p-text-muted-color)]">Complete your profile and upload documents to reach 100%.</div>
           </div>
         </div>
+
+        <div class="pt-2">
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-xs font-black tracking-widest uppercase text-[color:var(--p-text-muted-color)]">Application Progress</div>
+              <div
+                class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md border"
+                :style="applicationStatusStyle"
+              >
+                {{ applicationStatusLabel }}
+              </div>
+            </div>
+
+            <div class="mt-3 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-[color:var(--p-text-muted-color)]">Phase 1 (Profile)</span>
+                <span :class="phase1Complete ? 'text-emerald-300 font-bold' : 'text-amber-300 font-semibold'">{{ phase1Complete ? 'Complete' : 'Pending' }}</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-[color:var(--p-text-muted-color)]">Phase 2 (Credentials)</span>
+                <span :class="phase2Complete ? 'text-emerald-300 font-bold' : 'text-amber-300 font-semibold'">{{ phase2Complete ? 'Complete' : 'Pending' }}</span>
+              </div>
+            </div>
+
+            <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10">
+              <div class="h-2 rounded-full transition-all duration-400" :style="{ width: `${applicationProgressPercent}%`, backgroundColor: primaryColor }" />
+            </div>
+
+            <div class="mt-3 text-xs text-[color:var(--p-text-muted-color)]">
+              {{ applicationProgressHint }}
+            </div>
+
+            <div class="mt-3 flex gap-2">
+              <button
+                type="button"
+                class="flex-1 px-3 py-2 rounded-xl border text-[11px] font-bold transition-colors"
+                :style="{ backgroundColor: primarySoftBg, borderColor: primarySoftBorder, color: primaryColor }"
+                @click="router.push({ name: 'portal.profile' })"
+              >
+                Phase 1
+              </button>
+              <button
+                type="button"
+                class="flex-1 px-3 py-2 rounded-xl border text-[11px] font-bold transition-colors"
+                :style="{ backgroundColor: primarySoftBg, borderColor: primarySoftBorder, color: primaryColor }"
+                @click="router.push({ name: 'portal.credentials' })"
+              >
+                Phase 2
+              </button>
+            </div>
+          </div>
+        </div>
       </nav>
 
       <div class="p-4 border-t border-white/10 shrink-0 bg-white/5 space-y-2">
@@ -202,6 +254,40 @@ const showOnboardingHint = computed(() => {
         return true;
     }
     return false;
+});
+
+const phase1Complete = computed(() => Boolean(onboarding.value?.phase1_complete));
+const phase2Complete = computed(() => Boolean(onboarding.value?.phase2_complete));
+const applicationProgressPercent = computed(() => {
+    if (phase1Complete.value && phase2Complete.value) return 100;
+    if (phase1Complete.value || phase2Complete.value) return 50;
+    return 15;
+});
+const applicationStatusLabel = computed(() => {
+    if (phase1Complete.value && phase2Complete.value) return 'Ready';
+    if (phase1Complete.value || phase2Complete.value) return 'In progress';
+    return 'Action needed';
+});
+const applicationStatusStyle = computed(() => {
+    if (phase1Complete.value && phase2Complete.value) {
+        return { borderColor: 'rgba(34,197,94,0.35)', backgroundColor: 'rgba(34,197,94,0.10)', color: 'rgb(74,222,128)' };
+    }
+    if (phase1Complete.value || phase2Complete.value) {
+        return { borderColor: 'rgba(251,191,36,0.35)', backgroundColor: 'rgba(251,191,36,0.10)', color: 'rgb(253,224,71)' };
+    }
+    return { borderColor: 'rgba(248,113,113,0.35)', backgroundColor: 'rgba(248,113,113,0.10)', color: 'rgb(252,165,165)' };
+});
+const applicationProgressHint = computed(() => {
+    if (phase1Complete.value && phase2Complete.value) {
+        return 'Great. Your account is ready for final job applications.';
+    }
+    if (!phase1Complete.value && !phase2Complete.value) {
+        return 'Complete phase 1 and phase 2 to finish your application journey.';
+    }
+    if (!phase1Complete.value) {
+        return 'Finish phase 1 profile details to continue.';
+    }
+    return 'Finish phase 2 credentials/documents to continue.';
 });
 
 function isLocked(routeName) {

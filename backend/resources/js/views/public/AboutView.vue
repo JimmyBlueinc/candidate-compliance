@@ -7,7 +7,7 @@
         <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/85 to-slate-900/65" />
         <div class="relative z-10">
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">About AgencHQ</p>
-          <h1 class="mt-4 text-4xl font-bold tracking-tight text-white md:text-5xl">Built to run the full staffing business, not just pieces of it.</h1>
+          <h1 class="mt-4 text-4xl font-bold tracking-tight text-white md:text-5xl" style="text-shadow: 0 10px 24px rgba(2, 6, 23, 0.55);">Built to run the full staffing business, not just pieces of it.</h1>
           <p class="mt-4 max-w-3xl text-white/85">
             AgencHQ was created for staffing teams that need speed, control, and quality at the same time. We unify recruiting, operations, compliance,
             messaging, and finance into one premium operating experience.

@@ -6,7 +6,7 @@
         <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1800&q=80" alt="Business leaders reviewing staffing results" class="absolute inset-0 h-full w-full object-cover opacity-30" loading="lazy" />
         <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/85 to-slate-900/65" />
         <div class="relative z-10">
-          <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-white">Trusted by modern staffing operators</h1>
+          <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-white" style="text-shadow: 0 10px 24px rgba(2, 6, 23, 0.55);">Trusted by modern staffing operators</h1>
           <p class="mt-4 max-w-3xl text-white/85">
           Teams use AgencHQ to improve placement speed, recruiter productivity, and operational execution quality.
           </p>

@@ -17,7 +17,7 @@
               <p class="inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
                 Workforce Operating System
               </p>
-              <h1 class="mt-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-6xl" :style="heroHeadlineStyle">
+              <h1 class="mt-6 text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl md:text-6xl" :style="heroHeadlineStyle">
                 Staffing execution, redesigned for high-growth teams.
               </h1>
               <p class="mt-5 text-base leading-relaxed text-white/90 sm:text-lg">
@@ -55,7 +55,7 @@
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.28),transparent_45%)]" />
           <div class="relative z-10">
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">Dashboard Experience</p>
-            <h2 class="mt-3 text-2xl font-bold tracking-tight sm:text-3xl" :style="dashboardHeadlineStyle">A command-center view your team actually enjoys using.</h2>
+            <h2 class="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl" :style="dashboardHeadlineStyle">A command-center view your team actually enjoys using.</h2>
             <p class="mt-3 max-w-3xl text-sm text-white/80">
               Inspired by real operations dashboards: clean signal cards, activity context, and an executive snapshot built for staffing teams.
             </p>
@@ -148,7 +148,7 @@
           <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/88 to-slate-900/78" />
           <div class="relative z-10 max-w-2xl">
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Scale with confidence</p>
-            <h2 class="mt-4 text-3xl font-bold leading-tight sm:text-4xl" :style="ctaHeadlineStyle">One platform for every hiring and staffing outcome.</h2>
+            <h2 class="mt-4 text-3xl font-bold leading-tight text-white sm:text-4xl" :style="ctaHeadlineStyle">One platform for every hiring and staffing outcome.</h2>
             <p class="mt-4 text-base text-white/85 sm:text-lg">From requisition intake to successful placement, AgencHQ gives your teams clean workflows and a modern command center experience.</p>
             <div class="mt-7 flex flex-wrap gap-3">
               <RouterLink to="/signup" class="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-100">Get Started</RouterLink>
@@ -178,16 +178,13 @@ const primarySolid = computed(() => {
   return typeof c === 'string' && c.trim().length ? c : '#4f46e5';
 });
 const heroHeadlineStyle = computed(() => ({
-  color: `color-mix(in srgb, ${primarySolid.value} 38%, #e0f2fe)`,
-  textShadow: `0 8px 28px color-mix(in srgb, ${primarySolid.value} 35%, transparent)`,
+  textShadow: '0 10px 28px rgba(2, 6, 23, 0.55)',
 }));
 const dashboardHeadlineStyle = computed(() => ({
-  color: `color-mix(in srgb, ${primarySolid.value} 42%, #fce7f3)`,
-  textShadow: `0 8px 24px color-mix(in srgb, ${primarySolid.value} 30%, transparent)`,
+  textShadow: '0 10px 24px rgba(2, 6, 23, 0.5)',
 }));
 const ctaHeadlineStyle = computed(() => ({
-  color: `color-mix(in srgb, ${primarySolid.value} 40%, #dcfce7)`,
-  textShadow: `0 8px 24px color-mix(in srgb, ${primarySolid.value} 32%, transparent)`,
+  textShadow: '0 10px 24px rgba(2, 6, 23, 0.5)',
 }));
 
 const metrics = [

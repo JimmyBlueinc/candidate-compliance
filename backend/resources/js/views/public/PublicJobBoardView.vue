@@ -12,7 +12,7 @@
         <div class="absolute inset-0 bg-gradient-to-r from-slate-950/92 via-slate-900/85 to-slate-900/70" />
         <div class="relative z-10 max-w-3xl">
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">Open Roles</p>
-          <h1 class="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">Find your next staffing opportunity</h1>
+          <h1 class="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl" style="text-shadow: 0 10px 24px rgba(2, 6, 23, 0.55);">Find your next staffing opportunity</h1>
           <p class="mt-3 text-base text-white/85">Explore high-quality roles, filter quickly, and apply in minutes from a modern hiring experience.</p>
         </div>
       </section>

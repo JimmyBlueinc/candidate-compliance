@@ -6,7 +6,7 @@
         <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1800&q=80" alt="Customer success team collaborating on staffing goals" class="absolute inset-0 h-full w-full object-cover opacity-30" loading="lazy" />
         <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/85 to-slate-900/65" />
         <div class="relative z-10">
-          <h1 class="text-4xl font-bold tracking-tight text-white md:text-5xl">Contact AgencHQ</h1>
+          <h1 class="text-4xl font-bold tracking-tight text-white md:text-5xl" style="text-shadow: 0 10px 24px rgba(2, 6, 23, 0.55);">Contact AgencHQ</h1>
           <p class="mt-3 max-w-3xl text-white/85">Talk with our team about recruiting operations, compliance workflows, and rollout support.</p>
         </div>
       </section>
