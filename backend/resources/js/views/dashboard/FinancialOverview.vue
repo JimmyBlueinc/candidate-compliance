@@ -611,9 +611,9 @@ refresh();
   border-color: rgba(6, 182, 212, 0.55) !important;
 }
 
-:deep(.finance-kpi-card .text-\\[11px\\]),
-:deep(.finance-kpi-card span.text-\\[11px\\]),
-:deep(.finance-kpi-card .flex.items-center.gap-2\\.5 span:last-child) {
+:deep(.finance-kpi-card .text-\[11px\]),
+:deep(.finance-kpi-card span.text-\[11px\]),
+:deep(.finance-kpi-card .flex.items-center.gap-2\.5 span:last-child) {
   color: rgba(255, 255, 255, 0.92) !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
@@ -629,7 +629,7 @@ refresh();
   color: rgba(255, 255, 255, 0.95) !important;
 }
 
-:deep(.finance-kpi-card .rounded-\\[var\\(--radius-lg\\)\\]) {
+:deep(.finance-kpi-card .rounded-\[var\(--radius-lg\)\]) {
   background-color: rgba(255, 255, 255, 0.18) !important;
   border: 1px solid rgba(255, 255, 255, 0.22);
 }
