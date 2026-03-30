@@ -14,7 +14,7 @@ class ResolveOrganization
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->is('api/login') || $request->is('api/register') || $request->is('api/forgot-password') || $request->is('api/reset-password') || $request->is('api/super-admin/create') || $request->is('api/super-admin/set-password') || $request->is('api/private/platform-admin/*') || $request->is('api/health') || $request->is('api/health/*') || $request->is('api/brand') || $request->is('api/brand/*') || $request->is('api/test-minimal')) {
+        if ($request->is('api/login') || $request->is('api/register') || $request->is('api/forgot-password') || $request->is('api/reset-password') || $request->is('api/super-admin/create') || $request->is('api/super-admin/set-password') || $request->is('api/private/platform-admin/*') || $request->is('api/health') || $request->is('api/health/*') || $request->is('api/brand') || $request->is('api/brand/*') || $request->is('api/test-minimal') || $request->is('api/credentials/documents/*')) {
             return $next($request);
         }
 

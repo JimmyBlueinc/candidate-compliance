@@ -34,7 +34,7 @@
       </template>
     </AppPageHeader>
 
-    <!-- Stats Grid -->
+    <!-- Stats Grid: deep saturated panels + high-contrast text -->
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <AppStatCard
         label="Gross Revenue"
@@ -42,8 +42,7 @@
         :icon="CircleDollarSign"
         format="currency"
         color="emerald"
-        class="finance-soft-stat"
-        :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-primary) 15%, var(--aq-surface-card)), var(--aq-surface-card))' }"
+        class="finance-kpi-card finance-kpi-card--revenue"
       />
       <AppStatCard
         label="Labor Cost"
@@ -51,8 +50,7 @@
         :icon="Wallet"
         format="currency"
         color="amber"
-        class="finance-soft-stat"
-        :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-accent-4) 14%, var(--aq-surface-card)), var(--aq-surface-card))' }"
+        class="finance-kpi-card finance-kpi-card--labor"
       />
       <AppStatCard
         label="Net Margin"
@@ -60,8 +58,7 @@
         :icon="TrendingUp"
         format="currency"
         color="violet"
-        class="finance-soft-stat"
-        :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-accent-2) 15%, var(--aq-surface-card)), var(--aq-surface-card))' }"
+        class="finance-kpi-card finance-kpi-card--margin"
       />
       <AppStatCard
         label="Projected Profit"
@@ -69,8 +66,7 @@
         :icon="Sparkles"
         format="currency"
         color="cyan"
-        class="finance-soft-stat"
-        :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-accent-5) 14%, var(--aq-surface-card)), var(--aq-surface-card))' }"
+        class="finance-kpi-card finance-kpi-card--profit"
       />
     </div>
 
@@ -589,22 +585,52 @@ refresh();
   cursor: grabbing;
 }
 
-:deep(.finance-soft-stat) {
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--aq-surface-card) 88%, white),
-    color-mix(in srgb, var(--aq-surface-card) 96%, transparent)
-  ) !important;
-  border-color: color-mix(in srgb, var(--aq-border) 80%, var(--aq-primary) 20%) !important;
+/* Deep jewel-tone fills; labels + values in high-contrast light text */
+:deep(.finance-kpi-card) {
+  border-width: 1px !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
 }
 
-:deep(.finance-soft-stat .text-2xl),
-:deep(.finance-soft-stat .text-3xl),
-:deep(.finance-soft-stat .font-bold) {
-  color: color-mix(in srgb, var(--aq-fg) 90%, #0f172a 10%) !important;
+:deep(.finance-kpi-card--revenue) {
+  background: linear-gradient(145deg, #047857 0%, #059669 45%, #10b981 100%) !important;
+  border-color: rgba(16, 185, 129, 0.55) !important;
 }
 
-:deep(.finance-soft-stat .text-\\[11px\\]) {
-  color: color-mix(in srgb, var(--aq-muted) 78%, var(--aq-fg) 22%) !important;
+:deep(.finance-kpi-card--labor) {
+  background: linear-gradient(145deg, #b45309 0%, #d97706 45%, #f59e0b 100%) !important;
+  border-color: rgba(245, 158, 11, 0.55) !important;
+}
+
+:deep(.finance-kpi-card--margin) {
+  background: linear-gradient(145deg, #5b21b6 0%, #7c3aed 50%, #8b5cf6 100%) !important;
+  border-color: rgba(139, 92, 246, 0.55) !important;
+}
+
+:deep(.finance-kpi-card--profit) {
+  background: linear-gradient(145deg, #0e7490 0%, #0891b2 45%, #06b6d4 100%) !important;
+  border-color: rgba(6, 182, 212, 0.55) !important;
+}
+
+:deep(.finance-kpi-card .text-\\[11px\\]),
+:deep(.finance-kpi-card span.text-\\[11px\\]),
+:deep(.finance-kpi-card .flex.items-center.gap-2\\.5 span:last-child) {
+  color: rgba(255, 255, 255, 0.92) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.finance-kpi-card .text-2xl),
+:deep(.finance-kpi-card .text-3xl),
+:deep(.finance-kpi-card .font-bold) {
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+:deep(.finance-kpi-card svg) {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+:deep(.finance-kpi-card .rounded-\\[var\\(--radius-lg\\)\\]) {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22);
 }
 </style>
