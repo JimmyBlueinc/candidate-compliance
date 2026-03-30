@@ -42,6 +42,7 @@
         :icon="CircleDollarSign"
         format="currency"
         color="emerald"
+        class="finance-soft-stat"
         :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-primary) 15%, var(--aq-surface-card)), var(--aq-surface-card))' }"
       />
       <AppStatCard
@@ -50,6 +51,7 @@
         :icon="Wallet"
         format="currency"
         color="amber"
+        class="finance-soft-stat"
         :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-accent-4) 14%, var(--aq-surface-card)), var(--aq-surface-card))' }"
       />
       <AppStatCard
@@ -58,6 +60,7 @@
         :icon="TrendingUp"
         format="currency"
         color="violet"
+        class="finance-soft-stat"
         :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-accent-2) 15%, var(--aq-surface-card)), var(--aq-surface-card))' }"
       />
       <AppStatCard
@@ -66,6 +69,7 @@
         :icon="Sparkles"
         format="currency"
         color="cyan"
+        class="finance-soft-stat"
         :style="{ background: 'linear-gradient(145deg, color-mix(in srgb, var(--aq-accent-5) 14%, var(--aq-surface-card)), var(--aq-surface-card))' }"
       />
     </div>
@@ -583,5 +587,24 @@ refresh();
 
 .dashboard-widget-card:active .dashboard-widget-handle {
   cursor: grabbing;
+}
+
+:deep(.finance-soft-stat) {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--aq-surface-card) 88%, white),
+    color-mix(in srgb, var(--aq-surface-card) 96%, transparent)
+  ) !important;
+  border-color: color-mix(in srgb, var(--aq-border) 80%, var(--aq-primary) 20%) !important;
+}
+
+:deep(.finance-soft-stat .text-2xl),
+:deep(.finance-soft-stat .text-3xl),
+:deep(.finance-soft-stat .font-bold) {
+  color: color-mix(in srgb, var(--aq-fg) 90%, #0f172a 10%) !important;
+}
+
+:deep(.finance-soft-stat .text-\\[11px\\]) {
+  color: color-mix(in srgb, var(--aq-muted) 78%, var(--aq-fg) 22%) !important;
 }
 </style>
