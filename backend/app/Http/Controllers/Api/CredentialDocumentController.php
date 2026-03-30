@@ -10,7 +10,9 @@ class CredentialDocumentController extends Controller
 {
     public function show(Request $request, string $path)
     {
-        if (!$request->hasValidSignature()) {
+        // Validate signed query params without requiring absolute host/scheme match.
+        // This avoids false 403s when traffic passes through proxies/CDN domains.
+        if (!$request->hasValidSignature(false)) {
             abort(403);
         }
 

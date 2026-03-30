@@ -566,6 +566,27 @@
         color: rgba(15, 23, 42, 0.52) !important;
     }
 
+    /* Improve global readability in light theme: avoid light text on light surfaces. */
+    html.theme-light .text-white {
+        color: #0f172a !important;
+    }
+
+    html.theme-light .text-white\/90 {
+        color: rgba(15, 23, 42, 0.9) !important;
+    }
+
+    html.theme-light .text-white\/80 {
+        color: rgba(15, 23, 42, 0.8) !important;
+    }
+
+    html.theme-light .text-white\/70 {
+        color: rgba(15, 23, 42, 0.7) !important;
+    }
+
+    html.theme-light .text-white\/60 {
+        color: rgba(15, 23, 42, 0.6) !important;
+    }
+
     html.theme-light .bg-white\/5 {
         background-color: var(--p-surface-card, rgba(255, 255, 255, 0.92)) !important;
     }
