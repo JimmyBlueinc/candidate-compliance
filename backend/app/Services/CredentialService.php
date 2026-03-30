@@ -10,6 +10,7 @@ use App\Models\CredentialVerification;
 use App\Models\User;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class CredentialService
@@ -55,6 +56,14 @@ class CredentialService
 
         // Production path: let S3 own access control via pre-signed object URLs.
         if (Config::get('filesystems.disks.credentials.driver') === 's3') {
+            if (!$disk->exists($path)) {
+                $this->attemptLegacyDocumentMigrationToS3($path, $disk);
+            }
+
+            if (!$disk->exists($path)) {
+                return null;
+            }
+
             return $disk->temporaryUrl($path, now()->addMinutes($minutes));
         }
 
@@ -62,6 +71,59 @@ class CredentialService
         $expires = now()->addMinutes($minutes)->timestamp;
         $signature = hash_hmac('sha256', $path . '|' . $expires, (string) config('app.key'));
         return url('/api/credentials/documents/' . $path) . '?expires=' . $expires . '&signature=' . $signature;
+    }
+
+    private function attemptLegacyDocumentMigrationToS3(string $targetPath, $credentialsDisk): void
+    {
+        $legacyLocalDisk = Storage::build([
+            'driver' => 'local',
+            'root' => storage_path('app/credentials'),
+            'throw' => false,
+        ]);
+
+        $uploadsDiskName = (string) config('filesystems.uploads_disk', config('filesystems.default'));
+        $uploadsDisk = Storage::disk($uploadsDiskName);
+
+        $candidatePaths = array_values(array_unique([
+            $targetPath,
+            ltrim(preg_replace('#^credentials/#', '', $targetPath) ?? $targetPath, '/'),
+            'credentials/' . ltrim($targetPath, '/'),
+        ]));
+
+        foreach ($candidatePaths as $legacyPath) {
+            // 1) Legacy local credentials directory.
+            if ($legacyLocalDisk->exists($legacyPath)) {
+                $stream = $legacyLocalDisk->readStream($legacyPath);
+                if ($stream !== false) {
+                    $credentialsDisk->put($targetPath, $stream);
+                    if (is_resource($stream)) {
+                        fclose($stream);
+                    }
+                    if ($credentialsDisk->exists($targetPath)) {
+                        return;
+                    }
+                }
+            }
+
+            // 2) Legacy uploads disk (could be local or S3 on older setups).
+            if ($uploadsDisk->exists($legacyPath)) {
+                $stream = $uploadsDisk->readStream($legacyPath);
+                if ($stream !== false) {
+                    $credentialsDisk->put($targetPath, $stream);
+                    if (is_resource($stream)) {
+                        fclose($stream);
+                    }
+                    if ($credentialsDisk->exists($targetPath)) {
+                        return;
+                    }
+                }
+            }
+        }
+
+        Log::warning('Credential document missing on S3 and not recoverable from legacy locations.', [
+            'path' => $targetPath,
+            'uploads_disk' => $uploadsDiskName,
+        ]);
     }
 
     public function attachDocument(CandidateCredential $credential, \Illuminate\Http\UploadedFile $file): CandidateCredential
