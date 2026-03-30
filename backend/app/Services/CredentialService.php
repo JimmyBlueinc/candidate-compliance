@@ -10,7 +10,6 @@ use App\Models\CredentialVerification;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
 
 class CredentialService
 {
@@ -50,11 +49,11 @@ class CredentialService
             return null;
         }
 
-        return URL::temporarySignedRoute(
-            'credentials.documents.show',
-            now()->addMinutes($minutes),
-            ['path' => $credential->document_path]
-        );
+        $path = ltrim((string) $credential->document_path, '/');
+        $expires = now()->addMinutes($minutes)->timestamp;
+        $signature = hash_hmac('sha256', $path . '|' . $expires, (string) config('app.key'));
+
+        return url('/api/credentials/documents/' . $path) . '?expires=' . $expires . '&signature=' . $signature;
     }
 
     public function attachDocument(CandidateCredential $credential, \Illuminate\Http\UploadedFile $file): CandidateCredential

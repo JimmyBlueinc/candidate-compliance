@@ -10,16 +10,28 @@ class CredentialDocumentController extends Controller
 {
     public function show(Request $request, string $path)
     {
-        // Validate signed query params without requiring absolute host/scheme match.
-        // This avoids false 403s when traffic passes through proxies/CDN domains.
-        if (!$request->hasValidSignature(false)) {
+        $normalizedPath = ltrim($path, '/');
+        $signature = (string) $request->query('signature', '');
+        $expires = (int) $request->query('expires', 0);
+
+        // New HMAC signature format (path|expires), resilient across proxy/CDN host changes.
+        $hasValidHmacSignature = false;
+        if ($signature !== '' && $expires > 0 && now()->timestamp <= $expires) {
+            $expected = hash_hmac('sha256', $normalizedPath . '|' . $expires, (string) config('app.key'));
+            $hasValidHmacSignature = hash_equals($expected, $signature);
+        }
+
+        // Backward compatibility for previously issued temporarySignedRoute links.
+        $hasValidLegacySignature = $request->hasValidSignature(false);
+
+        if (!$hasValidHmacSignature && !$hasValidLegacySignature) {
             abort(403);
         }
 
-        if (!Storage::disk('credentials')->exists($path)) {
+        if (!Storage::disk('credentials')->exists($normalizedPath)) {
             abort(404);
         }
 
-        return Storage::disk('credentials')->download($path);
+        return Storage::disk('credentials')->download($normalizedPath);
     }
 }
