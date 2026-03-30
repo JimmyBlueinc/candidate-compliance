@@ -25,7 +25,7 @@
           Self-serve signup
         </div>
 
-        <h1 class="mt-6 text-4xl sm:text-5xl font-display font-bold tracking-tight leading-[1.08]">
+        <h1 class="mt-6 text-4xl sm:text-5xl font-display font-bold tracking-tight leading-[1.08]" :class="heroHeadingClass">
           Create your organization
         </h1>
 
@@ -217,6 +217,9 @@ const kickerClass = computed(() =>
 );
 
 const bodyClass = computed(() => (isDark.value ? 'text-slate-300' : 'text-slate-600'));
+const heroHeadingClass = computed(() => (isDark.value
+  ? 'text-white drop-shadow-[0_10px_24px_rgba(2,6,23,0.55)]'
+  : 'text-slate-900'));
 
 const inputClass = computed(() =>
   'bg-[color:var(--p-surface-0)] text-[color:var(--p-text-color)] border-2 border-[color:var(--p-surface-border)] focus:border-[color:var(--p-primary-color)]'

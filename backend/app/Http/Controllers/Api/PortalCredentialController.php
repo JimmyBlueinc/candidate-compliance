@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Models\CandidateCredential;
 use App\Models\CredentialType;
+use App\Services\DefaultComplianceCatalogService;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -89,6 +90,8 @@ class PortalCredentialController extends Controller
                 'message' => 'Organization context missing.',
             ], 400);
         }
+
+        app(DefaultComplianceCatalogService::class)->ensureForOrganization((int) $orgId);
 
         $validated = $request->validate([
             'credential_type' => ['required', 'string', 'max:255'],

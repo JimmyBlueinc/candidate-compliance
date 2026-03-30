@@ -23,15 +23,34 @@ class ComplianceQueueController extends Controller
             ], 400);
         }
 
+        $validated = $request->validate([
+            'status' => ['sometimes', 'string', 'in:all,pending,verified,rejected,expired'],
+            'candidate' => ['sometimes', 'string', 'max:255'],
+            'limit' => ['sometimes', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $statusFilter = (string) ($validated['status'] ?? 'pending');
+        $candidateSearch = trim((string) ($validated['candidate'] ?? ''));
+        $limit = (int) ($validated['limit'] ?? 500);
+
         $rows = CandidateCredential::query()
             ->where('tenant_id', $orgId)
-            ->where('status', 'pending')
+            ->when($statusFilter !== 'all', fn ($q) => $q->where('status', $statusFilter))
             ->with([
                 'candidate:id,user_id,name,first_name,last_name,email',
                 'credentialType:id,name,category',
+                'verifier:id,name,email',
             ])
+            ->when($candidateSearch !== '', function ($q) use ($candidateSearch) {
+                $q->whereHas('candidate', function ($candidateQ) use ($candidateSearch) {
+                    $candidateQ->where('name', 'like', '%' . $candidateSearch . '%')
+                        ->orWhere('first_name', 'like', '%' . $candidateSearch . '%')
+                        ->orWhere('last_name', 'like', '%' . $candidateSearch . '%')
+                        ->orWhere('email', 'like', '%' . $candidateSearch . '%');
+                });
+            })
             ->orderBy('created_at')
-            ->limit(500)
+            ->limit($limit)
             ->get();
 
         $service = app(CredentialService::class);
@@ -57,6 +76,12 @@ class ComplianceQueueController extends Controller
                     'issued_at' => $cred->issued_at?->toIso8601String(),
                     'expires_at' => $cred->expires_at?->toIso8601String(),
                     'status' => $cred->status,
+                    'verified_at' => $cred->verified_at?->toIso8601String(),
+                    'verified_by' => $cred->verifier ? [
+                        'id' => (int) $cred->verifier->id,
+                        'name' => (string) $cred->verifier->name,
+                        'email' => (string) $cred->verifier->email,
+                    ] : null,
                     'document_path' => $cred->document_path,
                     'preview_url' => $service->signedDocumentUrl($cred),
                     'created_at' => $cred->created_at?->toIso8601String(),

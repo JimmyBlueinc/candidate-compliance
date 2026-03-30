@@ -18,6 +18,18 @@
       </nav>
 
       <div class="flex items-center gap-2">
+        <button
+          v-if="auth.isAuthenticated"
+          type="button"
+          class="mr-1 flex items-center gap-2 p-1 rounded-full border border-slate-300 bg-white hover:bg-slate-50 transition-colors"
+          @click="toggleUserMenu"
+        >
+          <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-200">
+            <img alt="User" class="w-full h-full object-cover" :src="profileImage" />
+          </div>
+        </button>
+        <Menu ref="userMenuRef" :model="userMenuItems" :popup="true" />
+
         <template v-if="mode === 'tenant'">
           <button type="button" class="px-3.5 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50" @click="$emit('tenant-jobs')">
             Jobs
@@ -54,7 +66,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import Menu from 'primevue/menu';
+import { useAuthStore } from '../../stores/auth';
 
 const props = defineProps({
   mode: {
@@ -84,6 +99,9 @@ const props = defineProps({
 });
 
 defineEmits(['apex-login', 'tenant-jobs', 'tenant-dashboard', 'tenant-signin']);
+const auth = useAuthStore();
+const router = useRouter();
+const userMenuRef = ref(null);
 
 const brandTitle = computed(() => String(props.brandName || 'AgencHQ'));
 const resolvedBrandTitle = computed(() => (props.mode === 'apex' ? 'AgencHQ' : brandTitle.value));
@@ -114,5 +132,49 @@ const canShowTenantDashboard = computed(() => {
     'logistics',
   ].includes(role);
 });
+
+const profileImage = computed(() => `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user?.name || 'User')}&background=8B5CF6&color=fff`);
+const userMenuItems = computed(() => {
+  const role = String(auth.user?.role || '');
+  const items = [];
+
+  if (role === 'candidate') {
+    items.push(
+      { label: 'Candidate Portal', icon: 'pi pi-home', command: () => router.push({ name: 'portal.dashboard' }) },
+      { label: 'My Profile', icon: 'pi pi-user', command: () => router.push({ name: 'portal.profile' }) },
+      { label: 'My Credentials', icon: 'pi pi-file', command: () => router.push({ name: 'portal.credentials' }) },
+    );
+  } else if (role === 'facility') {
+    items.push(
+      { label: 'Facility Dashboard', icon: 'pi pi-home', command: () => router.push({ name: 'facility.dashboard' }) },
+    );
+  } else if (role) {
+    items.push(
+      { label: 'Dashboard', icon: 'pi pi-home', command: () => router.push({ name: 'dashboard.index' }) },
+      { label: 'My Profile', icon: 'pi pi-user', command: () => router.push({ name: 'dashboard.profile' }) },
+    );
+  }
+
+  if (items.length > 0) {
+    items.push({ separator: true });
+  }
+
+  items.push({
+    label: auth.isAuthenticated ? 'Logout' : 'Login',
+    icon: auth.isAuthenticated ? 'pi pi-sign-out' : 'pi pi-sign-in',
+    command: async () => {
+      if (auth.isAuthenticated) {
+        await auth.logout();
+      }
+      router.push({ name: 'login' });
+    },
+  });
+
+  return items;
+});
+
+function toggleUserMenu(event) {
+  userMenuRef.value?.toggle(event);
+}
 </script>
 

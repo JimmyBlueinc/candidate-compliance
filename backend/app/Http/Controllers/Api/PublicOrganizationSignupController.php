@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\OrganizationWelcomeMail;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\DefaultComplianceCatalogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,6 +63,11 @@ class PublicOrganizationSignupController extends Controller
                     'must_change_password' => true,
                     'role' => 'org_super_admin',
                 ]);
+
+                app(DefaultComplianceCatalogService::class)->ensureForOrganization(
+                    (int) $org->id,
+                    (int) $owner->id
+                );
 
                 return [$org, $owner, $tempPassword];
             });

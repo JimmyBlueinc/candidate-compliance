@@ -140,6 +140,7 @@
             <div class="min-w-0">
               <div class="font-semibold text-white truncate">{{ r.name }}</div>
               <div class="mt-1 text-xs text-[color:var(--p-text-muted-color)]">Type: {{ r.credential_type }}</div>
+              <div v-if="r.default_days" class="mt-1 text-xs text-[color:var(--p-text-muted-color)]">Renewal cycle: {{ r.default_days }} days</div>
               <div v-if="r.rejection_reason" class="mt-2 text-xs text-red-300">Rejected: {{ r.rejection_reason }}</div>
               <div v-else-if="r.credential?.expiry_date" class="mt-2 text-xs text-[color:var(--p-text-muted-color)]">
                 Expiry: {{ r.credential.expiry_date }}
@@ -202,7 +203,7 @@
           </div>
 
           <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Expiry Date</label>
+            <label class="text-xs font-bold uppercase tracking-widest text-[color:var(--p-text-muted-color)]">Expiry Date (required)</label>
             <input
               v-model="createExpiryDate"
               type="date"

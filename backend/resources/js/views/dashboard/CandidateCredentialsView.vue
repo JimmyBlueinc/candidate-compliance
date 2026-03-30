@@ -64,7 +64,7 @@
               <div class="flex items-center justify-end gap-2">
                 <Button
                   type="button"
-                  label="Approve"
+                  label="Accredit"
                   size="small"
                   severity="success"
                   outlined

@@ -5,6 +5,24 @@
       subtitle="Review and process pending worker documentation"
     >
       <template #actions>
+        <InputText
+          v-model="candidateFilter"
+          size="small"
+          placeholder="Search candidate"
+          class="w-48"
+          @keyup.enter="refresh"
+        />
+        <select
+          v-model="statusFilter"
+          class="px-2.5 py-2 rounded-lg text-xs bg-slate-900 border border-white/10 text-slate-200"
+          @change="refresh"
+        >
+          <option value="pending">Pending only</option>
+          <option value="all">All credentials</option>
+          <option value="verified">Verified</option>
+          <option value="rejected">Rejected</option>
+          <option value="expired">Expired</option>
+        </select>
         <Button 
           label="Refresh" 
           icon="pi pi-refresh" 
@@ -33,7 +51,7 @@
     <div v-else class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <UiStatCard 
-          label="Pending" 
+          label="In view" 
           :value="metrics.pending" 
           :icon="Clock"
           color="amber"
@@ -132,7 +150,7 @@
                   @click="messageCandidate(selected)"
                 />
                 <Button
-                  label="Approve"
+                  label="Accredit"
                   icon="pi pi-check"
                   severity="success"
                   size="small"
@@ -244,6 +262,8 @@ const items = ref([]);
 const loading = ref(false);
 const actingId = ref(null);
 const selectedId = ref(null);
+const statusFilter = ref('pending');
+const candidateFilter = ref('');
 
 const selected = computed(() => items.value.find((i) => i.id === selectedId.value) || null);
 
@@ -284,7 +304,10 @@ const error = ref(null);
 async function refresh() {
     loading.value = true;
     try {
-        const res = await apiGet('/v1/compliance-queue');
+        const res = await apiGet('/v1/compliance-queue', {
+            status: statusFilter.value,
+            candidate: candidateFilter.value.trim() || undefined,
+        });
         items.value = normalizeApiList(res);
         if (!selectedId.value && items.value.length > 0) {
             selectedId.value = items.value[0].id;

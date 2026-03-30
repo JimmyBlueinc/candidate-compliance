@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Mail\CredentialExpiryReminder;
+use App\Mail\CandidateCredentialExpiryReminder;
 use App\Mail\CredentialExpirySummary;
+use App\Models\CandidateCredential;
 use App\Models\Credential;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -18,8 +19,8 @@ class EmailController extends Controller
     /**
      * Send reminder emails.
      * 
-     * Manual trigger (from button): Sends to ALL candidates with expiry dates
-     * Automatic (scheduled): Sends only to candidates expiring in 30/14/7 days
+     * Manual trigger (from button): Sends to all candidate credentials with expiry dates.
+     * Automatic (scheduled): Sends only to credentials expiring in 30/14/5/3 days.
      */
     public function sendReminders(Request $request): JsonResponse
     {
@@ -32,33 +33,31 @@ class EmailController extends Controller
 
         if ($sendToAll) {
             // Manual trigger: Send to ALL candidates with expiry dates
-            $credentials = Credential::whereNotNull('expiry_date')
-                ->whereDate('expiry_date', '>=', now()->startOfDay()) // Only future expiry dates
-                ->when($orgId, fn ($q) => $q->where('organization_id', $orgId))
-                ->with('user')
+            $credentials = CandidateCredential::query()
+                ->whereNotNull('expires_at')
+                ->whereDate('expires_at', '>=', now()->startOfDay())
+                ->when($orgId, fn ($q) => $q->where('tenant_id', $orgId))
+                ->with(['candidate:id,user_id,name,first_name,last_name,email', 'candidate.user:id,email', 'credentialType:id,name'])
                 ->get();
 
             foreach ($credentials as $credential) {
-                if ($credential->user && $credential->user->email) {
-                    // Calculate days until expiry
-                    $daysUntilExpiry = now()->startOfDay()->diffInDays($credential->expiry_date->startOfDay(), false);
-                    
-                    // Use appropriate reminder message based on days
+                $recipientEmail = $credential->candidate?->email ?: $credential->candidate?->user?->email;
+                if ($recipientEmail) {
+                    $daysUntilExpiry = now()->startOfDay()->diffInDays($credential->expires_at->startOfDay(), false);
                     $reminderDays = $daysUntilExpiry > 0 ? $daysUntilExpiry : 0;
-                    
                     try {
-                        Mail::to($credential->user->email)->send(
-                            new CredentialExpiryReminder($credential, $reminderDays)
+                        Mail::to($recipientEmail)->send(
+                            new CandidateCredentialExpiryReminder($credential, $reminderDays)
                         );
                         $totalSent++;
                     } catch (\Exception $e) {
-                        $errors[] = "Failed to send email to {$credential->user->email}: {$e->getMessage()}";
+                        $errors[] = "Failed to send email to {$recipientEmail}: {$e->getMessage()}";
                     }
                 }
             }
         } else {
-            // Automatic: Send only to candidates expiring in 30, 14, or 7 days
-            $reminderDays = [30, 14, 7];
+            // Automatic: Send only to candidates expiring in 30, 14, 5, or 3 days
+            $reminderDays = [30, 14, 5, 3];
             
             // If specific days provided, use only those
             if ($daysOption) {
@@ -70,27 +69,29 @@ class EmailController extends Controller
                 $targetDate = now()->addDays($days)->startOfDay();
                 $endDate = $targetDate->copy()->endOfDay();
 
-                $credentials = Credential::whereDate('expiry_date', '>=', $targetDate)
-                    ->whereDate('expiry_date', '<=', $endDate)
-                    ->whereNotNull('expiry_date')
-                    ->when($orgId, fn ($q) => $q->where('organization_id', $orgId))
-                    ->with('user')
+                $credentials = CandidateCredential::query()
+                    ->whereNotNull('expires_at')
+                    ->whereDate('expires_at', '>=', $targetDate)
+                    ->whereDate('expires_at', '<=', $endDate)
+                    ->whereIn('status', ['verified', 'pending'])
+                    ->when($orgId, fn ($q) => $q->where('tenant_id', $orgId))
+                    ->with(['candidate:id,user_id,name,first_name,last_name,email', 'candidate.user:id,email', 'credentialType:id,name'])
                     ->get();
 
                 foreach ($credentials as $credential) {
                     // Verify it's exactly $days away
-                    $daysUntilExpiry = now()->startOfDay()->diffInDays($credential->expiry_date->startOfDay(), false);
+                    $daysUntilExpiry = now()->startOfDay()->diffInDays($credential->expires_at->startOfDay(), false);
 
                     if ($daysUntilExpiry == $days) {
-                        // Send email to the user who manages this credential
-                        if ($credential->user && $credential->user->email) {
+                        $recipientEmail = $credential->candidate?->email ?: $credential->candidate?->user?->email;
+                        if ($recipientEmail) {
                             try {
-                                Mail::to($credential->user->email)->send(
-                                    new CredentialExpiryReminder($credential, $days)
+                                Mail::to($recipientEmail)->send(
+                                    new CandidateCredentialExpiryReminder($credential, $days)
                                 );
                                 $totalSent++;
                             } catch (\Exception $e) {
-                                $errors[] = "Failed to send email to {$credential->user->email}: {$e->getMessage()}";
+                                $errors[] = "Failed to send email to {$recipientEmail}: {$e->getMessage()}";
                             }
                         }
                     }

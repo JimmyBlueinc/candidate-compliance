@@ -23,7 +23,7 @@
             class="w-12 h-12 rounded-lg object-cover"
           />
           <div>
-            <h1 class="text-3xl font-display font-bold">
+            <h1 class="text-3xl font-display font-bold text-white drop-shadow-[0_10px_24px_rgba(2,6,23,0.55)]">
               {{ organization?.name || 'My Job Board' }}
             </h1>
             <p class="mt-1 text-[color:var(--p-text-muted-color)]">

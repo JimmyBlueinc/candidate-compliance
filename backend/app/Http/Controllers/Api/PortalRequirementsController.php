@@ -8,6 +8,7 @@ use App\Models\CandidateCredential;
 use App\Models\CredentialType;
 use App\Models\Organization;
 use App\Models\Template;
+use App\Services\DefaultComplianceCatalogService;
 use App\Support\Org;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,6 +30,8 @@ class PortalRequirementsController extends Controller
                 'message' => 'Organization context missing.',
             ], 400);
         }
+
+        app(DefaultComplianceCatalogService::class)->ensureForOrganization((int) $orgId);
 
         $candidate = Candidate::query()
             ->where('tenant_id', $orgId)
