@@ -63,6 +63,13 @@ class JobOrderController extends Controller
             ], 400);
         }
 
+        $role = (string) ($request->user()?->role ?? '');
+        if (!in_array($role, ['org_super_admin', 'admin', 'recruiter', 'platform_admin'], true)) {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'facility_id' => [
@@ -96,6 +103,7 @@ class JobOrderController extends Controller
         $job = JobOrder::create([
             ...$validated,
             'tenant_id' => $orgId,
+            'created_by_user_id' => (int) ($request->user()?->id ?? 0) ?: null,
             'published' => (bool) ($validated['published'] ?? false),
         ]);
 

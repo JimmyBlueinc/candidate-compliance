@@ -54,7 +54,7 @@ export default function DashboardSidebar({
         label: 'Admin',
         show: isOrgSuperAdmin,
         items: [
-          { id: 'dashboard', label: 'Dashboard', icon: 'grid_view', routeName: 'dashboard.finance' },
+          { id: 'dashboard', label: 'Dashboard', icon: 'grid_view', routeName: 'dashboard.placements' },
           { id: 'invoices', label: 'Invoices', icon: 'request_quote', routeName: 'dashboard.invoices' },
           { id: 'accounts_receivable', label: 'Accounts Receivable', icon: 'account_balance_wallet', routeName: 'dashboard.accounts_receivable' },
           { id: 'org_users', label: 'Organization Users', icon: 'group', routeName: 'dashboard.org_users' },
@@ -75,7 +75,7 @@ export default function DashboardSidebar({
       {
         id: 'talent',
         label: 'Talent',
-        show: isOrgSuperAdmin || isRecruiter || isScheduler || isCompliance || isFinance || isLogistics,
+        show: isOrgSuperAdmin || isRecruiter || isScheduler || isCompliance || isLogistics,
         items: [
           { id: 'candidates', label: 'Candidates', icon: 'person_search', routeName: 'dashboard.candidates' },
         ],
@@ -96,7 +96,7 @@ export default function DashboardSidebar({
       {
         id: 'operations',
         label: 'Operations',
-        show: isOrgSuperAdmin || isRecruiter || isScheduler || isCompliance || isFinance || isLogistics,
+        show: isOrgSuperAdmin || isRecruiter || isScheduler || isCompliance || isLogistics,
         items: [
           { id: 'jobs', label: 'Jobs', icon: 'work_outline', routeName: 'dashboard.job_orders', show: isOrgSuperAdmin || isRecruiter },
           { id: 'job_sources', label: 'Sources', icon: 'hub', routeName: 'dashboard.job_sources', show: isOrgSuperAdmin || isRecruiter },

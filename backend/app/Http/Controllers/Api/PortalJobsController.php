@@ -19,7 +19,7 @@ class PortalJobsController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
-        $orgId = Org::id($request);
+        $orgId = Org::id($request) ?: (int) ($user->organization_id ?? 0);
         if (!$orgId) {
             return response()->json(['message' => 'Organization context missing.'], 400);
         }
@@ -32,12 +32,6 @@ class PortalJobsController extends Controller
             })
             ->first();
 
-        if (!$candidate) {
-            return response()->api([]);
-        }
-
-        $specialty = trim((string) ($candidate->specialty ?? ''));
-
         $jobs = JobOrder::query()
             ->where('tenant_id', $orgId)
             ->where('published', true)
@@ -45,12 +39,15 @@ class PortalJobsController extends Controller
             ->limit(100)
             ->get();
 
-        $bookmarkIds = CandidateJobBookmark::query()
-            ->where('tenant_id', $orgId)
-            ->where('candidate_id', $candidate->id)
-            ->pluck('job_order_id')
-            ->map(fn ($id) => (int) $id)
-            ->all();
+        $bookmarkIds = [];
+        if ($candidate) {
+            $bookmarkIds = CandidateJobBookmark::query()
+                ->where('tenant_id', $orgId)
+                ->where('candidate_id', $candidate->id)
+                ->pluck('job_order_id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+        }
 
         $bookmarkedLookup = array_flip($bookmarkIds);
 
@@ -70,7 +67,7 @@ class PortalJobsController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
-        $orgId = Org::id($request);
+        $orgId = Org::id($request) ?: (int) ($user->organization_id ?? 0);
         if (!$orgId) {
             return response()->json(['message' => 'Organization context missing.'], 400);
         }
@@ -83,22 +80,19 @@ class PortalJobsController extends Controller
             })
             ->first();
 
-        if (!$candidate) {
-            return response()->json(['message' => 'Candidate profile not found.'], 404);
-        }
-
-        $specialty = trim((string) ($candidate->specialty ?? ''));
-
         $job = JobOrder::query()
             ->where('tenant_id', $orgId)
             ->where('published', true)
             ->findOrFail($id);
 
-        $isBookmarked = CandidateJobBookmark::query()
-            ->where('tenant_id', $orgId)
-            ->where('candidate_id', $candidate->id)
-            ->where('job_order_id', $job->id)
-            ->exists();
+        $isBookmarked = false;
+        if ($candidate) {
+            $isBookmarked = CandidateJobBookmark::query()
+                ->where('tenant_id', $orgId)
+                ->where('candidate_id', $candidate->id)
+                ->where('job_order_id', $job->id)
+                ->exists();
+        }
 
         $row = $job->toArray();
         $row['is_bookmarked'] = $isBookmarked;

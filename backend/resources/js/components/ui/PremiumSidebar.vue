@@ -285,7 +285,7 @@ const groups = computed(() => {
       label: 'Administration',
       show: isOrgSuperAdmin.value,
       items: [
-        { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', routeName: 'dashboard.finance' },
+        { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', routeName: 'dashboard.placements' },
         { id: 'org_home', label: 'Organization Home', icon: 'home', tenantHome: true },
         {
           id: 'facilities_menu',
@@ -325,7 +325,7 @@ const groups = computed(() => {
     {
       id: 'talent',
       label: 'Talent Network',
-      show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isCompliance.value || isFinance.value || isLogistics.value,
+      show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isCompliance.value || isLogistics.value,
       items: [
         { id: 'candidates', label: 'Candidates', icon: 'search', routeName: 'dashboard.candidates' },
       ],
@@ -346,7 +346,7 @@ const groups = computed(() => {
     {
       id: 'operations',
       label: 'Operations',
-      show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isCompliance.value || isFinance.value || isLogistics.value,
+      show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isCompliance.value || isLogistics.value,
       items: [
         { id: 'jobs', label: 'Job Orders', icon: 'briefcase', routeName: 'dashboard.job_orders', show: isOrgSuperAdmin.value || isRecruiter.value },
         { id: 'job_sources', label: 'Job Sources', icon: 'activity', routeName: 'dashboard.job_sources', show: isOrgSuperAdmin.value || isRecruiter.value },
@@ -488,10 +488,11 @@ function navigateTo(item) {
   if (item.tenantHome) {
     const subdomain = String(brand.subdomain || '').trim();
     if (subdomain) {
-      window.location.href = `https://${subdomain}.agenchq.com/home`;
+      window.open(`https://${subdomain}.agenchq.com/home`, '_blank', 'noopener,noreferrer');
       return;
     }
-    router.push({ name: 'tenant.home' });
+    const tenantHomeHref = router.resolve({ name: 'tenant.home' }).href;
+    window.open(tenantHomeHref, '_blank', 'noopener,noreferrer');
     return;
   }
 

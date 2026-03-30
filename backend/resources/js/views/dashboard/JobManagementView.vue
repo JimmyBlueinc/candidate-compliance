@@ -9,7 +9,7 @@
 
         <div class="flex items-center gap-2">
           <Button type="button" label="Refresh" size="small" outlined :loading="loading" @click="refresh" />
-          <Button type="button" label="New Job" size="small" @click="openCreate" />
+          <Button v-if="canCreateJob" type="button" label="New Job" size="small" @click="openCreate" />
         </div>
       </div>
 
@@ -155,6 +155,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
 import { apiDelete, apiGet, apiPost, apiPut, normalizeApiList } from '../../lib/api';
+import { useAuthStore } from '../../stores/auth';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
@@ -168,6 +169,8 @@ const saving = ref(false);
 const deleting = ref(false);
 const error = ref('');
 const formError = ref('');
+const auth = useAuthStore();
+const canCreateJob = ['org_super_admin', 'admin', 'recruiter', 'platform_admin'].includes(String(auth.user?.role || ''));
 
 const rows = ref([]);
 
@@ -240,6 +243,7 @@ function closeModal() {
 }
 
 function openCreate() {
+    if (!canCreateJob) return;
     resetForm();
     modalOpen.value = true;
 }
@@ -292,6 +296,7 @@ async function refresh() {
 }
 
 async function save() {
+    if (!canCreateJob) return;
     formError.value = '';
     saving.value = true;
     try {
