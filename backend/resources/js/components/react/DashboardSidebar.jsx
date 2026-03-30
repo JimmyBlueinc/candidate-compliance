@@ -75,7 +75,7 @@ export default function DashboardSidebar({
       {
         id: 'talent',
         label: 'Talent',
-        show: isOrgSuperAdmin || isRecruiter || isScheduler || isCompliance || isLogistics,
+        show: isOrgSuperAdmin || isRecruiter || isScheduler || isCompliance || isFinance || isLogistics,
         items: [
           { id: 'candidates', label: 'Candidates', icon: 'person_search', routeName: 'dashboard.candidates' },
         ],
@@ -96,7 +96,7 @@ export default function DashboardSidebar({
       {
         id: 'operations',
         label: 'Operations',
-        show: isOrgSuperAdmin || isRecruiter || isScheduler || isCompliance || isLogistics,
+        show: isOrgSuperAdmin || isRecruiter || isScheduler || isCompliance || isFinance || isLogistics,
         items: [
           { id: 'jobs', label: 'Jobs', icon: 'work_outline', routeName: 'dashboard.job_orders', show: isOrgSuperAdmin || isRecruiter },
           { id: 'job_sources', label: 'Sources', icon: 'hub', routeName: 'dashboard.job_sources', show: isOrgSuperAdmin || isRecruiter },

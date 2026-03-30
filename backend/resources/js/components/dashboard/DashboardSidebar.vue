@@ -189,7 +189,7 @@ const groups = computed(() => {
         {
             id: 'talent',
             label: 'Talent',
-            show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isCompliance.value || isLogistics.value,
+            show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isCompliance.value || isFinance.value || isLogistics.value,
             items: [
                 { id: 'candidates', label: 'Candidates', icon: 'person_search', routeName: 'dashboard.candidates' },
             ],
@@ -210,7 +210,7 @@ const groups = computed(() => {
         {
             id: 'operations',
             label: 'Operations',
-            show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isCompliance.value || isLogistics.value,
+            show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value || isCompliance.value || isFinance.value || isLogistics.value,
             items: [
                 { id: 'jobs', label: 'Jobs', icon: 'work_outline', routeName: 'dashboard.job_orders', show: isOrgSuperAdmin.value || isRecruiter.value },
                 { id: 'job_sources', label: 'Sources', icon: 'hub', routeName: 'dashboard.job_sources', show: isOrgSuperAdmin.value || isRecruiter.value },

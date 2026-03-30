@@ -249,6 +249,7 @@ import { useRouter } from 'vue-router';
 import { apiGet } from '../../lib/api';
 import { useBrandStore } from '../../stores/brand';
 import { useUiStore } from '../../stores/ui';
+import { useAuthStore } from '../../stores/auth';
 import { useFeatureFlagStore } from '../../stores/featureFlags';
 import { CircleDollarSign, Wallet, TrendingUp, Sparkles, RefreshCw, Building2, BarChart3, FileText } from 'lucide-vue-next';
 import AppPageHeader from '../../components/ui/AppPageHeader.vue';
@@ -262,8 +263,10 @@ import DashboardActivityFeed from '../../components/dashboard/DashboardActivityF
 
 const brand = useBrandStore();
 const ui = useUiStore();
+const auth = useAuthStore();
 const featureFlagStore = useFeatureFlagStore();
 const router = useRouter();
+const isFinanceRole = computed(() => String(auth.user?.role || '') === 'finance');
 
 const primaryColor = computed(() => brand.primaryColor || 'var(--aq-primary)');
 
@@ -335,6 +338,9 @@ function widgetLayoutClass(key) {
 }
 
 function widgetAllowedByFlags(key) {
+  if (isFinanceRole.value && key === 'activityFeed') {
+    return false;
+  }
   if (key === 'activityFeed') {
     return featureFlagStore.enabled('dashboard.live_activity_feed', true);
   }
