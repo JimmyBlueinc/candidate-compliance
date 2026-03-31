@@ -8,8 +8,8 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "AgencyHQ Frontend Deployment" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 
-# Change to backend directory
-Set-Location $PSScriptRoot\..\backend
+# Change to Agenchq directory
+Set-Location $PSScriptRoot\..\Agenchq
 
 # Step 1: Build frontend
 Write-Host "`n[1/3] Building frontend..." -ForegroundColor Yellow

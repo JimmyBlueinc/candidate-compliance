@@ -6,7 +6,7 @@ echo ========================================
 echo AgencyHQ Frontend Deployment
 echo ========================================
 
-cd backend
+cd /d "%~dp0..\Agenchq"
 
 echo.
 echo [1/3] Building frontend...

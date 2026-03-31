@@ -1,8 +1,6 @@
 name: Deploy to Amazon ECR
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
 
 env:
@@ -46,7 +44,7 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         # Build the docker container and push it to ECR
-        cd backend
+        cd Agenchq
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
