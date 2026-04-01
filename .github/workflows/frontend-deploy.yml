@@ -53,14 +53,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Verify AWS deploy identity
+        run: aws sts get-caller-identity
+
       - name: Upload frontend assets to S3
         run: |
           set -e
           if aws s3 sync Agenchq/public/build s3://${{ env.S3_BUCKET }} --delete; then
             echo "S3 sync with delete completed."
           else
-            echo "Falling back to non-delete upload (missing ListBucket/DeleteObject permission on deploy IAM user)."
-            aws s3 cp Agenchq/public/build s3://${{ env.S3_BUCKET }} --recursive
+            echo "Fallback #1: non-delete recursive upload."
+            if aws s3 cp Agenchq/public/build s3://${{ env.S3_BUCKET }} --recursive; then
+              echo "Fallback #1 succeeded."
+            else
+              echo "Fallback #2: retry with SSE-S3 header for buckets enforcing encryption."
+              aws s3 cp Agenchq/public/build s3://${{ env.S3_BUCKET }} --recursive --sse AES256
+            fi
           fi
 
       - name: Invalidate CloudFront cache
