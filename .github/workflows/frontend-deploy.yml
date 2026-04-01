@@ -19,8 +19,8 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
-  S3_BUCKET: agenchq-frontend
-  CLOUDFRONT_DISTRIBUTION_ID: E16JXL5MNZFIYK
+  S3_BUCKET: agenchq-public
+  CLOUDFRONT_DISTRIBUTION_ID: E2I97BXOOZN75M
 
 jobs:
   deploy-frontend:

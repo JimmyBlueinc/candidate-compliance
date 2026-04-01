@@ -1,6 +1,19 @@
 name: Deploy to Amazon ECR
 
 on:
+  push:
+    branches: ["main"]
+    paths:
+      - "Agenchq/app/**"
+      - "Agenchq/bootstrap/**"
+      - "Agenchq/config/**"
+      - "Agenchq/database/**"
+      - "Agenchq/public/**"
+      - "Agenchq/routes/**"
+      - "Agenchq/composer.json"
+      - "Agenchq/composer.lock"
+      - "Agenchq/Dockerfile"
+      - ".github/workflows/aws.yml"
   workflow_dispatch:
 
 env:
