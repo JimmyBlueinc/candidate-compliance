@@ -163,8 +163,8 @@ const groups = computed(() => {
     return [
         {
             id: 'admin',
-            label: 'Admin',
-            show: isOrgSuperAdmin.value,
+            label: 'HR Admin',
+            show: isOrgSuperAdmin.value || isRecruiter.value,
             items: [
                 { id: 'dashboard', label: 'Dashboard', icon: 'grid_view', routeName: 'dashboard.finance' },
                 { id: 'org_home', label: 'Organization Home', icon: 'home', tenantHome: true },
@@ -215,7 +215,7 @@ const groups = computed(() => {
                 { id: 'jobs', label: 'Jobs', icon: 'work_outline', routeName: 'dashboard.job_orders', show: isOrgSuperAdmin.value || isRecruiter.value },
                 { id: 'job_sources', label: 'Sources', icon: 'hub', routeName: 'dashboard.job_sources', show: isOrgSuperAdmin.value || isRecruiter.value },
                 { id: 'placements', label: 'Placements', icon: 'swap_horiz', routeName: 'dashboard.placements', show: isOrgSuperAdmin.value || isRecruiter.value || isLogistics.value },
-                { id: 'recruiter_tasks', label: 'Recruiter Tasks', icon: 'task_alt', routeName: 'dashboard.recruiter_tasks', show: isOrgSuperAdmin.value || isRecruiter.value },
+                { id: 'recruiter_tasks', label: 'HR Tasks', icon: 'task_alt', routeName: 'dashboard.recruiter_tasks', show: isOrgSuperAdmin.value || isRecruiter.value },
                 { id: 'shifts', label: 'Shifts', icon: 'calendar_today', routeName: 'dashboard.shifts', show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value },
                 { id: 'timesheets', label: 'Timesheets', icon: 'timer', routeName: 'dashboard.timesheets', show: isOrgSuperAdmin.value || isRecruiter.value },
                 { id: 'compliance', label: 'Compliance', icon: 'verified', routeName: 'dashboard.compliance', show: isOrgSuperAdmin.value || isRecruiter.value },

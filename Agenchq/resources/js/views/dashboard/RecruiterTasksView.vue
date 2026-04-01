@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <UiPageHeader
-      title="Recruiter Tasks"
+      title="HR Tasks"
       subtitle="Assign follow-ups, set reminders, and keep hiring operations moving."
     >
       <template #actions>
@@ -105,7 +105,7 @@
       </div>
     </UiCard>
 
-    <Dialog v-model:visible="createOpen" modal header="Create Recruiter Task" :style="{ width: 'min(720px, 96vw)' }">
+    <Dialog v-model:visible="createOpen" modal header="Create HR Task" :style="{ width: 'min(720px, 96vw)' }">
       <div class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>

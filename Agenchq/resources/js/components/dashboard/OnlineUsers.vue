@@ -126,8 +126,8 @@ function formatRole(role) {
   if (!role) return '';
   const roleMap = {
     'org_super_admin': 'Administrator',
-    'admin': 'Admin',
-    'recruiter': 'Recruiter',
+    'admin': 'HR',
+    'recruiter': 'HR',
     'compliance': 'Compliance',
     'scheduler': 'Scheduler',
     'finance': 'Finance',

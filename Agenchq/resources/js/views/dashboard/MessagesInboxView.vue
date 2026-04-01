@@ -2,7 +2,7 @@
   <div class="min-h-[calc(100vh-11rem)] pb-6 flex flex-col gap-6">
     <UiPageHeader
       title="Messages"
-      subtitle="Recruiter-candidate communication center with live presence and fast search."
+      subtitle="HR-candidate communication center with live presence and fast search."
     />
 
     <section class="msg-hero" :style="heroBgStyle">
@@ -250,10 +250,10 @@ function selectTeamGroup() {
 
 function formatRole(role) {
   const roleMap = {
-    org_super_admin: 'Admin',
-    platform_admin: 'Admin',
-    admin: 'Admin',
-    recruiter: 'Recruiter',
+    org_super_admin: 'HR Admin',
+    platform_admin: 'Platform Admin',
+    admin: 'HR',
+    recruiter: 'HR',
     compliance: 'Compliance',
     scheduler: 'Scheduler',
     finance: 'Finance',

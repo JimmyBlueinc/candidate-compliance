@@ -559,19 +559,19 @@ const router = createRouter({
                     path: 'agency-settings',
                     name: 'dashboard.agency_settings',
                     component: AgencySettingsView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'integrations',
                     name: 'dashboard.integrations',
                     component: IntegrationsView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_SCHEDULER, ROLE_COMPLIANCE, ROLE_FINANCE, ROLE_LOGISTICS] },
                 },
                 {
                     path: 'integrations/:key',
                     name: 'dashboard.integrations.detail',
                     component: IntegrationDetailView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER, ROLE_SCHEDULER, ROLE_COMPLIANCE, ROLE_FINANCE, ROLE_LOGISTICS] },
                 },
 
                 {
@@ -596,19 +596,19 @@ const router = createRouter({
                     path: 'analytics',
                     name: 'dashboard.analytics',
                     redirect: { name: 'dashboard.finance' },
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'config',
                     name: 'dashboard.config',
                     component: ConfigurationView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'access',
                     name: 'dashboard.access',
                     component: AccessControlsView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'background_checks',
@@ -632,13 +632,13 @@ const router = createRouter({
                     path: 'activity_logs',
                     name: 'dashboard.activity_logs',
                     component: ActivityLogsView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'email_settings',
                     name: 'dashboard.email_settings',
                     component: EmailSettingsView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'admin_users',
@@ -656,31 +656,31 @@ const router = createRouter({
                     path: 'org_users',
                     name: 'dashboard.org_users',
                     component: OrgUsersView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
 
                 {
                     path: 'facilities',
                     name: 'dashboard.facilities',
                     redirect: { name: 'dashboard.facilities.list' },
-                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'facilities/dashboard',
                     name: 'dashboard.facilities.dashboard',
                     component: FacilitiesView,
-                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'facilities/list',
                     name: 'dashboard.facilities.list',
                     component: FacilitiesView,
-                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'facilities/create',
                     name: 'dashboard.facilities.create',
-                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                     component: FacilitiesView,
                 },
 
@@ -688,7 +688,7 @@ const router = createRouter({
                     path: 'facilities/:id',
                     name: 'dashboard.facilities.detail',
                     component: FacilityDetailView,
-                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_PLATFORM_ADMIN, ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
 
                 {
@@ -745,13 +745,13 @@ const router = createRouter({
                     path: 'templates',
                     name: 'dashboard.templates',
                     component: TemplatesView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'filters',
                     name: 'dashboard.filters',
                     component: SavedFiltersView,
-                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN] },
+                    meta: { allowedRoles: [ROLE_ORG_SUPER_ADMIN, ROLE_ADMIN, ROLE_RECRUITER] },
                 },
                 {
                     path: 'change_password',
@@ -947,7 +947,7 @@ function trackDashboardActivity(to) {
         const current = JSON.parse(localStorage.getItem(key) || '[]');
         const next = [
             {
-                label: String(to?.meta?.title || name).replace(/^dashboard\./, ''),
+                label: toReadableActivityLabel(String(to?.meta?.title || name)),
                 route: name,
                 at: new Date().toISOString(),
             },
@@ -957,6 +957,18 @@ function trackDashboardActivity(to) {
     } catch (_) {
         // no-op: activity tracking should never block navigation
     }
+}
+
+function toReadableActivityLabel(value) {
+    return String(value || '')
+        .replace(/^dashboard\./, '')
+        .replace(/^portal\./, '')
+        .replace(/^facility\./, '')
+        .replace(/\./g, ' ')
+        .replace(/_/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\b\w/g, (ch) => ch.toUpperCase());
 }
 
 router.afterEach((to, from, failure) => {

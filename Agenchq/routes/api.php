@@ -345,7 +345,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () { // 60 
             Route::put('/settings', [\App\Http\Controllers\Api\OrganizationSettingsController::class, 'update']);
         });
 
-        Route::prefix('v1/integrations')->middleware('role.org_owner')->group(function () {
+        Route::prefix('v1/integrations')->middleware('role.admin')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\IntegrationController::class, 'index']);
             Route::get('/{key}', [\App\Http\Controllers\Api\IntegrationController::class, 'show']);
             Route::put('/{key}', [\App\Http\Controllers\Api\IntegrationController::class, 'upsert']);

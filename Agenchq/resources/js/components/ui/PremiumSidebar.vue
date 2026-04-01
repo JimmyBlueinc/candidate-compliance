@@ -254,8 +254,8 @@ function formatRole(r) {
   const roleMap = {
     'platform_admin': 'Platform Admin',
     'org_super_admin': 'Administrator',
-    'admin': 'Admin',
-    'recruiter': 'Recruiter',
+    'admin': 'HR',
+    'recruiter': 'HR',
     'scheduler': 'Scheduler',
     'compliance': 'Compliance',
     'finance': 'Finance',
@@ -282,8 +282,8 @@ const groups = computed(() => {
   return [
     {
       id: 'admin',
-      label: 'Administration',
-      show: isOrgSuperAdmin.value,
+      label: 'HR Administration',
+      show: isOrgSuperAdmin.value || isRecruiter.value,
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', routeName: 'dashboard.finance' },
         { id: 'org_home', label: 'Organization Home', icon: 'home', tenantHome: true },
@@ -351,7 +351,7 @@ const groups = computed(() => {
         { id: 'jobs', label: 'Job Orders', icon: 'briefcase', routeName: 'dashboard.job_orders', show: isOrgSuperAdmin.value || isRecruiter.value },
         { id: 'job_sources', label: 'Job Sources', icon: 'activity', routeName: 'dashboard.job_sources', show: isOrgSuperAdmin.value || isRecruiter.value },
         { id: 'placements', label: 'Placements', icon: 'truck', routeName: 'dashboard.placements', show: isOrgSuperAdmin.value || isRecruiter.value || isLogistics.value },
-        { id: 'recruiter_tasks', label: 'Recruiter Tasks', icon: 'checklist', routeName: 'dashboard.recruiter_tasks', show: isOrgSuperAdmin.value || isRecruiter.value },
+        { id: 'recruiter_tasks', label: 'HR Tasks', icon: 'checklist', routeName: 'dashboard.recruiter_tasks', show: isOrgSuperAdmin.value || isRecruiter.value },
         { id: 'shifts', label: 'Shifts', icon: 'calendar', routeName: 'dashboard.shifts', show: isOrgSuperAdmin.value || isRecruiter.value || isScheduler.value },
         { id: 'timesheets', label: 'Timesheets', icon: 'timer', routeName: 'dashboard.timesheets', show: isOrgSuperAdmin.value || isRecruiter.value },
         { id: 'compliance', label: 'Compliance', icon: 'shield', routeName: 'dashboard.compliance', show: isOrgSuperAdmin.value || isRecruiter.value },

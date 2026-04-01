@@ -305,12 +305,12 @@ const quickMessageUserId = ref('');
 const quickMessageBody = ref('');
 const sendingQuickMessage = ref(false);
 
-const canManage = computed(() => auth.user?.role === 'org_super_admin');
+const canManage = computed(() => ['org_super_admin', 'admin', 'recruiter'].includes(String(auth.user?.role || '')));
 
 const creatableRoles = computed(() => {
   return [
-    { label: 'Recruiter (Admin)', value: ROLE_ADMIN },
-    { label: 'Recruiter', value: ROLE_RECRUITER },
+    { label: 'HR (Admin)', value: ROLE_ADMIN },
+    { label: 'HR', value: ROLE_RECRUITER },
     { label: 'Scheduler', value: ROLE_SCHEDULER },
     { label: 'Compliance', value: ROLE_COMPLIANCE },
     { label: 'Finance', value: ROLE_FINANCE },
@@ -377,8 +377,8 @@ function formatRole(r) {
   if (!r) return '—';
   const roleMap = {
     'org_super_admin': 'Administrator',
-    'admin': 'Admin',
-    'recruiter': 'Recruiter',
+    'admin': 'HR',
+    'recruiter': 'HR',
     'scheduler': 'Scheduler',
     'compliance': 'Compliance',
     'finance': 'Finance',

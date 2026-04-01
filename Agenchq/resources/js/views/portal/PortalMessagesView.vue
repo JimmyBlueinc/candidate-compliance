@@ -56,10 +56,10 @@ onBeforeUnmount(() => {
 
 function formatRole(role) {
   const roleMap = {
-    org_super_admin: 'Admin',
-    platform_admin: 'Admin',
-    admin: 'Admin',
-    recruiter: 'Recruiter',
+    org_super_admin: 'HR Admin',
+    platform_admin: 'Platform Admin',
+    admin: 'HR',
+    recruiter: 'HR',
     compliance: 'Compliance',
     scheduler: 'Scheduler',
     finance: 'Finance',

@@ -15,9 +15,9 @@ class EnsureUserIsOrgOwner
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user() || !in_array($request->user()->role, ['org_super_admin', 'platform_admin'], true)) {
+        if (!$request->user() || !in_array($request->user()->role, ['org_super_admin', 'platform_admin', 'admin', 'recruiter'], true)) {
             return response()->json([
-                'message' => 'Unauthorized. Owner access required.',
+                'message' => 'Unauthorized. Organization admin access required.',
             ], 403);
         }
 
