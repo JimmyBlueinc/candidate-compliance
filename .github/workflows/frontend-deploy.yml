@@ -1,5 +1,5 @@
 name: Deploy Frontend to S3
-# Frontend deploy pipeline (auto on main for frontend paths)
+# Frontend deploy pipeline (auto on main for frontend paths, retry marker)
 
 on:
   push:
